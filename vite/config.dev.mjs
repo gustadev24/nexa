@@ -1,17 +1,28 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from "vite";
+import path from "path";
 
 export default defineConfig({
-    base: './',
-    build: {
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    phaser: ['phaser']
-                }
-            }
-        },
+  base: "./",
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "../src"),
+      "@/scenes": path.resolve(__dirname, "../src/scenes"),
+      "@/entities": path.resolve(__dirname, "../src/entities"),
+      "@/core": path.resolve(__dirname, "../src/core"),
+      "@/ui": path.resolve(__dirname, "../src/ui"),
+      "@/assets": path.resolve(__dirname, "../src/assets"),
     },
-    server: {
-        port: 8080
-    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          phaser: ["phaser"],
+        },
+      },
+    },
+  },
+  server: {
+    port: 8080,
+  },
 });

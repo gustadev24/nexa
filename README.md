@@ -36,24 +36,43 @@ The local development server runs on `http://localhost:8080` by default. Please 
 
 Once the server is running you can edit any of the files in the `src` folder. Vite will automatically recompile your code and then reload the browser.
 
-## Template Project Structure
+## Project Structure
 
-We have provided a default project structure to get you started. This is as follows:
+The project follows a modular structure with path aliases configured for easy imports:
 
-## Template Project Structure
+| Path                         | Description                                                | Alias         |
+|------------------------------|------------------------------------------------------------|---------------|
+| `index.html`                 | A basic HTML page to contain the game.                     |               |
+| `public/assets`              | Game sprites, audio, etc. Served directly at runtime.      |               |
+| `public/style.css`           | Global layout styles.                                      |               |
+| `src/main.ts`                | Application bootstrap.                                     |               |
+| `src/game`                   | Folder containing the game entry point.                    |               |
+| `src/game/main.ts`           | Game entry point: configures and starts the game.          |               |
+| `src/scenes/`                | Phaser game scenes (Boot, Preloader, MainMenu, etc.)       | `@/scenes`    |
+| `src/entities/`              | Game entities (Player, Enemy, Items, etc.)                 | `@/entities`  |
+| `src/core/`                  | Core game logic, utilities, and services                   | `@/core`      |
+| `src/ui/`                    | UI components and HUD elements                             | `@/ui`        |
+| `src/assets/`                | Asset management and references                            | `@/assets`    |
 
-We have provided a default project structure to get you started:
+### Path Aliases
 
-| Path                         | Description                                                |
-|------------------------------|------------------------------------------------------------|
-| `index.html`                 | A basic HTML page to contain the game.                     |
-| `public/assets`              | Game sprites, audio, etc. Served directly at runtime.      |
-| `public/style.css`           | Global layout styles.                                      |
-| `src/main.ts`                | Application bootstrap.                                     |
-| `src/game`                   | Folder containing the game code.                           |
-| `src/game/main.ts`           | Game entry point: configures and starts the game.          |
-| `src/game/scenes`            | Folder with all Phaser game scenes.                        | 
+The project is configured with TypeScript path aliases for cleaner imports:
 
+```typescript
+// Instead of relative paths:
+import { Player } from '../../../entities/Player';
+
+// Use path aliases:
+import { Player } from '@/entities/Player';
+```
+
+Available aliases:
+- `@/*` - Maps to `src/*`
+- `@/scenes/*` - Maps to `src/scenes/*`
+- `@/entities/*` - Maps to `src/entities/*`
+- `@/core/*` - Maps to `src/core/*`
+- `@/ui/*` - Maps to `src/ui/*`
+- `@/assets/*` - Maps to `src/assets/*`
 
 ## Handling Assets
 
