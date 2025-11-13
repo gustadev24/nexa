@@ -1,4 +1,5 @@
 import { Scene } from "phaser";
+import { GameManager } from "@/core/managers";
 
 /**
  * MainMenu Scene - NEXA
@@ -10,15 +11,23 @@ export class MainMenu extends Scene {
   private playButton?: Phaser.GameObjects.Container;
   private title?: Phaser.GameObjects.Text;
   private subtitle?: Phaser.GameObjects.Text;
+  private gameManager: GameManager;
 
   constructor() {
     super("MainMenu");
+    this.gameManager = GameManager.getInstance();
   }
 
   create() {
     const { width, height } = this.scale;
     const centerX = width / 2;
     const centerY = height / 2;
+
+    // Initialize GameManager if needed
+    if (!this.gameManager.isInitialized()) {
+      this.gameManager.initialize();
+      console.log("[MainMenu] GameManager initialized");
+    }
 
     // Create futuristic gradient background
     this.createBackground();
@@ -226,6 +235,12 @@ export class MainMenu extends Scene {
 
   private startGame() {
     console.log("[NEXA] Starting game...");
+
+    // Reset game state before starting new game
+    if (this.gameManager.isGameOver()) {
+      this.gameManager.resetGame(true);
+      console.log("[MainMenu] Game reset for new session");
+    }
 
     // Fade out
     this.cameras.main.fadeOut(500, 0, 17, 34);
