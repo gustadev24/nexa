@@ -1,22 +1,26 @@
-import { Scene } from 'phaser';
+import { Scene } from "phaser";
 
-export class Boot extends Scene
-{
-    constructor ()
-    {
-        super('Boot');
-    }
+/**
+ * Boot Scene - NEXA
+ *
+ * Initializes the game and loads minimal assets required for the menu.
+ * This scene should load very quickly as it has no preloader.
+ */
+export class Boot extends Scene {
+  constructor() {
+    super("Boot");
+  }
 
-    preload ()
-    {
-        //  The Boot Scene is typically used to load in any assets you require for your Preloader, such as a game logo or background.
-        //  The smaller the file size of the assets, the better, as the Boot Scene itself has no preloader.
+  preload() {
+    // Load minimal assets for menu if needed
+    // For now, we use programmatic graphics only
+    console.log("[NEXA] Boot Scene: Initializing...");
+  }
 
-        this.load.image('background', 'assets/bg.png');
-    }
+  create() {
+    console.log("[NEXA] Boot Scene: Complete");
 
-    create ()
-    {
-        this.scene.start('Preloader');
-    }
+    // Immediately transition to MainMenu
+    this.scene.start("MainMenu");
+  }
 }
