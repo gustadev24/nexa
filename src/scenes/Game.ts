@@ -1,4 +1,7 @@
 import { Scene } from "phaser";
+import { GameManager } from "@/core/managers";
+import type { IPlayer } from "@/core/types";
+import { PlayerType, PLAYER_COLORS, GAME_CONSTANTS } from "@/core/types";
 
 /**
  * Game Scene - NEXA
@@ -9,9 +12,12 @@ import { Scene } from "phaser";
 export class Game extends Scene {
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private infoText?: Phaser.GameObjects.Text;
+  private gameManager: GameManager;
+  private statsText?: Phaser.GameObjects.Text;
 
   constructor() {
     super("Game");
+    this.gameManager = GameManager.getInstance();
   }
 
   create() {
@@ -20,6 +26,22 @@ export class Game extends Scene {
     const centerY = height / 2;
 
     this.camera = this.cameras.main;
+
+    // Set this scene as active in GameManager
+    this.gameManager.setActiveScene(this);
+
+    // Initialize game if not already done
+    if (!this.gameManager.isInitialized()) {
+      this.initializeGame();
+    }
+
+    // Start the game
+    if (!this.gameManager.isPlaying()) {
+      const started = this.gameManager.startGame();
+      if (started) {
+        console.log("[NEXA] Game started successfully");
+      }
+    }
 
     // Create game background
     this.createBackground();
@@ -32,14 +54,19 @@ export class Game extends Scene {
 
     // Temporary info text
     this.infoText = this.add
-      .text(centerX, centerY, "NEXA - Game Scene\n\nClick to return to menu", {
-        fontFamily: "Arial",
-        fontSize: "24px",
-        color: "#00FFFF",
-        align: "center",
-        stroke: "#001122",
-        strokeThickness: 4,
-      })
+      .text(
+        centerX,
+        centerY,
+        "NEXA - Game Scene\n\nGame Manager Integrated!\n\nPress R to Reset | ESC to Menu",
+        {
+          fontFamily: "Arial",
+          fontSize: "24px",
+          color: "#00FFFF",
+          align: "center",
+          stroke: "#001122",
+          strokeThickness: 4,
+        },
+      )
       .setOrigin(0.5)
       .setAlpha(0);
 
@@ -51,15 +78,14 @@ export class Game extends Scene {
       ease: "Power2",
     });
 
-    // Temporary: Click to return to menu
-    this.input.once("pointerdown", () => {
-      this.returnToMenu();
-    });
+    // Setup input handlers
+    this.setupInputHandlers();
 
     // Camera fade in
     this.cameras.main.fadeIn(500, 0, 17, 34);
 
     console.log("[NEXA] Game Scene: Ready");
+    this.logGameState();
   }
 
   private createBackground() {
@@ -156,9 +182,9 @@ export class Game extends Scene {
       })
       .setDepth(101);
 
-    // Placeholder stats
-    this.add
-      .text(width - 20, 20, "Energy: 100 | Nodes: 0", {
+    // Dynamic stats text
+    this.statsText = this.add
+      .text(width - 20, 20, this.getStatsText(), {
         fontFamily: "Arial",
         fontSize: "18px",
         color: "#00AAAA",
@@ -173,13 +199,155 @@ export class Game extends Scene {
 
     // Instructions
     this.add
-      .text(width / 2, height - 25, "Game will be implemented here", {
+      .text(width / 2, height - 25, "GameManager Active | Press R to Reset", {
         fontFamily: "Arial",
         fontSize: "16px",
         color: "#006666",
       })
       .setOrigin(0.5)
       .setDepth(101);
+  }
+
+  /**
+   * Initialize the game with test data
+   */
+  private initializeGame(): void {
+    console.log("[Game Scene] Initializing game...");
+
+    // Initialize GameManager
+    this.gameManager.initialize();
+
+    // Create test players
+    const player1: IPlayer = {
+      id: "player-1",
+      name: "Player 1",
+      color: PLAYER_COLORS.BLUE,
+      score: 0,
+      type: PlayerType.HUMAN,
+      isActive: true,
+      isEliminated: false,
+      totalEnergy: GAME_CONSTANTS.DEFAULT_ENERGY,
+      controlledNodes: [],
+    };
+
+    const player2: IPlayer = {
+      id: "player-2",
+      name: "AI Opponent",
+      color: PLAYER_COLORS.RED,
+      score: 0,
+      type: PlayerType.AI,
+      isActive: true,
+      isEliminated: false,
+      totalEnergy: GAME_CONSTANTS.DEFAULT_ENERGY,
+      controlledNodes: [],
+    };
+
+    this.gameManager.addPlayer(player1);
+    this.gameManager.addPlayer(player2);
+
+    console.log("[Game Scene] Game initialized with 2 players");
+  }
+
+  /**
+   * Setup keyboard and mouse input handlers
+   */
+  private setupInputHandlers(): void {
+    // ESC - Return to menu
+    this.input.keyboard?.on("keydown-ESC", () => {
+      this.returnToMenu();
+    });
+
+    // R - Reset game
+    this.input.keyboard?.on("keydown-R", () => {
+      this.resetGame();
+    });
+
+    // Space - Next turn (for testing)
+    this.input.keyboard?.on("keydown-SPACE", () => {
+      if (this.gameManager.isPlaying()) {
+        this.gameManager.nextTurn();
+        this.updateHUD();
+        console.log(`[Game Scene] Turn: ${this.gameManager.getCurrentTurn()}`);
+      }
+    });
+
+    // P - Pause/Resume
+    this.input.keyboard?.on("keydown-P", () => {
+      if (this.gameManager.isPlaying()) {
+        this.gameManager.pauseGame();
+      } else if (this.gameManager.isPaused()) {
+        this.gameManager.resumeGame();
+      }
+      this.updateHUD();
+    });
+  }
+
+  /**
+   * Reset the game
+   */
+  private resetGame(): void {
+    console.log("[Game Scene] Resetting game...");
+
+    this.gameManager.resetGame(true);
+    this.initializeGame();
+    this.gameManager.startGame();
+
+    this.updateHUD();
+
+    // Show reset feedback
+    const { width, height } = this.scale;
+    const resetText = this.add
+      .text(width / 2, height / 2 - 100, "Game Reset!", {
+        fontFamily: "Arial Black",
+        fontSize: "48px",
+        color: "#00FFFF",
+        stroke: "#001122",
+        strokeThickness: 6,
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+
+    this.tweens.add({
+      targets: resetText,
+      alpha: 1,
+      duration: 300,
+      yoyo: true,
+      hold: 1000,
+      onComplete: () => {
+        resetText.destroy();
+      },
+    });
+  }
+
+  /**
+   * Get formatted stats text
+   */
+  private getStatsText(): string {
+    const stats = this.gameManager.getStats();
+    return `Players: ${stats.players} | Nodes: ${stats.nodes} | Turn: ${stats.turn}`;
+  }
+
+  /**
+   * Update HUD with current game state
+   */
+  private updateHUD(): void {
+    if (this.statsText) {
+      this.statsText.setText(this.getStatsText());
+    }
+  }
+
+  /**
+   * Log current game state to console
+   */
+  private logGameState(): void {
+    const stats = this.gameManager.getStats();
+    console.log("[Game Scene] Current State:", {
+      phase: stats.phase,
+      players: stats.players,
+      nodes: stats.nodes,
+      connections: stats.connections,
+      turn: stats.turn,
+    });
   }
 
   private returnToMenu() {
@@ -194,6 +362,15 @@ export class Game extends Scene {
   }
 
   update(_time: number, _delta: number) {
-    // Game loop will be implemented here
+    // Update game manager timestamp
+    if (this.gameManager.isPlaying()) {
+      this.gameManager.updateTimestamp();
+    }
+
+    // Game loop logic will be implemented here:
+    // - Node energy generation
+    // - Connection updates
+    // - AI decision making
+    // - Victory condition checks
   }
 }
