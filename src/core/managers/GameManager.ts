@@ -5,9 +5,9 @@
  * Manages players, nodes, connections, and game lifecycle.
  */
 
-import type { IPlayer, INode, IConnection, IGameState, IGameConfig, ID } from "@/core/types";
+import type { IConnection, ID, IGameConfig, IGameState, INode, IPlayer } from "@/core/types";
 
-import { GamePhase, DEFAULT_GAME_CONFIG } from "@/core/types";
+import { DEFAULT_GAME_CONFIG, GamePhase } from "@/core/types";
 
 /**
  * GameManager Singleton
