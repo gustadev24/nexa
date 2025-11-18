@@ -85,10 +85,77 @@ export class AIController {
       return;
     }
 
-    // Decisión simple: por ahora solo loguear
-    console.log(
-      `[AIController] ${player.name} tiene ${controlledNodes.length} nodo(s) controlado(s)`,
-    );
+    // Lógica de expansión: buscar nodos libres adyacentes
+    this.tryExpand(player, controlledNodes, gameState);
+  }
+
+  /**
+   * Intentar expandirse a un nodo libre adyacente
+   * Ticket 2: Lógica de expansión básica
+   */
+  private tryExpand(player: IPlayer, controlledNodes: INode[], gameState: IGameState): void {
+    // Buscar nodos conectados al dominio de la IA
+    const freeAdjacentNodes = this.findFreeAdjacentNodes(controlledNodes, gameState);
+
+    if (freeAdjacentNodes.length === 0) {
+      console.log(`[AIController] ${player.name} no tiene nodos libres adyacentes`);
+      return;
+    }
+
+    // Seleccionar uno libre aleatorio
+    const randomIndex = Math.floor(Math.random() * freeAdjacentNodes.length);
+    const targetNode = freeAdjacentNodes[randomIndex];
+
+    // Conquistarlo cambiando su propiedad owner
+    this.conquerNode(targetNode, player, gameState);
+  }
+
+  /**
+   * Buscar nodos conectados al dominio de la IA que estén libres (sin owner)
+   */
+  private findFreeAdjacentNodes(controlledNodes: INode[], gameState: IGameState): INode[] {
+    const freeNodes: INode[] = [];
+    const checkedNodeIds = new Set<ID>();
+
+    for (const controlledNode of controlledNodes) {
+      // Buscar nodos conectados a este nodo
+      for (const connectedNodeId of controlledNode.connections) {
+        // Evitar revisar el mismo nodo múltiples veces
+        if (checkedNodeIds.has(connectedNodeId)) {
+          continue;
+        }
+        checkedNodeIds.add(connectedNodeId);
+
+        const node = gameState.nodes.get(connectedNodeId);
+        
+        // Verificar que el nodo existe y está libre (owner === null)
+        if (node && node.owner === null) {
+          freeNodes.push(node);
+        }
+      }
+    }
+
+    return freeNodes;
+  }
+
+  /**
+   * Conquistar un nodo cambiando su owner
+   */
+  private conquerNode(node: INode, player: IPlayer, gameState: IGameState): void {
+    console.log(`[AIController] ${player.name} conquista nodo ${node.id}`);
+    
+    // Cambiar el dueño del nodo
+    node.owner = player.id;
+    
+    // Actualizar en el estado del juego
+    gameState.nodes.set(node.id, node);
+    
+    // Actualizar la lista de nodos controlados del jugador
+    if (!player.controlledNodes.includes(node.id)) {
+      player.controlledNodes.push(node.id);
+    }
+    
+    console.log(`[AIController] ${player.name} ahora controla ${player.controlledNodes.length} nodo(s)`);
   }
 
   /**
