@@ -4,5 +4,6 @@
  * Central export point for all game managers.
  */
 
-export { GameManager } from "./GameManager";
-export { default as getGameManager } from "./GameManager";
+export { AIController } from "./AIController";
+export { GameManager, default as getGameManager } from "./GameManager";
+

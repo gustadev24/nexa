@@ -1,7 +1,7 @@
-import { Scene } from "phaser";
-import { GameManager } from "@/core/managers";
+import { AIController, GameManager } from "@/core/managers";
 import type { IPlayer } from "@/core/types";
-import { PlayerType, PLAYER_COLORS, GAME_CONSTANTS } from "@/core/types";
+import { GAME_CONSTANTS, PLAYER_COLORS, PlayerType } from "@/core/types";
+import { Scene } from "phaser";
 
 /**
  * Game Scene - NEXA
@@ -13,11 +13,13 @@ export class Game extends Scene {
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private infoText?: Phaser.GameObjects.Text;
   private gameManager: GameManager;
+  private aiController: AIController;
   private statsText?: Phaser.GameObjects.Text;
 
   constructor() {
     super("Game");
     this.gameManager = GameManager.getInstance();
+    this.aiController = AIController.getInstance();
   }
 
   create() {
@@ -34,6 +36,9 @@ export class Game extends Scene {
     if (!this.gameManager.isInitialized()) {
       this.initializeGame();
     }
+
+    // Inicializar AI Controller
+    this.aiController.initialize();
 
     // Start the game
     if (!this.gameManager.isPlaying()) {
@@ -361,16 +366,18 @@ export class Game extends Scene {
     });
   }
 
-  update(_time: number, _delta: number) {
+  update(_time: number, delta: number) {
     // Update game manager timestamp
     if (this.gameManager.isPlaying()) {
       this.gameManager.updateTimestamp();
+
+      // AI decision making
+      this.aiController.update(delta);
     }
 
     // Game loop logic will be implemented here:
     // - Node energy generation
     // - Connection updates
-    // - AI decision making
     // - Victory condition checks
   }
 }
