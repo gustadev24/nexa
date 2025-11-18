@@ -426,6 +426,115 @@ export class GameManager {
   }
 
   /**
+   * Ticket 4: Acción Expandir - Convertir nodo neutral a propio
+   * Permite al jugador expandirse a un nodo neutral conectado
+   * 
+   * @param nodeId - ID del nodo neutral a conquistar
+   * @returns true si la expansión fue exitosa, false si falló
+   */
+  public expand(nodeId: ID): boolean {
+    if (!this.gameState) {
+      console.error("[GameManager] Cannot expand: Game not initialized");
+      return false;
+    }
+
+    if (this.gameState.phase !== GamePhase.PLAYING) {
+      console.error("[GameManager] Cannot expand: Game not in PLAYING phase");
+      return false;
+    }
+
+    const currentPlayerId = this.gameState.currentPlayerId;
+    if (!currentPlayerId) {
+      console.error("[GameManager] Cannot expand: No current player");
+      return false;
+    }
+
+    const targetNode = this.gameState.nodes.get(nodeId);
+    if (!targetNode) {
+      console.error(`[GameManager] Cannot expand: Node ${nodeId} not found`);
+      return false;
+    }
+
+    // Subtarea 1: Validar que el nodo sea neutral
+    if (targetNode.owner !== null) {
+      console.error(`[GameManager] Cannot expand: Node ${nodeId} is not neutral (owner: ${targetNode.owner})`);
+      return false;
+    }
+
+    // Subtarea 2: Verificar que esté conectado a un nodo propio
+    const { isConnected, sourceNode } = this.findConnectedOwnedNode(targetNode, currentPlayerId);
+    if (!isConnected || !sourceNode) {
+      console.error(`[GameManager] Cannot expand: Node ${nodeId} is not connected to any owned node`);
+      return false;
+    }
+
+    // Subtarea 3: Reducir energía del nodo origen
+    const expansionCost = 10; // Costo de energía para expandir
+    if (sourceNode.energy < expansionCost) {
+      console.error(`[GameManager] Cannot expand: Source node ${sourceNode.id} has insufficient energy (${sourceNode.energy}/${expansionCost})`);
+      return false;
+    }
+
+    sourceNode.energy -= expansionCost;
+    this.gameState.nodes.set(sourceNode.id, sourceNode);
+
+    // Subtarea 4: Cambiar dueño del nodo al jugador actual
+    targetNode.owner = currentPlayerId;
+    this.gameState.nodes.set(targetNode.id, targetNode);
+
+    // Actualizar lista de nodos controlados del jugador
+    const player = this.gameState.players.get(currentPlayerId);
+    if (player && !player.controlledNodes.includes(nodeId)) {
+      player.controlledNodes.push(nodeId);
+      this.gameState.players.set(currentPlayerId, player);
+    }
+
+    console.log(`[GameManager] Player ${currentPlayerId} expanded to node ${nodeId} (cost: ${expansionCost} energy from ${sourceNode.id})`);
+
+    // Subtarea 5: Notificar a la escena para actualizar colores
+    this.notifySceneUpdate('expand', { nodeId, playerId: currentPlayerId, sourceNodeId: sourceNode.id });
+
+    return true;
+  }
+
+  /**
+   * Buscar un nodo propio conectado al nodo objetivo
+   */
+  private findConnectedOwnedNode(
+    targetNode: INode,
+    playerId: ID
+  ): { isConnected: boolean; sourceNode: INode | null } {
+    if (!this.gameState) {
+      return { isConnected: false, sourceNode: null };
+    }
+
+    // Buscar en todos los nodos del jugador
+    const ownedNodes = Array.from(this.gameState.nodes.values()).filter(
+      node => node.owner === playerId
+    );
+
+    for (const ownedNode of ownedNodes) {
+      // Verificar si el nodo propio tiene conexión al nodo objetivo
+      if (ownedNode.connections.includes(targetNode.id)) {
+        return { isConnected: true, sourceNode: ownedNode };
+      }
+    }
+
+    return { isConnected: false, sourceNode: null };
+  }
+
+  /**
+   * Notificar a la escena sobre actualizaciones del juego
+   */
+  private notifySceneUpdate(action: string, data: any): void {
+    if (this.activeScene) {
+      // Emitir evento personalizado en la escena
+      this.activeScene.events.emit('game-update', { action, data });
+      console.log(`[GameManager] Scene notified: ${action}`, data);
+    }
+  }
+
+  /**
    * Check if game is initialized
    */
   public isInitialized(): boolean {
