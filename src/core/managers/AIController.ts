@@ -17,11 +17,15 @@ export class AIController {
   private static instance: AIController | null = null;
   private gameManager: GameManager;
   private lastDecisionTime: number = 0;
-  private decisionInterval: number = 2000; // 2 segundos entre decisiones
+  
+  // Ticket 3: Variables de comportamiento
+  private aiDelay: number = 2000; // Intervalo de acción en ms (configurable)
+  private aiAggression: number = 70; // Porcentaje de chance de actuar (0-100)
 
   private constructor() {
     this.gameManager = GameManager.getInstance();
     console.log("[AIController] Controlador AI creado");
+    console.log(`[AIController] Configuración inicial - Delay: ${this.aiDelay}ms, Aggression: ${this.aiAggression}%`);
   }
 
   /**
@@ -57,8 +61,8 @@ export class AIController {
     // Actualizar temporizador
     this.lastDecisionTime += deltaTime;
 
-    // Tomar decisiones cada cierto intervalo
-    if (this.lastDecisionTime >= this.decisionInterval) {
+    // Tomar decisiones cada cierto intervalo (aiDelay)
+    if (this.lastDecisionTime >= this.aiDelay) {
       this.lastDecisionTime = 0;
       this.makeDecisions(gameState);
     }
@@ -92,6 +96,7 @@ export class AIController {
   /**
    * Intentar expandirse a un nodo libre adyacente
    * Ticket 2: Lógica de expansión básica
+   * Ticket 3: Variables de comportamiento (aiAggression)
    */
   private tryExpand(player: IPlayer, controlledNodes: INode[], gameState: IGameState): void {
     // Buscar nodos conectados al dominio de la IA
@@ -101,6 +106,17 @@ export class AIController {
       console.log(`[AIController] ${player.name} no tiene nodos libres adyacentes`);
       return;
     }
+
+    // Ticket 3: Aplicar aiAggression - porcentaje de chance de actuar
+    const random = Math.random() * 100;
+    console.log(`[AIController] ${player.name} - Roll: ${random.toFixed(1)}% vs Aggression: ${this.aiAggression}%`);
+    
+    if (random > this.aiAggression) {
+      console.log(`[AIController] ${player.name} decide NO actuar esta ronda (chance fallido)`);
+      return;
+    }
+
+    console.log(`[AIController] ${player.name} decide ACTUAR (${freeAdjacentNodes.length} nodos disponibles)`);
 
     // Seleccionar uno libre aleatorio
     const randomIndex = Math.floor(Math.random() * freeAdjacentNodes.length);
@@ -181,6 +197,34 @@ export class AIController {
   public reset(): void {
     this.lastDecisionTime = 0;
     console.log("[AIController] Reiniciado");
+  }
+
+  /**
+   * Ticket 3: Configurar intervalo de acción (aiDelay)
+   * @param delay - Intervalo en milisegundos entre decisiones
+   */
+  public setAiDelay(delay: number): void {
+    this.aiDelay = Math.max(100, delay); // Mínimo 100ms
+    console.log(`[AIController] aiDelay configurado a ${this.aiDelay}ms`);
+  }
+
+  /**
+   * Ticket 3: Configurar agresividad (aiAggression)
+   * @param aggression - Porcentaje de chance de actuar (0-100)
+   */
+  public setAiAggression(aggression: number): void {
+    this.aiAggression = Math.max(0, Math.min(100, aggression)); // Clamp 0-100
+    console.log(`[AIController] aiAggression configurado a ${this.aiAggression}%`);
+  }
+
+  /**
+   * Obtener configuración actual
+   */
+  public getConfig(): { aiDelay: number; aiAggression: number } {
+    return {
+      aiDelay: this.aiDelay,
+      aiAggression: this.aiAggression,
+    };
   }
 
   /**
