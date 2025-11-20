@@ -1,7 +1,7 @@
-import { Boot } from "@/scenes/Boot";
-import { Game as MainGame } from "@/scenes/Game";
-import { MainMenu } from "@/scenes/MainMenu";
-import { AUTO, Game } from "phaser";
+import { Boot } from '@/scenes/Boot';
+import { Game as MainGame } from '@/scenes/Game';
+import { MainMenu } from '@/scenes/MainMenu';
+import { AUTO, Game } from 'phaser';
 
 //  NEXA Game Configuration
 //  Find out more information about the Game Config at:
@@ -10,11 +10,11 @@ const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
   width: 1024,
   height: 768,
-  parent: "game-container",
-  backgroundColor: "#001122",
+  parent: 'game-container',
+  backgroundColor: '#001122',
   scene: [Boot, MainMenu, MainGame],
   physics: {
-    default: "arcade",
+    default: 'arcade',
     arcade: {
       gravity: { y: 0, x: 0 },
       debug: false,

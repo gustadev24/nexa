@@ -5,8 +5,8 @@
  * Players control networks of nodes and compete for dominance.
  */
 
-import type { ID, IColor } from "./common.types";
-import { PlayerType, AIStrategyType, AIDifficulty } from "./common.types";
+import type { ID, IColor } from './common.types';
+import { PlayerType, AIStrategyType, AIDifficulty } from './common.types';
 
 /**
  * Main Player interface
@@ -94,7 +94,7 @@ export interface IPlayerAction {
   playerId: ID;
   actionType: string;
   timestamp: number;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 /**

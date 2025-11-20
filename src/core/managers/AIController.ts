@@ -10,9 +10,9 @@
  * - Strategic node capture
  */
 
-import type { ID, IGameState, INode, IPlayer, IConnection } from "@/core/types";
-import { GamePhase, PlayerType, NodeType } from "@/core/types";
-import { GameManager } from "./GameManager";
+import type { ID, IGameState, INode, IPlayer, IConnection } from '@/core/types';
+import { GamePhase, PlayerType, NodeType } from '@/core/types';
+import { GameManager } from './GameManager';
 
 /**
  * AIController Singleton
@@ -21,15 +21,15 @@ import { GameManager } from "./GameManager";
 export class AIController {
   private static instance: AIController | null = null;
   private gameManager: GameManager;
-  private lastDecisionTime: number = 0;
+  private lastDecisionTime = 0;
 
   // AI behavior configuration (aligned with NEXA document)
-  private aiDelay: number = 1000; // Decision interval in ms
-  private aiAggression: number = 70; // Aggression level (0-100)
+  private aiDelay = 1000; // Decision interval in ms
+  private aiAggression = 70; // Aggression level (0-100)
 
   private constructor() {
     this.gameManager = GameManager.getInstance();
-    console.log("[AIController] AI Controller created (NEXA System)");
+    console.log('[AIController] AI Controller created (NEXA System)');
     console.log(
       `[AIController] Config - Delay: ${this.aiDelay}ms, Aggression: ${this.aiAggression}%`,
     );
@@ -50,7 +50,7 @@ export class AIController {
    */
   public initialize(): void {
     this.lastDecisionTime = 0;
-    console.log("[AIController] Initialized");
+    console.log('[AIController] Initialized');
   }
 
   /**
@@ -112,7 +112,8 @@ export class AIController {
 
     if (attackOpportunity) {
       this.executeAttack(player, attackOpportunity, gameState);
-    } else {
+    }
+    else {
       // No good attack found, focus on defense
       this.adjustDefense(player, controlledNodes, gameState);
     }
@@ -140,7 +141,7 @@ export class AIController {
 
     for (const sourceNode of controlledNodes) {
       // Find connections from this node
-      for (const [_, connection] of gameState.connections) {
+      for (const [, connection] of gameState.connections) {
         if (connection.sourceNodeId !== sourceNode.id) continue;
 
         const targetNode = gameState.nodes.get(connection.targetNodeId);
@@ -155,7 +156,8 @@ export class AIController {
         // Priority 1: Energy nodes (high value)
         if (targetNode.type === NodeType.ENERGY) {
           priority += 100;
-        } else if (targetNode.type === NodeType.SUPER_ENERGY) {
+        }
+        else if (targetNode.type === NodeType.SUPER_ENERGY) {
           priority += 200;
         }
 
@@ -169,7 +171,8 @@ export class AIController {
           const defenseStrength = targetNode.defenseEnergy;
           if (defenseStrength < 30) {
             priority += 40;
-          } else if (defenseStrength < 60) {
+          }
+          else if (defenseStrength < 60) {
             priority += 20;
           }
         }
@@ -253,7 +256,7 @@ export class AIController {
    */
   private adjustDefense(player: IPlayer, _controlledNodes: INode[], gameState: IGameState): void {
     // Find connections with assigned energy
-    for (const [_, connection] of gameState.connections) {
+    for (const [, connection] of gameState.connections) {
       const sourceNode = gameState.nodes.get(connection.sourceNodeId);
       if (!sourceNode || sourceNode.owner !== player.id) continue;
 
@@ -276,7 +279,7 @@ export class AIController {
    */
   private getTotalAssignedEnergyByPlayer(playerId: ID, gameState: IGameState): number {
     let total = 0;
-    for (const [_, connection] of gameState.connections) {
+    for (const [, connection] of gameState.connections) {
       const sourceNode = gameState.nodes.get(connection.sourceNodeId);
       if (sourceNode && sourceNode.owner === playerId) {
         total += connection.assignedEnergy;
@@ -290,7 +293,7 @@ export class AIController {
    */
   private getAIPlayers(gameState: IGameState): IPlayer[] {
     return Array.from(gameState.players.values()).filter(
-      (player) => player.type === PlayerType.AI && !player.isEliminated && player.isActive,
+      player => player.type === PlayerType.AI && !player.isEliminated && player.isActive,
     );
   }
 
@@ -298,7 +301,7 @@ export class AIController {
    * Get nodes controlled by a player
    */
   private getControlledNodes(playerId: ID, gameState: IGameState): INode[] {
-    return Array.from(gameState.nodes.values()).filter((node) => node.owner === playerId);
+    return Array.from(gameState.nodes.values()).filter(node => node.owner === playerId);
   }
 
   /**
@@ -306,7 +309,7 @@ export class AIController {
    */
   public reset(): void {
     this.lastDecisionTime = 0;
-    console.log("[AIController] Reset");
+    console.log('[AIController] Reset');
   }
 
   /**

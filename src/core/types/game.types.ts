@@ -5,11 +5,11 @@
  * This includes the main game state, game actions, and game settings.
  */
 
-import type { ID, Timestamp } from "./common.types";
-import { GamePhase, GameDifficulty, ActionType } from "./common.types";
-import type { INode } from "./node.types";
-import type { IConnection } from "./connection.types";
-import type { IPlayer } from "./player.types";
+import type { ID, Timestamp } from './common.types';
+import { GamePhase, GameDifficulty, ActionType } from './common.types';
+import type { INode } from './node.types';
+import type { IConnection } from './connection.types';
+import type { IPlayer } from './player.types';
 
 /**
  * Main Game State interface
@@ -78,9 +78,9 @@ export interface IVictoryConditions {
  * - INITIAL_NODE_LOST: Instant defeat when initial node is captured
  */
 export enum VictoryType {
-  DOMINATION = "DOMINATION", // Control 70% of nodes for 10 seconds
-  TIME_LIMIT = "TIME_LIMIT", // Most nodes at 3-minute limit
-  INITIAL_NODE_LOST = "INITIAL_NODE_LOST", // Instant defeat condition
+  DOMINATION = 'DOMINATION', // Control 70% of nodes for 10 seconds
+  TIME_LIMIT = 'TIME_LIMIT', // Most nodes at 3-minute limit
+  INITIAL_NODE_LOST = 'INITIAL_NODE_LOST', // Instant defeat condition
 }
 
 /**
@@ -202,26 +202,26 @@ export interface IGameEvent {
   nodeId?: ID;
   connectionId?: ID;
   message: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 /**
  * Game event types
  */
 export enum GameEventType {
-  GAME_START = "GAME_START",
-  GAME_END = "GAME_END",
-  TURN_START = "TURN_START",
-  TURN_END = "TURN_END",
-  NODE_CAPTURED = "NODE_CAPTURED",
-  NODE_LOST = "NODE_LOST",
-  CONNECTION_BUILT = "CONNECTION_BUILT",
-  CONNECTION_DESTROYED = "CONNECTION_DESTROYED",
-  ATTACK_SUCCESS = "ATTACK_SUCCESS",
-  ATTACK_FAILED = "ATTACK_FAILED",
-  PLAYER_ELIMINATED = "PLAYER_ELIMINATED",
-  ENERGY_THRESHOLD_REACHED = "ENERGY_THRESHOLD_REACHED",
-  VICTORY = "VICTORY",
+  GAME_START = 'GAME_START',
+  GAME_END = 'GAME_END',
+  TURN_START = 'TURN_START',
+  TURN_END = 'TURN_END',
+  NODE_CAPTURED = 'NODE_CAPTURED',
+  NODE_LOST = 'NODE_LOST',
+  CONNECTION_BUILT = 'CONNECTION_BUILT',
+  CONNECTION_DESTROYED = 'CONNECTION_DESTROYED',
+  ATTACK_SUCCESS = 'ATTACK_SUCCESS',
+  ATTACK_FAILED = 'ATTACK_FAILED',
+  PLAYER_ELIMINATED = 'PLAYER_ELIMINATED',
+  ENERGY_THRESHOLD_REACHED = 'ENERGY_THRESHOLD_REACHED',
+  VICTORY = 'VICTORY',
 }
 
 /**

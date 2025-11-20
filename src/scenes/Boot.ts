@@ -1,4 +1,4 @@
-import { Scene } from "phaser";
+import { Scene } from 'phaser';
 
 /**
  * Boot Scene - NEXA
@@ -8,19 +8,19 @@ import { Scene } from "phaser";
  */
 export class Boot extends Scene {
   constructor() {
-    super("Boot");
+    super('Boot');
   }
 
   preload() {
     // Load minimal assets for menu if needed
     // For now, we use programmatic graphics only
-    console.log("[NEXA] Boot Scene: Initializing...");
+    console.log('[NEXA] Boot Scene: Initializing...');
   }
 
   create() {
-    console.log("[NEXA] Boot Scene: Complete");
+    console.log('[NEXA] Boot Scene: Complete');
 
     // Immediately transition to MainMenu
-    this.scene.start("MainMenu");
+    this.scene.start('MainMenu');
   }
 }

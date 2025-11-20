@@ -20,9 +20,9 @@ import type {
   IGameState,
   INode,
   IPlayer,
-} from "@/core/types";
+} from '@/core/types';
 
-import { DEFAULT_GAME_CONFIG, GamePhase, NodeType } from "@/core/types";
+import { DEFAULT_GAME_CONFIG, GamePhase, NodeType } from '@/core/types';
 
 /**
  * GameManager Singleton
@@ -38,8 +38,8 @@ export class GameManager {
   private activeScene: Phaser.Scene | null = null;
 
   // Real-time intervals
-  private attackIntervalTimer: number = 0;
-  private defenseUpdateTimer: number = 0;
+  private attackIntervalTimer = 0;
+  private defenseUpdateTimer = 0;
 
   // Victory condition tracking
   private dominationStartTime: number | null = null;
@@ -47,7 +47,7 @@ export class GameManager {
 
   // Private constructor for singleton
   private constructor() {
-    console.log("[GameManager] Instance created (NEXA Document Aligned)");
+    console.log('[GameManager] Instance created (NEXA Document Aligned)');
   }
 
   /**
@@ -64,7 +64,7 @@ export class GameManager {
    * Initialize the game with configuration
    */
   public initialize(config?: Partial<IGameConfig>): void {
-    console.log("[GameManager] Initializing game (NEXA System)...");
+    console.log('[GameManager] Initializing game (NEXA System)...');
 
     const gameConfig: IGameConfig = {
       ...DEFAULT_GAME_CONFIG,
@@ -91,7 +91,7 @@ export class GameManager {
     this.dominationStartTime = null;
     this.dominationPlayerId = null;
 
-    console.log("[GameManager] Game initialized with NEXA config:", gameConfig);
+    console.log('[GameManager] Game initialized with NEXA config:', gameConfig);
   }
 
   /**
@@ -100,19 +100,19 @@ export class GameManager {
    */
   public startGame(): boolean {
     if (!this.gameState) {
-      console.error("[GameManager] Cannot start game: Not initialized");
+      console.error('[GameManager] Cannot start game: Not initialized');
       return false;
     }
 
     if (this.gameState.phase !== GamePhase.SETUP) {
-      console.warn("[GameManager] Game already started");
+      console.warn('[GameManager] Game already started');
       return false;
     }
 
     // Validate minimum requirements
     if (this.gameState.players.size < this.gameState.config.minPlayers) {
       console.error(
-        "[GameManager] Cannot start: Not enough players",
+        '[GameManager] Cannot start: Not enough players',
         `(${this.gameState.players.size}/${this.gameState.config.minPlayers})`,
       );
       return false;
@@ -138,7 +138,7 @@ export class GameManager {
     this.gameState.startTime = Date.now();
     this.gameState.lastUpdateTime = Date.now();
 
-    console.log("[GameManager] Game started! (NEXA Real-Time System)");
+    console.log('[GameManager] Game started! (NEXA Real-Time System)');
     console.log(`[GameManager] Players: ${this.gameState.players.size}`);
     console.log(`[GameManager] Nodes: ${this.gameState.nodes.size}`);
     console.log(`[GameManager] Time Limit: ${this.gameState.config.timeLimit}ms (3 minutes)`);
@@ -206,12 +206,12 @@ export class GameManager {
       if (!player) continue;
 
       // Calculate energy assigned to outgoing edges from this node
-      let assignedToEdges = 0;
-      for (const [, conn] of this.gameState.connections) {
-        if (conn.sourceNodeId === nodeId && conn.assignedEnergy > 0) {
-          assignedToEdges += conn.assignedEnergy;
-        }
-      }
+      // let assignedToEdges = 0;
+      // for (const [, conn] of this.gameState.connections) {
+      //   if (conn.sourceNodeId === nodeId && conn.assignedEnergy > 0) {
+      //     assignedToEdges += conn.assignedEnergy;
+      //   }
+      // }
 
       // Defense = Total player energy - energy assigned to all edges from all nodes
       // For simplicity, we calculate per-node defense based on node's proportion
@@ -282,7 +282,7 @@ export class GameManager {
 
       // Remove arrived packets
       connection.energyPackets = connection.energyPackets.filter(
-        (p) => !packetsToRemove.includes(p.id),
+        p => !packetsToRemove.includes(p.id),
       );
 
       // Check for collisions between enemy packets
@@ -376,7 +376,7 @@ export class GameManager {
     if (previousOwner !== null) {
       const prevPlayer = this.gameState.players.get(previousOwner);
       if (prevPlayer) {
-        prevPlayer.controlledNodes = prevPlayer.controlledNodes.filter((id) => id !== node.id);
+        prevPlayer.controlledNodes = prevPlayer.controlledNodes.filter(id => id !== node.id);
         this.gameState.players.set(previousOwner, prevPlayer);
       }
     }
@@ -399,7 +399,8 @@ export class GameManager {
         console.log(
           `[GameManager] Energy bonus! Player ${newOwnerId} total energy: ${newOwner.totalEnergy}`,
         );
-      } else if (node.type === NodeType.SUPER_ENERGY) {
+      }
+      else if (node.type === NodeType.SUPER_ENERGY) {
         newOwner.totalEnergy += 150;
         console.log(
           `[GameManager] Super Energy bonus! Player ${newOwnerId} total energy: ${newOwner.totalEnergy}`,
@@ -410,7 +411,7 @@ export class GameManager {
     }
 
     // Notify scene of capture
-    this.notifySceneUpdate("node-captured", {
+    this.notifySceneUpdate('node-captured', {
       nodeId: node.id,
       newOwnerId: newOwnerId,
       previousOwner: previousOwner,
@@ -443,7 +444,7 @@ export class GameManager {
     if (previousOwner !== null) {
       const player = this.gameState.players.get(previousOwner);
       if (player) {
-        player.controlledNodes = player.controlledNodes.filter((id) => id !== node.id);
+        player.controlledNodes = player.controlledNodes.filter(id => id !== node.id);
         this.gameState.players.set(previousOwner, player);
       }
     }
@@ -452,7 +453,7 @@ export class GameManager {
     node.defenseEnergy = 0;
     this.gameState.nodes.set(node.id, node);
 
-    this.notifySceneUpdate("node-neutralized", {
+    this.notifySceneUpdate('node-neutralized', {
       nodeId: node.id,
       previousOwner: previousOwner,
     });
@@ -480,12 +481,14 @@ export class GameManager {
             packets.splice(i, 1);
             i--;
             break;
-          } else if (p1.amount > p2.amount) {
+          }
+          else if (p1.amount > p2.amount) {
             // P1 survives
             p1.amount -= p2.amount;
             packets.splice(j, 1);
             j--;
-          } else {
+          }
+          else {
             // P2 survives
             p2.amount -= p1.amount;
             packets.splice(i, 1);
@@ -514,7 +517,7 @@ export class GameManager {
 
     // Check if only one player remains
     const activePlayers = Array.from(this.gameState.players.values()).filter(
-      (p) => !p.isEliminated,
+      p => !p.isEliminated,
     );
 
     if (activePlayers.length === 1) {
@@ -548,7 +551,8 @@ export class GameManager {
           console.log(
             `[GameManager] Player ${playerId} started domination! (${controlledNodes}/${totalNodes} nodes)`,
           );
-        } else if (this.dominationStartTime !== null) {
+        }
+        else if (this.dominationStartTime !== null) {
           const dominationDuration = Date.now() - this.dominationStartTime;
           if (dominationDuration >= this.gameState.config.victoryConditions.controlDuration) {
             console.log(`[GameManager] Player ${playerId} achieved DOMINATION VICTORY!`);
@@ -556,7 +560,8 @@ export class GameManager {
             return;
           }
         }
-      } else {
+      }
+      else {
         // Player lost domination
         if (this.dominationPlayerId === playerId) {
           console.log(`[GameManager] Player ${playerId} lost domination`);
@@ -576,7 +581,7 @@ export class GameManager {
 
     const elapsed = Date.now() - this.gameState.startTime;
     if (elapsed >= this.gameState.config.timeLimit) {
-      console.log("[GameManager] Time limit reached!");
+      console.log('[GameManager] Time limit reached!');
 
       // Find player with most nodes
       let maxNodes = 0;
@@ -591,15 +596,17 @@ export class GameManager {
           maxNodes = nodeCount;
           winnerId = playerId;
           tie = false;
-        } else if (nodeCount === maxNodes) {
+        }
+        else if (nodeCount === maxNodes) {
           tie = true;
         }
       }
 
       if (tie) {
-        console.log("[GameManager] Game ended in TIE!");
+        console.log('[GameManager] Game ended in TIE!');
         this.endGame(null);
-      } else if (winnerId) {
+      }
+      else if (winnerId) {
         console.log(`[GameManager] Player ${winnerId} wins by node count!`);
         this.endGame(winnerId);
       }
@@ -613,7 +620,7 @@ export class GameManager {
     if (!this.gameState) return 0;
 
     let total = 0;
-    for (const [_, connection] of this.gameState.connections) {
+    for (const [, connection] of this.gameState.connections) {
       const sourceNode = this.gameState.nodes.get(connection.sourceNodeId);
       if (sourceNode && sourceNode.owner === playerId) {
         total += connection.assignedEnergy;
@@ -654,11 +661,11 @@ export class GameManager {
   /**
    * Reset the game to initial state
    */
-  public resetGame(preserveConfig: boolean = true): void {
-    console.log("[GameManager] Resetting game...");
+  public resetGame(preserveConfig = true): void {
+    console.log('[GameManager] Resetting game...');
 
     if (!this.gameState) {
-      console.warn("[GameManager] No game state to reset");
+      console.warn('[GameManager] No game state to reset');
       return;
     }
 
@@ -681,7 +688,7 @@ export class GameManager {
     this.dominationStartTime = null;
     this.dominationPlayerId = null;
 
-    console.log("[GameManager] Game reset complete");
+    console.log('[GameManager] Game reset complete');
   }
 
   /**
@@ -692,7 +699,7 @@ export class GameManager {
 
     if (this.gameState.phase === GamePhase.PLAYING) {
       this.gameState.phase = GamePhase.PAUSED;
-      console.log("[GameManager] Game paused");
+      console.log('[GameManager] Game paused');
     }
   }
 
@@ -704,7 +711,7 @@ export class GameManager {
 
     if (this.gameState.phase === GamePhase.PAUSED) {
       this.gameState.phase = GamePhase.PLAYING;
-      console.log("[GameManager] Game resumed");
+      console.log('[GameManager] Game resumed');
     }
   }
 
@@ -717,14 +724,15 @@ export class GameManager {
     this.gameState.phase = GamePhase.GAME_OVER;
     this.gameState.winner = winnerId ?? null;
 
-    console.log("[GameManager] Game ended");
+    console.log('[GameManager] Game ended');
     if (winnerId) {
       console.log(`[GameManager] Winner: ${winnerId}`);
-    } else {
-      console.log("[GameManager] Game ended in tie");
+    }
+    else {
+      console.log('[GameManager] Game ended in tie');
     }
 
-    this.notifySceneUpdate("game-over", { winnerId });
+    this.notifySceneUpdate('game-over', { winnerId });
   }
 
   /**
@@ -748,12 +756,12 @@ export class GameManager {
    */
   public addPlayer(player: IPlayer): boolean {
     if (!this.gameState) {
-      console.error("[GameManager] Cannot add player: Game not initialized");
+      console.error('[GameManager] Cannot add player: Game not initialized');
       return false;
     }
 
     if (this.gameState.players.size >= this.gameState.config.maxPlayers) {
-      console.error("[GameManager] Cannot add player: Max players reached");
+      console.error('[GameManager] Cannot add player: Max players reached');
       return false;
     }
 
@@ -801,7 +809,7 @@ export class GameManager {
    */
   public addNode(node: INode): boolean {
     if (!this.gameState) {
-      console.error("[GameManager] Cannot add node: Game not initialized");
+      console.error('[GameManager] Cannot add node: Game not initialized');
       return false;
     }
 
@@ -849,7 +857,7 @@ export class GameManager {
    */
   public addConnection(connection: IConnection): boolean {
     if (!this.gameState) {
-      console.error("[GameManager] Cannot add connection: Game not initialized");
+      console.error('[GameManager] Cannot add connection: Game not initialized');
       return false;
     }
 
@@ -970,9 +978,9 @@ export class GameManager {
   /**
    * Notificar a la escena sobre actualizaciones del juego
    */
-  private notifySceneUpdate(action: string, data: any): void {
+  private notifySceneUpdate(action: string, data: unknown): void {
     if (this.activeScene) {
-      this.activeScene.events.emit("game-update", { action, data });
+      this.activeScene.events.emit('game-update', { action, data });
       console.log(`[GameManager] Scene notified: ${action}`, data);
     }
   }
@@ -1010,7 +1018,7 @@ export class GameManager {
    */
   public static destroy(): void {
     if (GameManager.instance) {
-      console.log("[GameManager] Instance destroyed");
+      console.log('[GameManager] Instance destroyed');
       GameManager.instance = null;
     }
   }

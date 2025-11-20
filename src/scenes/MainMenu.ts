@@ -1,5 +1,5 @@
-import { Scene } from "phaser";
-import { GameManager } from "@/core/managers";
+import { Scene } from 'phaser';
+import { GameManager } from '@/core/managers';
 
 /**
  * MainMenu Scene - NEXA
@@ -14,7 +14,7 @@ export class MainMenu extends Scene {
   private gameManager: GameManager;
 
   constructor() {
-    super("MainMenu");
+    super('MainMenu');
     this.gameManager = GameManager.getInstance();
   }
 
@@ -26,7 +26,7 @@ export class MainMenu extends Scene {
     // Initialize GameManager if needed
     if (!this.gameManager.isInitialized()) {
       this.gameManager.initialize();
-      console.log("[MainMenu] GameManager initialized");
+      console.log('[MainMenu] GameManager initialized');
     }
 
     // Create futuristic gradient background
@@ -37,11 +37,11 @@ export class MainMenu extends Scene {
 
     // Game Title
     this.title = this.add
-      .text(centerX, centerY - 150, "NEXA", {
-        fontFamily: "Arial Black, sans-serif",
-        fontSize: "96px",
-        color: "#00FFFF",
-        stroke: "#0088AA",
+      .text(centerX, centerY - 150, 'NEXA', {
+        fontFamily: 'Arial Black, sans-serif',
+        fontSize: '96px',
+        color: '#00FFFF',
+        stroke: '#0088AA',
         strokeThickness: 4,
       })
       .setOrigin(0.5)
@@ -49,10 +49,10 @@ export class MainMenu extends Scene {
 
     // Subtitle
     this.subtitle = this.add
-      .text(centerX, centerY - 70, "Nexus Expansion Algorithm", {
-        fontFamily: "Arial, sans-serif",
-        fontSize: "24px",
-        color: "#00AAAA",
+      .text(centerX, centerY - 70, 'Nexus Expansion Algorithm', {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '24px',
+        color: '#00AAAA',
         letterSpacing: 4,
       })
       .setOrigin(0.5)
@@ -66,10 +66,10 @@ export class MainMenu extends Scene {
 
     // Version info
     this.add
-      .text(width - 20, height - 20, "v1.0.0", {
-        fontFamily: "Arial",
-        fontSize: "16px",
-        color: "#006666",
+      .text(width - 20, height - 20, 'v1.0.0', {
+        fontFamily: 'Arial',
+        fontSize: '16px',
+        color: '#006666',
       })
       .setOrigin(1, 1);
   }
@@ -95,7 +95,7 @@ export class MainMenu extends Scene {
       duration: 2000,
       yoyo: true,
       repeat: -1,
-      ease: "Sine.easeInOut",
+      ease: 'Sine.easeInOut',
     });
   }
 
@@ -121,7 +121,7 @@ export class MainMenu extends Scene {
       duration: 3000,
       yoyo: true,
       repeat: -1,
-      ease: "Sine.easeInOut",
+      ease: 'Sine.easeInOut',
     });
   }
 
@@ -134,10 +134,10 @@ export class MainMenu extends Scene {
 
     // Button text
     const buttonText = this.add
-      .text(0, 0, "PLAY", {
-        fontFamily: "Arial Black, sans-serif",
-        fontSize: "32px",
-        color: "#00FFFF",
+      .text(0, 0, 'PLAY', {
+        fontFamily: 'Arial Black, sans-serif',
+        fontSize: '32px',
+        color: '#00FFFF',
         letterSpacing: 2,
       })
       .setOrigin(0.5);
@@ -152,7 +152,7 @@ export class MainMenu extends Scene {
     buttonBg.setInteractive({ useHandCursor: true });
 
     // Hover effects
-    buttonBg.on("pointerover", () => {
+    buttonBg.on('pointerover', () => {
       glow.setVisible(true);
       buttonBg.setFillStyle(0x00ffff, 0.2);
       buttonText.setScale(1.1);
@@ -161,18 +161,18 @@ export class MainMenu extends Scene {
         targets: glow,
         alpha: 0.3,
         duration: 300,
-        ease: "Power2",
+        ease: 'Power2',
       });
     });
 
-    buttonBg.on("pointerout", () => {
+    buttonBg.on('pointerout', () => {
       buttonBg.setFillStyle(0x00ffff, 0);
       buttonText.setScale(1);
       glow.setVisible(false);
     });
 
     // Click handler
-    buttonBg.on("pointerdown", () => {
+    buttonBg.on('pointerdown', () => {
       // Flash effect
       this.cameras.main.flash(300, 0, 255, 255);
 
@@ -197,7 +197,7 @@ export class MainMenu extends Scene {
       duration: 1500,
       yoyo: true,
       repeat: -1,
-      ease: "Sine.easeInOut",
+      ease: 'Sine.easeInOut',
     });
 
     container.setAlpha(0);
@@ -210,7 +210,7 @@ export class MainMenu extends Scene {
       targets: this.title,
       alpha: 1,
       duration: 1000,
-      ease: "Power2",
+      ease: 'Power2',
     });
 
     // Fade in subtitle
@@ -219,34 +219,34 @@ export class MainMenu extends Scene {
       alpha: 1,
       duration: 1000,
       delay: 300,
-      ease: "Power2",
+      ease: 'Power2',
     });
 
     // Slide in play button
     this.tweens.add({
       targets: this.playButton,
       alpha: 1,
-      y: "+=20",
+      y: '+=20',
       duration: 800,
       delay: 600,
-      ease: "Back.easeOut",
+      ease: 'Back.easeOut',
     });
   }
 
   private startGame() {
-    console.log("[NEXA] Starting game...");
+    console.log('[NEXA] Starting game...');
 
     // Reset game state before starting new game
     if (this.gameManager.isGameOver()) {
       this.gameManager.resetGame(true);
-      console.log("[MainMenu] Game reset for new session");
+      console.log('[MainMenu] Game reset for new session');
     }
 
     // Fade out
     this.cameras.main.fadeOut(500, 0, 17, 34);
 
-    this.cameras.main.once("camerafadeoutcomplete", () => {
-      this.scene.start("Game");
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      this.scene.start('Game');
     });
   }
 }

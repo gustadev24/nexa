@@ -1,7 +1,7 @@
-import { AIController, GameManager } from "@/core/managers";
-import type { IPlayer, INode, IConnection } from "@/core/types";
-import { PLAYER_COLORS, PlayerType, NodeType, ConnectionState } from "@/core/types";
-import { Scene } from "phaser";
+import { AIController, GameManager } from '@/core/managers';
+import type { IPlayer, INode, IConnection } from '@/core/types';
+import { PLAYER_COLORS, PlayerType, NodeType, ConnectionState } from '@/core/types';
+import { Scene } from 'phaser';
 
 /**
  * Game Scene - NEXA
@@ -24,12 +24,12 @@ export class Game extends Scene {
   private energyText?: Phaser.GameObjects.Text;
 
   // Visual representations
-  private nodeGraphics: Map<string, Phaser.GameObjects.Container> = new Map();
-  private connectionGraphics: Map<string, Phaser.GameObjects.Graphics> = new Map();
-  private energyPacketGraphics: Map<string, Phaser.GameObjects.Arc> = new Map();
+  private nodeGraphics = new Map<string, Phaser.GameObjects.Container>();
+  private connectionGraphics = new Map<string, Phaser.GameObjects.Graphics>();
+  private energyPacketGraphics = new Map<string, Phaser.GameObjects.Arc>();
 
   constructor() {
-    super("Game");
+    super('Game');
     this.gameManager = GameManager.getInstance();
     this.aiController = AIController.getInstance();
   }
@@ -56,7 +56,7 @@ export class Game extends Scene {
     if (!this.gameManager.isPlaying()) {
       const started = this.gameManager.startGame();
       if (started) {
-        console.log("[NEXA] Game started successfully (Real-Time System)");
+        console.log('[NEXA] Game started successfully (Real-Time System)');
       }
     }
 
@@ -77,13 +77,13 @@ export class Game extends Scene {
       .text(
         centerX,
         centerY,
-        "NEXA - Real-Time Strategy\n\nControl 70% of nodes for 10 seconds to win!\n\nPress R to Reset | ESC to Menu",
+        'NEXA - Real-Time Strategy\n\nControl 70% of nodes for 10 seconds to win!\n\nPress R to Reset | ESC to Menu',
         {
-          fontFamily: "Arial",
-          fontSize: "20px",
-          color: "#00FFFF",
-          align: "center",
-          stroke: "#001122",
+          fontFamily: 'Arial',
+          fontSize: '20px',
+          color: '#00FFFF',
+          align: 'center',
+          stroke: '#001122',
           strokeThickness: 4,
         },
       )
@@ -95,7 +95,7 @@ export class Game extends Scene {
       targets: this.infoText,
       alpha: 1,
       duration: 1000,
-      ease: "Power2",
+      ease: 'Power2',
       onComplete: () => {
         // Fade out after 3 seconds
         this.time.delayedCall(3000, () => {
@@ -103,7 +103,7 @@ export class Game extends Scene {
             targets: this.infoText,
             alpha: 0,
             duration: 1000,
-            ease: "Power2",
+            ease: 'Power2',
           });
         });
       },
@@ -115,7 +115,7 @@ export class Game extends Scene {
     // Camera fade in
     this.cameras.main.fadeIn(500, 0, 17, 34);
 
-    console.log("[NEXA] Game Scene: Ready");
+    console.log('[NEXA] Game Scene: Ready');
     this.logGameState();
   }
 
@@ -158,7 +158,7 @@ export class Game extends Scene {
         duration: Phaser.Math.Between(1000, 3000),
         yoyo: true,
         repeat: -1,
-        ease: "Sine.easeInOut",
+        ease: 'Sine.easeInOut',
       });
     }
   }
@@ -192,7 +192,7 @@ export class Game extends Scene {
       duration: 2000,
       yoyo: true,
       repeat: -1,
-      ease: "Sine.easeInOut",
+      ease: 'Sine.easeInOut',
     });
   }
 
@@ -206,19 +206,19 @@ export class Game extends Scene {
 
     // Game title in HUD
     this.add
-      .text(20, 20, "NEXA", {
-        fontFamily: "Arial Black",
-        fontSize: "24px",
-        color: "#00FFFF",
+      .text(20, 20, 'NEXA', {
+        fontFamily: 'Arial Black',
+        fontSize: '24px',
+        color: '#00FFFF',
       })
       .setDepth(101);
 
     // Dynamic stats text
     this.statsText = this.add
       .text(width - 20, 20, this.getStatsText(), {
-        fontFamily: "Arial",
-        fontSize: "16px",
-        color: "#00AAAA",
+        fontFamily: 'Arial',
+        fontSize: '16px',
+        color: '#00AAAA',
       })
       .setOrigin(1, 0)
       .setDepth(101);
@@ -227,20 +227,20 @@ export class Game extends Scene {
     const { width: screenWidth } = this.scale;
     const centerX = screenWidth / 2;
     this.timerText = this.add
-      .text(centerX, 20, "Time: 3:00", {
-        fontFamily: "Arial",
-        fontSize: "20px",
-        color: "#00FFFF",
+      .text(centerX, 20, 'Time: 3:00', {
+        fontFamily: 'Arial',
+        fontSize: '20px',
+        color: '#00FFFF',
       })
       .setOrigin(0.5, 0)
       .setDepth(101);
 
     // Energy text
     this.energyText = this.add
-      .text(20, 70, "Energy: 100 / 100", {
-        fontFamily: "Arial",
-        fontSize: "16px",
-        color: "#00FFAA",
+      .text(20, 70, 'Energy: 100 / 100', {
+        fontFamily: 'Arial',
+        fontSize: '16px',
+        color: '#00FFAA',
       })
       .setOrigin(0, 0)
       .setDepth(101);
@@ -252,10 +252,10 @@ export class Game extends Scene {
 
     // Instructions
     this.add
-      .text(width / 2, height - 25, "NEXA Real-Time System | Press R to Reset", {
-        fontFamily: "Arial",
-        fontSize: "14px",
-        color: "#006666",
+      .text(width / 2, height - 25, 'NEXA Real-Time System | Press R to Reset', {
+        fontFamily: 'Arial',
+        fontSize: '14px',
+        color: '#006666',
       })
       .setOrigin(0.5)
       .setDepth(101);
@@ -266,17 +266,17 @@ export class Game extends Scene {
    * Aligned with NEXA document specifications
    */
   private initializeGame(): void {
-    console.log("[Game Scene] Initializing game (NEXA System)...");
+    console.log('[Game Scene] Initializing game (NEXA System)...');
 
     // Initialize GameManager
     this.gameManager.initialize();
 
     // Create test nodes first
     const node1: INode = {
-      id: "node-1",
-      owner: "player-1",
+      id: 'node-1',
+      owner: 'player-1',
       defenseEnergy: 50,
-      connections: ["node-2", "node-3"],
+      connections: ['node-2', 'node-3'],
       position: { x: 200, y: 384 },
       type: NodeType.BASIC,
       lastUpdateTime: Date.now(),
@@ -285,10 +285,10 @@ export class Game extends Scene {
     };
 
     const node2: INode = {
-      id: "node-2",
-      owner: "player-2",
+      id: 'node-2',
+      owner: 'player-2',
       defenseEnergy: 50,
-      connections: ["node-1", "node-3"],
+      connections: ['node-1', 'node-3'],
       position: { x: 824, y: 384 },
       type: NodeType.BASIC,
       lastUpdateTime: Date.now(),
@@ -297,10 +297,10 @@ export class Game extends Scene {
     };
 
     const node3: INode = {
-      id: "node-3",
+      id: 'node-3',
       owner: null, // Neutral node
       defenseEnergy: 20,
-      connections: ["node-1", "node-2"],
+      connections: ['node-1', 'node-2'],
       position: { x: 512, y: 384 },
       type: NodeType.ENERGY, // Energy node - gives bonus when captured
       lastUpdateTime: Date.now(),
@@ -314,9 +314,9 @@ export class Game extends Scene {
 
     // Create connections
     const conn1: IConnection = {
-      id: "conn-1-2",
-      sourceNodeId: "node-1",
-      targetNodeId: "node-2",
+      id: 'conn-1-2',
+      sourceNodeId: 'node-1',
+      targetNodeId: 'node-2',
       state: ConnectionState.ACTIVE,
       weight: 100,
       energyPackets: [],
@@ -325,9 +325,9 @@ export class Game extends Scene {
     };
 
     const conn2: IConnection = {
-      id: "conn-1-3",
-      sourceNodeId: "node-1",
-      targetNodeId: "node-3",
+      id: 'conn-1-3',
+      sourceNodeId: 'node-1',
+      targetNodeId: 'node-3',
       state: ConnectionState.ACTIVE,
       weight: 80,
       energyPackets: [],
@@ -336,9 +336,9 @@ export class Game extends Scene {
     };
 
     const conn3: IConnection = {
-      id: "conn-2-3",
-      sourceNodeId: "node-2",
-      targetNodeId: "node-3",
+      id: 'conn-2-3',
+      sourceNodeId: 'node-2',
+      targetNodeId: 'node-3',
       state: ConnectionState.ACTIVE,
       weight: 80,
       energyPackets: [],
@@ -352,37 +352,37 @@ export class Game extends Scene {
 
     // Create test players with initial nodes
     const player1: IPlayer = {
-      id: "player-1",
-      name: "Player 1",
+      id: 'player-1',
+      name: 'Player 1',
       color: PLAYER_COLORS.BLUE,
       score: 0,
       type: PlayerType.HUMAN,
       isActive: true,
       isEliminated: false,
       totalEnergy: 100, // Conservative energy pool
-      initialNodeId: "node-1", // Starting node
-      controlledNodes: ["node-1"],
+      initialNodeId: 'node-1', // Starting node
+      controlledNodes: ['node-1'],
     };
 
     const player2: IPlayer = {
-      id: "player-2",
-      name: "AI Opponent",
+      id: 'player-2',
+      name: 'AI Opponent',
       color: PLAYER_COLORS.RED,
       score: 0,
       type: PlayerType.AI,
       isActive: true,
       isEliminated: false,
       totalEnergy: 100, // Conservative energy pool
-      initialNodeId: "node-2", // Starting node
-      controlledNodes: ["node-2"],
+      initialNodeId: 'node-2', // Starting node
+      controlledNodes: ['node-2'],
     };
 
     this.gameManager.addPlayer(player1);
     this.gameManager.addPlayer(player2);
 
-    console.log("[Game Scene] Game initialized with 2 players (NEXA System)");
-    console.log("[Game Scene] - 3 nodes (2 owned, 1 neutral energy node)");
-    console.log("[Game Scene] - 3 connections");
+    console.log('[Game Scene] Game initialized with 2 players (NEXA System)');
+    console.log('[Game Scene] - 3 nodes (2 owned, 1 neutral energy node)');
+    console.log('[Game Scene] - 3 connections');
   }
 
   /**
@@ -390,23 +390,24 @@ export class Game extends Scene {
    */
   private setupInputHandlers(): void {
     // ESC - Return to menu
-    this.input.keyboard?.on("keydown-ESC", () => {
+    this.input.keyboard?.on('keydown-ESC', () => {
       this.returnToMenu();
     });
 
     // R - Reset game
-    this.input.keyboard?.on("keydown-R", () => {
+    this.input.keyboard?.on('keydown-R', () => {
       this.resetGame();
     });
 
     // P - Pause/Resume
-    this.input.keyboard?.on("keydown-P", () => {
+    this.input.keyboard?.on('keydown-P', () => {
       if (this.gameManager.isPlaying()) {
         this.gameManager.pauseGame();
-        console.log("[Game Scene] Game PAUSED");
-      } else if (this.gameManager.isPaused()) {
+        console.log('[Game Scene] Game PAUSED');
+      }
+      else if (this.gameManager.isPaused()) {
         this.gameManager.resumeGame();
-        console.log("[Game Scene] Game RESUMED");
+        console.log('[Game Scene] Game RESUMED');
       }
       this.updateHUD();
     });
@@ -416,12 +417,12 @@ export class Game extends Scene {
    * Reset the game
    */
   private resetGame(): void {
-    console.log("[Game Scene] Resetting game (NEXA System)...");
+    console.log('[Game Scene] Resetting game (NEXA System)...');
 
     // Clear graphics
-    this.nodeGraphics.forEach((g) => g.destroy());
-    this.connectionGraphics.forEach((g) => g.destroy());
-    this.energyPacketGraphics.forEach((g) => g.destroy());
+    this.nodeGraphics.forEach(g => g.destroy());
+    this.connectionGraphics.forEach(g => g.destroy());
+    this.energyPacketGraphics.forEach(g => g.destroy());
     this.nodeGraphics.clear();
     this.connectionGraphics.clear();
     this.energyPacketGraphics.clear();
@@ -436,11 +437,11 @@ export class Game extends Scene {
     // Show reset feedback
     const { width, height } = this.scale;
     const resetText = this.add
-      .text(width / 2, height / 2 - 100, "Game Reset!", {
-        fontFamily: "Arial Black",
-        fontSize: "48px",
-        color: "#00FFFF",
-        stroke: "#001122",
+      .text(width / 2, height / 2 - 100, 'Game Reset!', {
+        fontFamily: 'Arial Black',
+        fontSize: '48px',
+        color: '#00FFFF',
+        stroke: '#001122',
         strokeThickness: 6,
       })
       .setOrigin(0.5)
@@ -480,15 +481,17 @@ export class Game extends Scene {
     const minutes = Math.floor(timeRemaining / 60000);
     const seconds = Math.floor((timeRemaining % 60000) / 1000);
     if (this.timerText) {
-      this.timerText.setText(`Time: ${minutes}:${seconds.toString().padStart(2, "0")}`);
+      this.timerText.setText(`Time: ${minutes}:${seconds.toString().padStart(2, '0')}`);
 
       // Change color when time is running out
       if (timeRemaining < 30000) {
-        this.timerText.setColor("#FF3232");
-      } else if (timeRemaining < 60000) {
-        this.timerText.setColor("#FFAA00");
-      } else {
-        this.timerText.setColor("#00FFFF");
+        this.timerText.setColor('#FF3232');
+      }
+      else if (timeRemaining < 60000) {
+        this.timerText.setColor('#FFAA00');
+      }
+      else {
+        this.timerText.setColor('#00FFFF');
       }
     }
 
@@ -517,7 +520,7 @@ export class Game extends Scene {
    */
   private logGameState(): void {
     const stats = this.gameManager.getStats();
-    console.log("[Game Scene] Current State:", {
+    console.log('[Game Scene] Current State:', {
       phase: stats.phase,
       players: stats.players,
       nodes: stats.nodes,
@@ -580,18 +583,18 @@ export class Game extends Scene {
     container.add(border);
 
     // Draw node type indicator
-    let typeText = "";
-    if (node.type === NodeType.ENERGY) typeText = "E";
-    else if (node.type === NodeType.ATTACK) typeText = "A";
-    else if (node.type === NodeType.DEFENSE) typeText = "D";
-    else if (node.type === NodeType.SUPER_ENERGY) typeText = "S";
+    let typeText = '';
+    if (node.type === NodeType.ENERGY) typeText = 'E';
+    else if (node.type === NodeType.ATTACK) typeText = 'A';
+    else if (node.type === NodeType.DEFENSE) typeText = 'D';
+    else if (node.type === NodeType.SUPER_ENERGY) typeText = 'S';
 
     if (typeText) {
       const text = this.add
         .text(0, 0, typeText, {
-          fontFamily: "Arial Black",
-          fontSize: "16px",
-          color: "#FFFFFF",
+          fontFamily: 'Arial Black',
+          fontSize: '16px',
+          color: '#FFFFFF',
         })
         .setOrigin(0.5);
       container.add(text);
@@ -601,9 +604,9 @@ export class Game extends Scene {
     if (node.defenseEnergy > 0) {
       const defenseText = this.add
         .text(0, radius + 10, `${node.defenseEnergy.toFixed(0)}`, {
-          fontFamily: "Arial",
-          fontSize: "12px",
-          color: "#00FFAA",
+          fontFamily: 'Arial',
+          fontSize: '12px',
+          color: '#00FFAA',
         })
         .setOrigin(0.5, 0);
       container.add(defenseText);
@@ -649,10 +652,10 @@ export class Game extends Scene {
       // This text will be recreated each frame, which is not ideal but works for now
       const energyText = this.add
         .text(midX, midY, `${connection.assignedEnergy.toFixed(0)}`, {
-          fontFamily: "Arial",
-          fontSize: "10px",
-          color: "#FFAA00",
-          backgroundColor: "#001122",
+          fontFamily: 'Arial',
+          fontSize: '10px',
+          color: '#FFAA00',
+          backgroundColor: '#001122',
         })
         .setOrigin(0.5);
 
@@ -662,13 +665,13 @@ export class Game extends Scene {
   }
 
   private returnToMenu() {
-    console.log("[NEXA] Returning to menu...");
+    console.log('[NEXA] Returning to menu...');
 
     // Fade out
     this.cameras.main.fadeOut(500, 0, 17, 34);
 
-    this.cameras.main.once("camerafadeoutcomplete", () => {
-      this.scene.start("MainMenu");
+    this.cameras.main.once('camerafadeoutcomplete', () => {
+      this.scene.start('MainMenu');
     });
   }
 
@@ -737,10 +740,10 @@ export class Game extends Scene {
       const graphicId = `packet-${connectionIdStr}-${String(packet.id)}`;
 
       // Calculate position based on progress
-      const x =
-        sourceNode.position.x + (targetNode.position.x - sourceNode.position.x) * packet.progress;
-      const y =
-        sourceNode.position.y + (targetNode.position.y - sourceNode.position.y) * packet.progress;
+      const x
+        = sourceNode.position.x + (targetNode.position.x - sourceNode.position.x) * packet.progress;
+      const y
+        = sourceNode.position.y + (targetNode.position.y - sourceNode.position.y) * packet.progress;
 
       // Get owner color
       const owner = gameState.players.get(packet.ownerId);
@@ -754,7 +757,8 @@ export class Game extends Scene {
       if (!circle) {
         circle = this.add.circle(x, y, 4, color, 1);
         this.energyPacketGraphics.set(graphicId, circle);
-      } else {
+      }
+      else {
         circle.setPosition(x, y);
         circle.setFillStyle(color, 1);
       }

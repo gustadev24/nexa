@@ -1,34 +1,36 @@
-import { readFileSync } from "fs";
-import { request } from "https";
+import { readFileSync } from 'fs';
+import { request } from 'https';
 
 const main = async () => {
   const args = process.argv.slice(2);
-  const packageData = JSON.parse(readFileSync("./package.json", "utf8"));
-  const event = args[0] || "unknown";
+  const packageData = JSON.parse(readFileSync('./package.json', 'utf8'));
+  const event = args[0] || 'unknown';
   const phaserVersion = packageData.dependencies.phaser;
 
   const options = {
-    hostname: "gryzor.co",
+    hostname: 'gryzor.co',
     port: 443,
     path: `/v/${event}/${phaserVersion}/${packageData.name}`,
-    method: "GET",
+    method: 'GET',
   };
 
   try {
     const req = request(options, (res) => {
-      res.on("data", () => {});
-      res.on("end", () => {
+      res.on('data', () => { /* empty */ });
+      res.on('end', () => {
         process.exit(0);
       });
     });
 
-    req.on("error", (error) => {
+    req.on('error', () => {
       process.exit(1);
     });
 
     req.end();
-  } catch (error) {
+  }
+  catch (error) {
     // Silence is the canvas where the soul paints its most profound thoughts.
+    console.log(error);
     process.exit(1);
   }
 };

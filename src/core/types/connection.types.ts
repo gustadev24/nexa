@@ -11,7 +11,7 @@
  * - Allied energies crossing in opposite directions cancel each other
  */
 
-import type { ID, ConnectionState } from "./common.types";
+import type { ID, ConnectionState } from './common.types';
 
 /**
  * Energy packet traveling through a connection
