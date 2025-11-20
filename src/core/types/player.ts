@@ -5,8 +5,7 @@
  * Players control networks of nodes and compete for dominance.
  */
 
-import type { ID, IColor } from './common.types';
-import { PlayerType, AIStrategyType, AIDifficulty } from './common.types';
+import { AIDifficulty, AIStrategyType, type IColor, type ID, PlayerType } from '@/core/types/common';
 
 /**
  * Main Player interface
@@ -107,52 +106,6 @@ export interface IPlayerResources {
   connectionCount: number;
   availableActions: string[];
 }
-
-/**
- * Default AI strategies for different difficulty levels
- */
-export const DEFAULT_AI_STRATEGIES: Record<AIDifficulty, Partial<IAIStrategy>> = {
-  [AIDifficulty.EASY]: {
-    difficulty: AIDifficulty.EASY,
-    type: AIStrategyType.BALANCED,
-    aggressiveness: 30,
-    expansionPriority: 50,
-    defensePriority: 40,
-    economicPriority: 60,
-    reactionTime: 2000,
-    decisionInterval: 3000,
-  },
-  [AIDifficulty.MEDIUM]: {
-    difficulty: AIDifficulty.MEDIUM,
-    type: AIStrategyType.BALANCED,
-    aggressiveness: 50,
-    expansionPriority: 60,
-    defensePriority: 50,
-    economicPriority: 50,
-    reactionTime: 1000,
-    decisionInterval: 2000,
-  },
-  [AIDifficulty.HARD]: {
-    difficulty: AIDifficulty.HARD,
-    type: AIStrategyType.AGGRESSIVE,
-    aggressiveness: 75,
-    expansionPriority: 70,
-    defensePriority: 60,
-    economicPriority: 40,
-    reactionTime: 500,
-    decisionInterval: 1500,
-  },
-  [AIDifficulty.EXPERT]: {
-    difficulty: AIDifficulty.EXPERT,
-    type: AIStrategyType.AGGRESSIVE,
-    aggressiveness: 90,
-    expansionPriority: 85,
-    defensePriority: 75,
-    economicPriority: 60,
-    reactionTime: 200,
-    decisionInterval: 1000,
-  },
-};
 
 /**
  * Player ranking information

@@ -1,6 +1,10 @@
-import { AIController, GameManager } from '@/core/managers';
-import type { IPlayer, INode, IConnection } from '@/core/types';
-import { PLAYER_COLORS, PlayerType, NodeType, ConnectionState } from '@/core/types';
+import { PLAYER_COLORS } from '@/core/constants/player';
+import { AIController } from '@/core/managers/ai-controller';
+import { GameManager } from '@/core/managers/game-manager';
+import { ConnectionState, NodeType, PlayerType } from '@/core/types/common';
+import type { IConnection } from '@/core/types/connection';
+import type { INode } from '@/core/types/node';
+import type { IPlayer } from '@/core/types/player';
 import { Scene } from 'phaser';
 
 /**

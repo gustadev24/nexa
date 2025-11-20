@@ -7,6 +7,7 @@
     "skipLibCheck": true,
     /* Bundler mode */
     "moduleResolution": "bundler",
+    "allowJs": true,
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
@@ -18,16 +19,12 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "verbatimModuleSyntax": true,
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@/scenes/*": ["src/scenes/*"],
-      "@/entities/*": ["src/entities/*"],
-      "@/core/*": ["src/core/*"],
-      "@/ui/*": ["src/ui/*"],
-      "@/assets/*": ["src/assets/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "scripts", "*.mjs"]
 }

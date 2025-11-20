@@ -5,11 +5,10 @@
  * This includes the main game state, game actions, and game settings.
  */
 
-import type { ID, Timestamp } from './common.types';
-import { GamePhase, GameDifficulty, ActionType } from './common.types';
-import type { INode } from './node.types';
-import type { IConnection } from './connection.types';
-import type { IPlayer } from './player.types';
+import { ActionType, GameDifficulty, GamePhase, type ID, type Timestamp } from '@/core/types/common';
+import type { IConnection } from '@/core/types/connection';
+import type { INode } from '@/core/types/node';
+import type { IPlayer } from '@/core/types/player';
 
 /**
  * Main Game State interface
@@ -234,31 +233,6 @@ export interface IGameSnapshot {
   eventHistory: IGameEvent[];
   actionHistory: IGameAction[];
 }
-
-/**
- * Default game configuration
- * Aligned with NEXA game document specifications
- */
-export const DEFAULT_GAME_CONFIG: IGameConfig = {
-  maxPlayers: 4,
-  minPlayers: 2,
-  mapWidth: 1024,
-  mapHeight: 768,
-  initialNodeCount: 20,
-  difficulty: GameDifficulty.NORMAL,
-  timeLimit: 180000, // 3 minutes (180000ms) as per document
-  attackInterval: 20, // 20ms as per document
-  defenseUpdateInterval: 30, // 30ms as per document
-  enableFogOfWar: false,
-  startingEnergy: 100, // Initial total energy pool
-  victoryConditions: {
-    type: VictoryType.DOMINATION,
-    nodeControlPercentage: 70, // 70% as per document
-    controlDuration: 10000, // 10 seconds as per document
-    timeLimit: 180000, // 3 minutes as per document
-  },
-  gameSpeed: 1.0,
-};
 
 /**
  * Turn information

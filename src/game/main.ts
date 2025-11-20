@@ -1,6 +1,6 @@
-import { Boot } from '@/scenes/Boot';
-import { Game as MainGame } from '@/scenes/Game';
-import { MainMenu } from '@/scenes/MainMenu';
+import { Boot } from '@/scenes/boot';
+import { Game as MainGame } from '@/scenes/game';
+import { MainMenu } from '@/scenes/main-menu';
 import { AUTO, Game } from 'phaser';
 
 //  NEXA Game Configuration

@@ -12,17 +12,15 @@
  * - Victory by controlling 70% nodes for 10 seconds
  */
 
+import { DEFAULT_GAME_CONFIG } from '@/core/constants/player';
+import { GamePhase, type ID, NodeType } from '@/core/types/common';
 import type {
   IConnection,
   IEnergyPacket,
-  ID,
-  IGameConfig,
-  IGameState,
-  INode,
-  IPlayer,
-} from '@/core/types';
-
-import { DEFAULT_GAME_CONFIG, GamePhase, NodeType } from '@/core/types';
+} from '@/core/types/connection';
+import { type IGameConfig, type IGameState } from '@/core/types/game';
+import type { INode } from '@/core/types/node';
+import type { IPlayer } from '@/core/types/player';
 
 /**
  * GameManager Singleton

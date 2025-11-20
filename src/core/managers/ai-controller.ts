@@ -10,9 +10,12 @@
  * - Strategic node capture
  */
 
-import type { ID, IGameState, INode, IPlayer, IConnection } from '@/core/types';
-import { GamePhase, PlayerType, NodeType } from '@/core/types';
-import { GameManager } from './GameManager';
+import type { IGameState } from '@/core/types/game';
+import type { IPlayer } from '@/core/types/player';
+import type { INode } from '@/core/types/node';
+import type { IConnection } from '@/core/types/connection';
+import { GamePhase, type ID, NodeType, PlayerType } from '@/core/types/common';
+import { GameManager } from '@/core/managers/game-manager';
 
 /**
  * AIController Singleton
