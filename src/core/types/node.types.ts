@@ -3,6 +3,8 @@
  *
  * Defines interfaces and types related to nodes in the game.
  * Nodes are the core strategic points on the map that players control.
+ *
+ * Aligned with NEXA game document specifications
  */
 
 import type { IVector2D, ID } from "./common.types";
@@ -10,36 +12,37 @@ import { NodeType } from "./common.types";
 
 /**
  * Node type configuration
- * Defines the properties and bonuses for each node type
+ * Defines the properties and effects for each node type
  */
 export interface INodeTypeConfig {
   type: NodeType;
   name: string;
   description: string;
-  maxEnergy: number;
-  generationRate: number;
-  defenseBonus: number;
-  transferBonus: number;
-  connectionRangeBonus: number;
-  cost: number;
+  energyBonus: number; // Energy added to player's total when captured
+  attackMultiplier: number; // Multiplier for attack energy on outgoing edges
+  defenseMultiplier: number; // Multiplier for defense energy
+  emissionSpeedBonus: number; // Bonus to energy emission speed (percentage)
 }
 
 /**
  * Main Node interface
  * Represents a node on the game map
+ *
+ * According to NEXA document:
+ * - Energy is distributed from player's total pool
+ * - Defense energy is calculated as energy not assigned to edges
+ * - Attack energy is assigned to edges and travels to adjacent nodes
  */
 export interface INode {
   id: ID;
-  owner: ID | null;
-  energy: number;
-  connections: ID[];
+  owner: ID | null; // null for neutral nodes
+  defenseEnergy: number; // Energy allocated for defense
+  connections: ID[]; // Connected edge IDs
   position: IVector2D;
   type: NodeType;
-  maxEnergy: number;
-  generationRate: number;
   lastUpdateTime: number;
   isUnderAttack: boolean;
-  defenseLevel: number;
+  isInitialNode: boolean; // True if this is a player's starting node
 }
 
 /**
@@ -76,72 +79,61 @@ export interface INodeStats {
 
 /**
  * Default node type configurations
+ * Aligned with NEXA game document specifications
  */
 export const NODE_TYPE_CONFIGS: Record<NodeType, INodeTypeConfig> = {
-  [NodeType.STANDARD]: {
-    type: NodeType.STANDARD,
-    name: "Standard Node",
-    description: "Basic node with standard properties",
-    maxEnergy: 100,
-    generationRate: 1,
-    defenseBonus: 0,
-    transferBonus: 0,
-    connectionRangeBonus: 0,
-    cost: 0,
+  [NodeType.BASIC]: {
+    type: NodeType.BASIC,
+    name: "Basic Node",
+    description: "Standard node with basic properties for energy assignment and defense",
+    energyBonus: 0,
+    attackMultiplier: 1.0,
+    defenseMultiplier: 1.0,
+    emissionSpeedBonus: 0,
   },
-  [NodeType.GENERATOR]: {
-    type: NodeType.GENERATOR,
-    name: "Generator",
-    description: "Generates energy at an accelerated rate",
-    maxEnergy: 80,
-    generationRate: 3,
-    defenseBonus: -10,
-    transferBonus: 0,
-    connectionRangeBonus: 0,
-    cost: 100,
+  [NodeType.ENERGY]: {
+    type: NodeType.ENERGY,
+    name: "Energy Node",
+    description: "Immediately increases player's total energy when captured",
+    energyBonus: 50, // Increases player's total energy
+    attackMultiplier: 1.0,
+    defenseMultiplier: 1.0,
+    emissionSpeedBonus: 0,
   },
-  [NodeType.FORTRESS]: {
-    type: NodeType.FORTRESS,
-    name: "Fortress",
-    description: "Heavily defended node, difficult to conquer",
-    maxEnergy: 150,
-    generationRate: 0.5,
-    defenseBonus: 50,
-    transferBonus: 0,
-    connectionRangeBonus: 0,
-    cost: 150,
+  [NodeType.ATTACK]: {
+    type: NodeType.ATTACK,
+    name: "Attack Node",
+    description: "Doubles energy assigned to outgoing edges",
+    energyBonus: 0,
+    attackMultiplier: 2.0, // Doubles attack energy on outgoing edges
+    defenseMultiplier: 1.0,
+    emissionSpeedBonus: 0,
   },
-  [NodeType.AMPLIFIER]: {
-    type: NodeType.AMPLIFIER,
-    name: "Amplifier",
-    description: "Boosts energy transfer efficiency",
-    maxEnergy: 100,
-    generationRate: 1,
-    defenseBonus: 0,
-    transferBonus: 50,
-    connectionRangeBonus: 0,
-    cost: 120,
+  [NodeType.DEFENSE]: {
+    type: NodeType.DEFENSE,
+    name: "Defense Node",
+    description: "Doubles defense energy when receiving attacks",
+    energyBonus: 0,
+    attackMultiplier: 1.0,
+    defenseMultiplier: 2.0, // Doubles defense energy
+    emissionSpeedBonus: 0,
   },
-  [NodeType.HARVESTER]: {
-    type: NodeType.HARVESTER,
-    name: "Harvester",
-    description: "Increases resource collection from territory",
-    maxEnergy: 120,
-    generationRate: 2,
-    defenseBonus: 0,
-    transferBonus: 0,
-    connectionRangeBonus: 0,
-    cost: 100,
+  [NodeType.SUPER_ENERGY]: {
+    type: NodeType.SUPER_ENERGY,
+    name: "Super Energy Node",
+    description: "Significantly increases total energy and provides emission speed bonus",
+    energyBonus: 150, // Major energy boost
+    attackMultiplier: 1.0,
+    defenseMultiplier: 1.0,
+    emissionSpeedBonus: 50, // 50% faster emission
   },
-  [NodeType.RELAY]: {
-    type: NodeType.RELAY,
-    name: "Relay",
-    description: "Extends connection range to distant nodes",
-    maxEnergy: 60,
-    generationRate: 0.5,
-    defenseBonus: 0,
-    transferBonus: 0,
-    connectionRangeBonus: 100,
-    cost: 80,
+  [NodeType.NEUTRAL]: {
+    type: NodeType.NEUTRAL,
+    name: "Neutral Node",
+    description: "Initially unowned, can be captured by any player",
+    energyBonus: 0,
+    attackMultiplier: 1.0,
+    defenseMultiplier: 1.0,
+    emissionSpeedBonus: 0,
   },
 };

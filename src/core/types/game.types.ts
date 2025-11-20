@@ -32,6 +32,11 @@ export interface IGameState {
 /**
  * Game Configuration
  * Defines the rules and settings for a game session
+ *
+ * According to NEXA document:
+ * - Real-time game with 3 minute time limit
+ * - Victory by controlling 70% of nodes for 10 seconds
+ * - Losing initial node means instant defeat
  */
 export interface IGameConfig {
   maxPlayers: number;
@@ -40,34 +45,42 @@ export interface IGameConfig {
   mapHeight: number;
   initialNodeCount: number;
   difficulty: GameDifficulty;
-  turnTimeLimit: number; // milliseconds, 0 for unlimited
-  maxTurns: number; // 0 for unlimited
+  timeLimit: number; // milliseconds - 3 minutes (180000ms) as per document
+  attackInterval: number; // 20ms - interval for sending attack energy
+  defenseUpdateInterval: number; // 30ms - interval for updating defense
   enableFogOfWar: boolean;
-  startingEnergy: number;
+  startingEnergy: number; // Initial total energy pool for each player
   victoryConditions: IVictoryConditions;
   gameSpeed: number; // 1.0 = normal, 0.5 = slow, 2.0 = fast
 }
 
 /**
  * Victory conditions for the game
+ *
+ * According to NEXA document:
+ * - Win by controlling 70% of nodes for 10 consecutive seconds
+ * - Win by having most nodes when time limit (3 min) is reached
+ * - Lose automatically if initial node is captured
  */
 export interface IVictoryConditions {
   type: VictoryType;
-  nodeControlPercentage?: number; // For DOMINATION
-  scoreThreshold?: number; // For SCORE
-  timeLimit?: number; // For TIME_LIMIT (milliseconds)
-  energyThreshold?: number; // For ENERGY
+  nodeControlPercentage: number; // 70% as per document
+  controlDuration: number; // 10 seconds (10000ms) as per document
+  timeLimit: number; // 3 minutes (180000ms) as per document
 }
 
 /**
  * Victory types
+ *
+ * According to NEXA document:
+ * - DOMINATION: Control 70% of nodes for 10 seconds
+ * - TIME_LIMIT: Most nodes when 3-minute timer expires
+ * - INITIAL_NODE_LOST: Instant defeat when initial node is captured
  */
 export enum VictoryType {
-  DOMINATION = "DOMINATION", // Control X% of nodes
-  ELIMINATION = "ELIMINATION", // Eliminate all opponents
-  SCORE = "SCORE", // Reach target score
-  TIME_LIMIT = "TIME_LIMIT", // Highest score at time limit
-  ENERGY = "ENERGY", // Reach energy threshold
+  DOMINATION = "DOMINATION", // Control 70% of nodes for 10 seconds
+  TIME_LIMIT = "TIME_LIMIT", // Most nodes at 3-minute limit
+  INITIAL_NODE_LOST = "INITIAL_NODE_LOST", // Instant defeat condition
 }
 
 /**
@@ -224,6 +237,7 @@ export interface IGameSnapshot {
 
 /**
  * Default game configuration
+ * Aligned with NEXA game document specifications
  */
 export const DEFAULT_GAME_CONFIG: IGameConfig = {
   maxPlayers: 4,
@@ -232,13 +246,16 @@ export const DEFAULT_GAME_CONFIG: IGameConfig = {
   mapHeight: 768,
   initialNodeCount: 20,
   difficulty: GameDifficulty.NORMAL,
-  turnTimeLimit: 0,
-  maxTurns: 0,
+  timeLimit: 180000, // 3 minutes (180000ms) as per document
+  attackInterval: 20, // 20ms as per document
+  defenseUpdateInterval: 30, // 30ms as per document
   enableFogOfWar: false,
-  startingEnergy: 100,
+  startingEnergy: 100, // Initial total energy pool
   victoryConditions: {
     type: VictoryType.DOMINATION,
-    nodeControlPercentage: 75,
+    nodeControlPercentage: 70, // 70% as per document
+    controlDuration: 10000, // 10 seconds as per document
+    timeLimit: 180000, // 3 minutes as per document
   },
   gameSpeed: 1.0,
 };

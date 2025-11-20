@@ -11,6 +11,12 @@ import { PlayerType, AIStrategyType, AIDifficulty } from "./common.types";
 /**
  * Main Player interface
  * Represents a player in the game (human or AI)
+ *
+ * According to NEXA document:
+ * - totalEnergy is conservative and distributable across nodes and edges
+ * - Energy assigned to edges/nodes doesn't reduce total, it's just distributed
+ * - totalEnergy only changes when capturing energy nodes
+ * - Each player has an initialNodeId (losing it means defeat)
  */
 export interface IPlayer {
   id: ID;
@@ -20,7 +26,8 @@ export interface IPlayer {
   type: PlayerType;
   isActive: boolean;
   isEliminated: boolean;
-  totalEnergy: number;
+  totalEnergy: number; // Conservative total energy pool
+  initialNodeId: ID; // Starting node - losing this means defeat
   controlledNodes: ID[];
   aiStrategy?: IAIStrategy;
 }
