@@ -1,5 +1,5 @@
 import { Scene } from 'phaser';
-import { GameManager } from '@/core/managers/game-manager';
+import { GameManager } from '@/application/game-manager';
 
 /**
  * MainMenu Scene - NEXA
@@ -238,7 +238,7 @@ export class MainMenu extends Scene {
 
     // Reset game state before starting new game
     if (this.gameManager.isGameOver()) {
-      this.gameManager.resetGame(true);
+      this.gameManager.resetGame();
       console.log('[MainMenu] Game reset for new session');
     }
 

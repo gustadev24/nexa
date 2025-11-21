@@ -1,6 +1,6 @@
 import { PLAYER_COLORS } from '@/core/constants/player';
-import { AIController } from '@/core/managers/ai-controller';
-import { GameManager } from '@/core/managers/game-manager';
+import { AIController } from '@/application/ai-controller';
+import { GameManager } from '@/application/game-manager';
 import { ConnectionState, NodeType, PlayerType } from '@/core/types/common';
 import type { IConnection } from '@/core/types/connection';
 import type { INode } from '@/core/types/node';
@@ -431,7 +431,7 @@ export class Game extends Scene {
     this.connectionGraphics.clear();
     this.energyPacketGraphics.clear();
 
-    this.gameManager.resetGame(true);
+    this.gameManager.resetGame();
     this.initializeGame();
     this.gameManager.startGame();
 

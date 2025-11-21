@@ -1,3 +1,3 @@
 # Core
 
-Contiene lógica central del juego, utilidades y servicios compartidos que son utilizados por múltiples partes del proyecto.
+Contiene lógica central del juego, utilidades y servicios compartidos que son utilizados por múltiples partes del proyecto. Es la capa de dominio del proyecto, sin dependencias externas.
