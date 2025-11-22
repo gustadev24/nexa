@@ -243,6 +243,8 @@ export class CaptureService {
     }
 
     // Hacer que el jugador pierda los nodos desconectados
+    // Nota: Iteramos usando loseNode() en lugar de loseMultipleNodes()
+    // para mantener la entidad Player simple y la lógica en el servicio
     disconnectedNodes.forEach((node) => {
       affectedPlayer.loseNode(node);
       node.setOwner(null);
