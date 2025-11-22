@@ -1,5 +1,6 @@
 import type { Player } from '@/core/entities/player';
 import type { Node } from '@/core/entities/node/node';
+import type { Graph } from '@/core/entities/graph';
 import type { Edge } from '@/core/entities/edge';
 
 /**
@@ -25,13 +26,6 @@ export interface CaptureResult {
 /**
  * Representa el estado del grafo para análisis de conectividad
  */
-export interface Graph {
-  /** Todos los nodos del grafo */
-  nodes: Set<Node>;
-  /** Todas las aristas del grafo */
-  edges: Set<Edge>;
-}
-
 /**
  * Servicio que gestiona la lógica de captura de nodos
  * 
