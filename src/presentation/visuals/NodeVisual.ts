@@ -1,5 +1,5 @@
-import type { Node } from '@/core/entities/node/node';
-import { NodeType } from '@/core/types/common';
+import type { Node } from '../../core/entities/node/node';
+import { NodeType } from '../../core/types/common';
 import Phaser from 'phaser';
 
 /**

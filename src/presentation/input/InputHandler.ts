@@ -4,10 +4,10 @@ import {
     CommandHistory,
     SendEnergyPacketCommand,
     UnassignEnergyCommand,
-} from '@/application/commands/game-commands';
-import type { Edge } from '@/core/entities/edge';
-import type { Node } from '@/core/entities/node/node';
-import type { Player } from '@/core/entities/player';
+} from '../../application/commands/game-commands';
+import type { Edge } from '../../core/entities/edge';
+import type { Node } from '../../core/entities/node/node';
+import type { Player } from '../../core/entities/player';
 import Phaser from 'phaser';
 
 /**

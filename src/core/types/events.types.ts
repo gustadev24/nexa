@@ -1,6 +1,6 @@
-import type { Node } from '@/core/entities/node/node';
-import type { Player } from '@/core/entities/player';
-import type { ID, VictoryCondition } from '@/core/types/common';
+import type { Node } from '../entities/node/node';
+import type { Player } from '../entities/player';
+import type { ID, VictoryCondition } from './common';
 
 /**
  * Tipos de eventos del juego

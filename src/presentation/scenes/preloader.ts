@@ -1,10 +1,10 @@
-import {
-    NODE_TYPE_COLORS,
-    PLACEHOLDER_SETTINGS,
-    PLAYER_COLORS,
-    PRELOAD_ASSETS
-} from '../config/assets.config';
 import { Scene } from 'phaser';
+import {
+  NODE_TYPE_COLORS,
+  PLACEHOLDER_SETTINGS,
+  PLAYER_COLORS,
+  PRELOAD_ASSETS
+} from '../config/assets.config';
 
 export class Preloader extends Scene {
   constructor() {

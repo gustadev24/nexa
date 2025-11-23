@@ -1,4 +1,4 @@
-import type { GameState as GameStateEnum } from '@/core/types/common';
+import type { GameState as GameStateEnum } from '../types/common';
 
 /**
  * Contexto del juego que usa la máquina de estados

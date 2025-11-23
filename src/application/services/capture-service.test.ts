@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CaptureService } from '@/application/services/capture-service';
-import { Player } from '@/core/entities/player';
-import { BasicNode } from '@/core/entities/node/basic';
-import { Edge } from '@/core/entities/edge';
-import { Graph } from '@/core/entities/graph';
+import { CaptureService } from './capture-service';
+import { Player } from '../../core/entities/player';
+import { BasicNode } from '../../core/entities/node/basic';
+import { Edge } from '../../core/entities/edge';
+import { Graph } from '../../core/entities/graph';
 
 describe('CaptureService', () => {
   let captureService: CaptureService;

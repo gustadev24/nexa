@@ -1,7 +1,7 @@
-import type { Edge } from '@/core/entities/edge';
-import type { Node } from '@/core/entities/node/node';
-import type { Player } from '@/core/entities/player';
-import type { GameManager } from '@/core/managers/GameManager';
+import type { Edge } from '../../core/entities/edge';
+import type { Node } from '../../core/entities/node/node';
+import type { Player } from '../../core/entities/player';
+import type { GameManager } from '../../core/managers/GameManager';
 
 /**
  * Dificultad de la IA

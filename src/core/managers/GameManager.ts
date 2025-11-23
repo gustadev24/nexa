@@ -1,14 +1,14 @@
-import { Edge } from '@/core/entities/edge';
-import { Node } from '@/core/entities/node/node';
-import { Player } from '@/core/entities/player';
-import { EventEmitter } from '@/core/events/EventEmitter';
-import { GameOverState, MenuState, PausedState, PlayingState } from '@/core/states/concrete-states';
-import type { GameContext, IGameState } from '@/core/states/game-state.interface';
-import { AttackResolver } from '@/core/strategies/attack-strategy';
-import { CollisionResolver } from '@/core/strategies/collision-strategy';
-import type { ID } from '@/core/types/common';
-import { GAME_CONSTANTS, GameState, VictoryCondition } from '@/core/types/common';
-import { GameEventType } from '@/core/types/events.types';
+import { Edge } from '../entities/edge';
+import { Node } from '../entities/node/node';
+import { Player } from '../entities/player';
+import { EventEmitter } from '../events/EventEmitter';
+import { GameOverState, MenuState, PausedState, PlayingState } from '../states/concrete-states';
+import type { GameContext, IGameState } from '../states/game-state.interface';
+import { AttackResolver } from '../strategies/attack-strategy';
+import { CollisionResolver } from '../strategies/collision-strategy';
+import type { ID } from '../types/common';
+import { GAME_CONSTANTS, GameState, VictoryCondition } from '../types/common';
+import { GameEventType } from '../types/events.types';
 
 /**
  * GameManager - Singleton Pattern

@@ -1,5 +1,5 @@
-import type { Player } from '@/core/entities/player';
-import type { Graph } from '@/core/entities/graph';
+import type { Player } from './player';
+import type { Graph } from './graph';
 
 export interface GameResult {
   hasWinner: boolean;

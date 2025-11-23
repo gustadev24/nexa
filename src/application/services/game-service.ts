@@ -1,8 +1,8 @@
-import { Game, type GameResult } from '@/core/entities/game';
-import { Graph } from '@/core/entities/graph';
-import { BasicNode } from '@/core/entities/node/basic';
-import { Node } from '@/core/entities/node/node';
-import { Player } from '@/core/entities/player';
+import { Game, type GameResult } from '../../core/entities/game';
+import { Graph } from '../../core/entities/graph';
+import { BasicNode } from '../../core/entities/node/basic';
+import { Node } from '../../core/entities/node/node';
+import { Player } from '../../core/entities/player';
 
 export class GameService {
   private currentGame: Game | null = null;

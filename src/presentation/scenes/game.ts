@@ -1,10 +1,10 @@
-import { PLAYER_COLORS } from '@/core/constants/player';
-import { AIController } from '@/application/ai-controller';
-import { GameManager } from '@/application/game-manager';
-import { ConnectionState, NodeType, PlayerType } from '@/core/types/common';
-import type { IConnection } from '@/core/types/connection';
-import type { INode } from '@/core/types/node';
-import type { IPlayer } from '@/core/types/player';
+import { PLAYER_COLORS } from '../../core/constants/player';
+import { AIController } from '../../application/ai-controller';
+import { GameManager } from '../../application/game-manager';
+import { ConnectionState, NodeType, PlayerType } from '../../core/types/common';
+import type { IConnection } from '../../core/types/connection';
+import type { INode } from '../../core/types/node';
+import type { IPlayer } from '../../core/types/player';
 import { Scene } from 'phaser';
 
 /**

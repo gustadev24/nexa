@@ -1,9 +1,9 @@
 // node.ts
-import type { Edge } from '@/core/entities/edge';
-import type { Player } from '@/core/entities/player';
-import type { ID, Position } from '@/core/types/common';
-import { NodeType } from '@/core/types/common';
-import type { NodeProperties } from '@/core/types/node.types';
+import type { Edge } from '../edge';
+import type { Player } from '../player';
+import type { ID, Position } from '../../types/common';
+import { NodeType } from '../../types/common';
+import type { NodeProperties } from '../../types/node.types';
 
 /**
  * Clase abstracta base para todos los tipos de nodos

@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -20,6 +21,5 @@ console.log('@/presentation:', path.resolve(vite__dirname, '../../src/presentati
 console.log('@/presentation/game:', path.resolve(vite__dirname, '../../src/presentation/game'));
 
 console.log('\nFile exists checks:');
-import fs from 'fs';
 console.log('src/presentation/game/main.ts exists:', fs.existsSync(path.resolve(__dirname, 'src/presentation/game/main.ts')));
 console.log('src/presentation/game/main.js exists:', fs.existsSync(path.resolve(__dirname, 'src/presentation/game/main.js')));

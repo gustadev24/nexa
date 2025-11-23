@@ -1,5 +1,5 @@
-import type { Color, ID } from '@/core/types/common';
-import { PlayerType } from '@/core/types/common';
+import type { Color, ID } from './common';
+import { PlayerType } from './common';
 
 export interface PlayerConfig {
   id: ID;

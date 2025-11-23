@@ -1,7 +1,7 @@
-import type { Player } from '@/core/entities/player';
-import type { Node } from '@/core/entities/node/node';
-import type { Graph } from '@/core/entities/graph';
-import type { Edge } from '@/core/entities/edge';
+import type { Player } from '../../core/entities/player';
+import type { Node } from '../../core/entities/node/node';
+import type { Graph } from '../../core/entities/graph';
+import type { Edge } from '../../core/entities/edge';
 
 /**
  * Resultado de un intento de captura de nodo

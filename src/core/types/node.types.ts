@@ -1,6 +1,6 @@
-import type { Player } from '@/core/entities/player';
-import type { ID, Position } from '@/core/types/common';
-import { NodeType } from '@/core/types/common';
+import type { Player } from '../entities/player';
+import type { ID, Position } from './common';
+import { NodeType } from './common';
 
 /**
  * Configuración para crear un nodo

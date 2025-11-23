@@ -1,7 +1,7 @@
-import { Node } from '@/core/entities/node/node';
-import type { ID, Position } from '@/core/types/common';
-import { GAME_CONSTANTS, NodeType } from '@/core/types/common';
-import type { NodeProperties } from '@/core/types/node.types';
+import { Node } from './node';
+import type { ID, Position } from '../../types/common';
+import { GAME_CONSTANTS, NodeType } from '../../types/common';
+import type { NodeProperties } from '../../types/node.types';
 
 /**
  * Nodo de Super Energía

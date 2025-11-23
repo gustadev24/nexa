@@ -1,5 +1,5 @@
-import type { Edge } from '@/core/entities/edge';
-import type { EnergyPacket } from '@/core/entities/energy-packets';
+import type { Edge } from '../../core/entities/edge';
+import type { EnergyPacket } from '../../core/entities/energy-packets';
 import Phaser from 'phaser';
 
 /**

@@ -1,5 +1,5 @@
-import type { Edge } from '@/core/entities/edge';
-import type { Node } from '@/core/entities/node/node';
+import type { Edge } from './edge';
+import type { Node } from './node/node';
 
 export class Graph {
   constructor(

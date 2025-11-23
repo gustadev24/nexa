@@ -1,5 +1,5 @@
-import type { Callback } from '@/core/types/common';
-import type { GameEventType } from '@/core/types/events.types';
+import type { Callback } from '../types/common';
+import type { GameEventType } from '../types/events.types';
 
 /**
  * Event Emitter - Observer Pattern implementation

@@ -1,4 +1,4 @@
-import { GameState } from '@/core/types/common';
+import { GameState } from '../types/common';
 import { BaseGameState, type GameContext } from './game-state.interface';
 
 /**

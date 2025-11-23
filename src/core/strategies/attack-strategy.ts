@@ -1,6 +1,6 @@
-import type { Node } from '@/core/entities/node/node';
-import type { Player } from '@/core/entities/player';
-import type { AttackResult } from '@/core/types/edge.types';
+import type { Node } from '../entities/node/node';
+import type { Player } from '../entities/player';
+import type { AttackResult } from '../types/edge.types';
 
 /**
  * Interfaz para estrategias de ataque a nodos

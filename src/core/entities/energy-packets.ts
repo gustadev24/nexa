@@ -1,7 +1,7 @@
-import type { Node } from '@/core/entities/node/node';
-import type { Player } from '@/core/entities/player';
-import type { ID } from '@/core/types/common';
-import type { EnergyPacketData } from '@/core/types/edge.types';
+import type { Node } from './node/node';
+import type { Player } from './player';
+import type { ID } from '../types/common';
+import type { EnergyPacketData } from '../types/edge.types';
 
 /**
  * Paquete de energía que viaja por una arista

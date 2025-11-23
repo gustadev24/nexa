@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { AIDifficulty, BasicAI } from '../../application/ai/BasicAI';
 import { Edge } from '../../core/entities/edge';
 import type { Node } from '../../core/entities/node/node';
@@ -9,7 +10,6 @@ import { GameEventType } from '../../core/types/events.types';
 import { AnimationManager } from '../visuals/AnimationManager';
 import { EdgeVisual } from '../visuals/EdgeVisual';
 import { NodeVisual } from '../visuals/NodeVisual';
-import Phaser from 'phaser';
 
 /**
  * GameScene - Escena principal del juego integrada con GameManager

@@ -1,5 +1,5 @@
-import { GameManager } from '../../core/managers/GameManager';
 import { Scene } from 'phaser';
+import { GameManager } from '../../core/managers/GameManager';
 
 /**
  * MainMenu Scene - NEXA

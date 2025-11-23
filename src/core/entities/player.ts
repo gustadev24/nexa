@@ -1,7 +1,7 @@
-import type { Node } from '@/core/entities/node/node';
-import type { Color, ID } from '@/core/types/common';
-import { PlayerType } from '@/core/types/common';
-import { type PlayerConfig, type PlayerStats } from '@/core/types/player';
+import type { Node } from './node/node';
+import type { Color, ID } from '../types/common';
+import { PlayerType } from '../types/common';
+import { type PlayerConfig, type PlayerStats } from '../types/player';
 
 /**
  * Representa un jugador en el juego

@@ -1,9 +1,9 @@
+import { AUTO, Game } from 'phaser';
 import { Boot } from '../scenes/boot';
 import { GameOver } from '../scenes/game-over';
 import GameScene from '../scenes/game-scene-integrated';
 import { MainMenu } from '../scenes/main-menu';
 import { Preloader } from '../scenes/preloader';
-import { AUTO, Game } from 'phaser';
 
 //  NEXA Game Configuration
 //  Find out more information about the Game Config at:

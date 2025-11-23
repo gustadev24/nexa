@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GameService } from '@/application/services/game-service';
-import { Player } from '@/core/entities/player';
-import { BasicNode } from '@/core/entities/node/basic';
-import { EnergyNode } from '@/core/entities/node/energy';
-import { Edge } from '@/core/entities/edge';
-import { Graph } from '@/core/entities/graph';
+import { GameService } from './game-service';
+import { Player } from '../../core/entities/player';
+import { BasicNode } from '../../core/entities/node/basic';
+import { EnergyNode } from '../../core/entities/node/energy';
+import { Edge } from '../../core/entities/edge';
+import { Graph } from '../../core/entities/graph';
 
 describe('GameService', () => {
   let gameService: GameService;

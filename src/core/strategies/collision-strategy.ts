@@ -1,5 +1,5 @@
-import type { EnergyPacket } from '@/core/entities/energy-packets';
-import type { CollisionResult } from '@/core/types/edge.types';
+import type { EnergyPacket } from '../entities/energy-packets';
+import type { CollisionResult } from '../types/edge.types';
 
 /**
  * Interfaz para estrategias de resolución de colisiones
