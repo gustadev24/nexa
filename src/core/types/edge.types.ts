@@ -1,6 +1,7 @@
 import type { ID } from '@/core/types/common';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
+import type { EnergyPacket } from '@/core/entities/energy-packets';
 
 /**
  * Configuración para crear una arista
@@ -9,11 +10,11 @@ export interface EdgeConfig {
   id: ID;
   nodeA: Node;
   nodeB: Node;
-  weight: number; // Peso representa tiempo de viaje
+  weight: number; // Peso representa tiempo de viaje en ticks
 }
 
 /**
- * Paquete de energía viajando por una arista
+ * Datos para crear un paquete de energía
  */
 export interface EnergyPacketData {
   id: ID;
@@ -27,13 +28,21 @@ export interface EnergyPacketData {
 }
 
 /**
- * Resultado de una colisión en arista
+ * Tipo de colisión entre paquetes
+ */
+export type CollisionType = 
+  | 'opposing_enemy'         // Enemigos en sentidos opuestos
+  | 'same_direction_ally'    // Aliados en misma dirección
+  | 'opposing_ally'          // Aliados en sentidos opuestos
+  | 'no_collision';          // Sin colisión
+
+/**
+ * Resultado de una colisión entre paquetes de energía
  */
 export interface CollisionResult {
-  type: 'enemy_collision' | 'ally_collision' | 'no_collision';
-  survivingPacket?: EnergyPacketData;
-  destroyed: EnergyPacketData[];
-  isWaste: boolean; // true si es desperdicio de energía aliada
+  type: CollisionType;
+  survivors: EnergyPacket[];   // Paquetes que sobreviven o se crean
+  destroyed: EnergyPacket[];   // Paquetes destruidos
 }
 
 /**

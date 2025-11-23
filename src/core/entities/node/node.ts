@@ -39,6 +39,7 @@ export abstract class Node {
   get position(): Position { return this._position; }
   get owner(): Player | null { return this._owner; }
   get energyPool(): number { return this._energyPool; }
+  get currentEnergy(): number { return this._energyPool; } // Alias para compatibilidad
   get edges(): ReadonlySet<Edge> { return this._edges; }
   get isInitialNode(): boolean { return this._isInitialNode; }
   
@@ -113,11 +114,26 @@ export abstract class Node {
   }
 
   /**
+   * Alias para addEnergy (compatibilidad)
+   */
+  increaseEnergy(amount: number): void {
+    this.addEnergy(amount);
+  }
+
+  /**
    * Remueve energía del pool del nodo
    */
   removeEnergy(amount: number): void {
     if (amount < 0) throw new Error('Amount must be positive.');
     this._energyPool = Math.max(0, this._energyPool - amount);
+  }
+
+  /**
+   * Establece la energía del nodo a un valor específico
+   */
+  setEnergy(amount: number): void {
+    if (amount < 0) throw new Error('Energy cannot be negative.');
+    this._energyPool = amount;
   }
 
   /**
