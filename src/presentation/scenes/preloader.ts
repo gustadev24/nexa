@@ -3,7 +3,7 @@ import {
     PLACEHOLDER_SETTINGS,
     PLAYER_COLORS,
     PRELOAD_ASSETS
-} from '@/presentation/config/assets.config';
+} from '../config/assets.config';
 import { Scene } from 'phaser';
 
 export class Preloader extends Scene {

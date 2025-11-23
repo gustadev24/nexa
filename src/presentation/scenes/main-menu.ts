@@ -1,4 +1,4 @@
-import { GameManager } from '@/core/managers/GameManager';
+import { GameManager } from '../../core/managers/GameManager';
 import { Scene } from 'phaser';
 
 /**

@@ -1,14 +1,14 @@
-import { AIDifficulty, BasicAI } from '@/application/ai/BasicAI';
-import { Edge } from '@/core/entities/edge';
-import type { Node } from '@/core/entities/node/node';
-import { NodeFactory } from '@/core/entities/node/node-factory';
-import { Player } from '@/core/entities/player';
-import { GameManager } from '@/core/managers/GameManager';
-import { NodeType, PlayerType } from '@/core/types/common';
-import { GameEventType } from '@/core/types/events.types';
-import { AnimationManager } from '@/presentation/visuals/AnimationManager';
-import { EdgeVisual } from '@/presentation/visuals/EdgeVisual';
-import { NodeVisual } from '@/presentation/visuals/NodeVisual';
+import { AIDifficulty, BasicAI } from '../../application/ai/BasicAI';
+import { Edge } from '../../core/entities/edge';
+import type { Node } from '../../core/entities/node/node';
+import { NodeFactory } from '../../core/entities/node/node-factory';
+import { Player } from '../../core/entities/player';
+import { GameManager } from '../../core/managers/GameManager';
+import { NodeType, PlayerType } from '../../core/types/common';
+import { GameEventType } from '../../core/types/events.types';
+import { AnimationManager } from '../visuals/AnimationManager';
+import { EdgeVisual } from '../visuals/EdgeVisual';
+import { NodeVisual } from '../visuals/NodeVisual';
 import Phaser from 'phaser';
 
 /**
