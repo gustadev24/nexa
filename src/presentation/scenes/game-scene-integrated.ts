@@ -218,8 +218,6 @@ export default class GameScene extends Phaser.Scene {
       initialEnergy: 50,
     });
     node1.setAsInitialNode();
-    node1.setOwner(player1);
-    player1.captureNode(node1);
     
     const node2 = NodeFactory.createNode({
       id: 'node2',
@@ -242,8 +240,6 @@ export default class GameScene extends Phaser.Scene {
       initialEnergy: 50,
     });
     node4.setAsInitialNode();
-    node4.setOwner(player2);
-    player2.captureNode(node4);
     
     const node5 = NodeFactory.createNode({
       id: 'node5',
@@ -252,10 +248,17 @@ export default class GameScene extends Phaser.Scene {
       initialEnergy: 0,
     });
     
-    // Agregar nodos al GameManager
+    // Agregar nodos al GameManager PRIMERO
     [node1, node2, node3, node4, node5].forEach(node => {
       this.gameManager.addNode(node);
     });
+    
+    // AHORA asignar owners y capturar nodos (después de que todo esté en el GameManager)
+    node1.setOwner(player1);
+    player1.captureNode(node1);
+    
+    node4.setOwner(player2);
+    player2.captureNode(node4);
     
     // Crear aristas
     const edge1 = new Edge({
