@@ -46,9 +46,10 @@ export enum PlayerType {
 }
 
 /**
- * Estados del juego
+ * Estados del juego (FSM)
  */
 export enum GameState {
+  MENU = 'menu',
   WAITING = 'waiting',
   PLAYING = 'playing',
   PAUSED = 'paused',
