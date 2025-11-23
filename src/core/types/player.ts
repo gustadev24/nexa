@@ -1,15 +1,17 @@
 import type { Color, ID } from '@/core/types/common';
-
-// La implementación de subtipos puede ser una opción  si es necesaria
-// export const PlayerType = {
-//   HUMAN: 'HUMAN',
-//   AI: 'AI',
-// } as const;
-
-// export type PlayerType = typeof PlayerType[keyof typeof PlayerType];
+import { PlayerType } from '@/core/types/common';
 
 export interface PlayerConfig {
   id: ID;
   username: string;
   color: Color;
+  type: PlayerType;
+  isInitialNode?: boolean;
+}
+
+export interface PlayerStats {
+  totalEnergy: number;
+  nodesControlled: number;
+  energyInTransit: number;
+  energyInNodes: number;
 }
