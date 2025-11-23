@@ -1,8 +1,8 @@
 import { Boot } from '@/presentation/scenes/boot';
-import { Preloader } from '@/presentation/scenes/preloader';
-import { MainMenu } from '@/presentation/scenes/main-menu';
-import GameScene from '@/presentation/scenes/game-scene-integrated';
 import { GameOver } from '@/presentation/scenes/game-over';
+import GameScene from '@/presentation/scenes/game-scene-integrated';
+import { MainMenu } from '@/presentation/scenes/main-menu';
+import { Preloader } from '@/presentation/scenes/preloader';
 import { AUTO, Game } from 'phaser';
 
 //  NEXA Game Configuration
