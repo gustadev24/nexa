@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { GameStateManager } from './GameStateManager';
-import { Player } from '../../core/entities/player';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { Edge } from '../../core/entities/edge';
-import { BasicNode } from '../../core/entities/node/basic';
 import { EnergyPacket } from '../../core/entities/energy-packets';
-import type { GameState, GameStateConfig } from './types';
+import { BasicNode } from '../../core/entities/node/basic';
+import { Player } from '../../core/entities/player';
 import type { Graph } from '../../core/types/graph.types';
+import { GameStateManager } from './GameStateManager';
+import type { GameState, GameStateConfig } from './types';
 
 describe('GameStateManager', () => {
   let gameStateManager: GameStateManager;

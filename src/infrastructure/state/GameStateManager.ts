@@ -1,10 +1,10 @@
 import type { Player } from '../../core/entities/player';
 import type {
-  GameState,
-  GameStateConfig,
-  PlayerStats,
-  GameSnapshot,
-  GameStatus,
+    GameSnapshot,
+    GameState,
+    GameStateConfig,
+    GameStatus,
+    PlayerStats,
 } from './types';
 
 /**
