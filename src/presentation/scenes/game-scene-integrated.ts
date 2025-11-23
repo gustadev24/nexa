@@ -1,11 +1,11 @@
-import Phaser from 'phaser';
-import { GameManager } from '@/core/managers/GameManager';
+import { Edge } from '@/core/entities/edge';
+import type { Node } from '@/core/entities/node/node';
 import { NodeFactory } from '@/core/entities/node/node-factory';
 import { Player } from '@/core/entities/player';
-import { Edge } from '@/core/entities/edge';
-import { GameEventType } from '@/core/types/events.types';
+import { GameManager } from '@/core/managers/GameManager';
 import { NodeType, PlayerType } from '@/core/types/common';
-import type { Node } from '@/core/entities/node/node';
+import { GameEventType } from '@/core/types/events.types';
+import Phaser from 'phaser';
 
 /**
  * GameScene - Escena principal del juego integrada con GameManager

@@ -1,6 +1,6 @@
-import Phaser from 'phaser';
 import type { Node } from '@/core/entities/node/node';
 import { NodeType } from '@/core/types/common';
+import Phaser from 'phaser';
 
 /**
  * NodeVisual - Componente visual para un nodo del grafo

@@ -1,8 +1,8 @@
-import type { Node } from '@/core/entities/node/node';
-import { BasicNode } from '@/core/entities/node/basic';
 import { AttackNode } from '@/core/entities/node/attack';
+import { BasicNode } from '@/core/entities/node/basic';
 import { DefenseNode } from '@/core/entities/node/defense';
 import { EnergyNode } from '@/core/entities/node/energy';
+import type { Node } from '@/core/entities/node/node';
 import { SuperEnergyNode } from '@/core/entities/node/super-energy';
 import { NodeType } from '@/core/types/common';
 import type { NodeConfig } from '@/core/types/node.types';

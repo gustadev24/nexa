@@ -1,7 +1,7 @@
-import Phaser from 'phaser';
-import { EnergyPacketVisual } from './EnergyPacketVisual';
 import type { EnergyPacket } from '@/core/entities/energy-packets';
 import type { Node } from '@/core/entities/node/node';
+import Phaser from 'phaser';
+import { EnergyPacketVisual } from './EnergyPacketVisual';
 
 /**
  * AnimationManager - Gestiona todas las animaciones del juego

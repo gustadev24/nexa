@@ -1,7 +1,6 @@
+import type { Edge } from '@/core/entities/edge';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
-import type { Edge } from '@/core/entities/edge';
-import type { ID } from '@/core/types/common';
 
 /**
  * Interfaz base para comandos (Command Pattern)

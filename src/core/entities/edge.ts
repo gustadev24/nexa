@@ -1,9 +1,9 @@
 import type { EnergyPacket } from '@/core/entities/energy-packets';
+import { EnergyPacket as EnergyPacketClass } from '@/core/entities/energy-packets';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
 import type { ID } from '@/core/types/common';
 import type { EdgeConfig, EnergyPacketData } from '@/core/types/edge.types';
-import { EnergyPacket as EnergyPacketClass } from '@/core/entities/energy-packets';
 
 /**
  * Arista que conecta dos nodos

@@ -1,7 +1,7 @@
-import type { GameManager } from '@/core/managers/GameManager';
+import type { Edge } from '@/core/entities/edge';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
-import type { Edge } from '@/core/entities/edge';
+import type { GameManager } from '@/core/managers/GameManager';
 
 /**
  * Dificultad de la IA
@@ -444,15 +444,12 @@ export class BasicAI {
   // ========== Helper Methods ==========
 
   private getOwnedNodes(): Node[] {
-    // Implementación depende de la API de GameManager
-    // return this.gameManager.getNodesByOwner(this.player);
-    return []; // Placeholder
+    return this.gameManager.getNodesByOwner(this.player);
   }
 
   private getIncomingEnemyPackets(_node: Node) {
-    // TODO: Implement when GameManager API is ready
-    // return this.gameManager.getIncomingPackets(node).filter(p => p.owner !== this.player);
-    return []; // Placeholder
+    const incoming = this.gameManager.getIncomingPackets(_node);
+    return incoming.filter(p => p.owner.id !== this.player.id);
   }
 
   private getAdjacentNeutralNodes(node: Node): Node[] {
@@ -464,21 +461,15 @@ export class BasicAI {
   }
 
   private getAdjacentNodes(_node: Node): Node[] {
-    // TODO: Implement when GameManager API is ready
-    // return this.gameManager.getAdjacentNodes(node);
-    return []; // Placeholder
+    return this.gameManager.getAdjacentNodes(_node);
   }
 
   private findEdge(_nodeA: Node, _nodeB: Node): Edge | null {
-    // TODO: Implement when GameManager API is ready
-    // return this.gameManager.findEdge(nodeA, nodeB);
-    return null; // Placeholder
+    return this.gameManager.findEdge(_nodeA, _nodeB);
   }
 
   private getEdgesFromNode(_node: Node): Edge[] {
-    // TODO: Implement when GameManager API is ready
-    // return this.gameManager.getEdgesFromNode(node);
-    return []; // Placeholder
+    return this.gameManager.getEdgesFromNode(_node);
   }
 
   // ========== Public API ==========

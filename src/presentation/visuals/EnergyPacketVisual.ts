@@ -1,6 +1,6 @@
-import Phaser from 'phaser';
 import type { EnergyPacket } from '@/core/entities/energy-packets';
 import type { Node } from '@/core/entities/node/node';
+import Phaser from 'phaser';
 
 /**
  * EnergyPacketVisual - Componente visual para paquetes de energía

@@ -1,7 +1,7 @@
 import { Node } from '@/core/entities/node/node';
-import { NodeType, GAME_CONSTANTS } from '@/core/types/common';
-import type { NodeProperties } from '@/core/types/node.types';
 import type { ID, Position } from '@/core/types/common';
+import { GAME_CONSTANTS, NodeType } from '@/core/types/common';
+import type { NodeProperties } from '@/core/types/node.types';
 
 /**
  * Nodo Básico

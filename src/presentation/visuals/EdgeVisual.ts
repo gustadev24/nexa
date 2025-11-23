@@ -1,6 +1,6 @@
-import Phaser from 'phaser';
 import type { Edge } from '@/core/entities/edge';
 import type { EnergyPacket } from '@/core/entities/energy-packets';
+import Phaser from 'phaser';
 
 /**
  * EdgeVisual - Componente visual para una arista del grafo

@@ -1,14 +1,14 @@
-import Phaser from 'phaser';
-import type { Node } from '@/core/entities/node/node';
-import type { Edge } from '@/core/entities/edge';
-import type { Player } from '@/core/entities/player';
 import {
-  AssignEnergyCommand,
-  UnassignEnergyCommand,
-  SendEnergyPacketCommand,
-  ClearNodeAssignmentsCommand,
-  CommandHistory,
+    AssignEnergyCommand,
+    ClearNodeAssignmentsCommand,
+    CommandHistory,
+    SendEnergyPacketCommand,
+    UnassignEnergyCommand,
 } from '@/application/commands/game-commands';
+import type { Edge } from '@/core/entities/edge';
+import type { Node } from '@/core/entities/node/node';
+import type { Player } from '@/core/entities/player';
+import Phaser from 'phaser';
 
 /**
  * InputHandler - Gestiona la entrada del usuario usando Command Pattern

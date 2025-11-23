@@ -1,7 +1,7 @@
-import type { ID } from '@/core/types/common';
+import type { EnergyPacket } from '@/core/entities/energy-packets';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
-import type { EnergyPacket } from '@/core/entities/energy-packets';
+import type { ID } from '@/core/types/common';
 
 /**
  * Configuración para crear una arista

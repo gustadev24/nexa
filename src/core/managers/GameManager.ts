@@ -1,14 +1,14 @@
+import { Edge } from '@/core/entities/edge';
 import { Node } from '@/core/entities/node/node';
 import { Player } from '@/core/entities/player';
-import { Edge } from '@/core/entities/edge';
 import { EventEmitter } from '@/core/events/EventEmitter';
-import { CollisionResolver } from '@/core/strategies/collision-strategy';
-import { AttackResolver } from '@/core/strategies/attack-strategy';
-import { GameState, VictoryCondition, GAME_CONSTANTS } from '@/core/types/common';
+import { GameOverState, MenuState, PausedState, PlayingState } from '@/core/states/concrete-states';
 import type { GameContext, IGameState } from '@/core/states/game-state.interface';
-import { MenuState, PlayingState, PausedState, GameOverState } from '@/core/states/concrete-states';
-import { GameEventType } from '@/core/types/events.types';
+import { AttackResolver } from '@/core/strategies/attack-strategy';
+import { CollisionResolver } from '@/core/strategies/collision-strategy';
 import type { ID } from '@/core/types/common';
+import { GAME_CONSTANTS, GameState, VictoryCondition } from '@/core/types/common';
+import { GameEventType } from '@/core/types/events.types';
 
 /**
  * GameManager - Singleton Pattern
@@ -171,6 +171,88 @@ export class GameManager implements GameContext {
 
   getAllPlayers(): Player[] {
     return Array.from(this.players.values());
+  }
+
+  // ============ AI Helper Methods ============
+
+  /**
+   * Obtiene todos los nodos controlados por un jugador
+   */
+  getNodesByOwner(player: Player): Node[] {
+    return Array.from(this.nodes.values()).filter(
+      node => node.owner?.id === player.id
+    );
+  }
+
+  /**
+   * Obtiene los paquetes de energía que están llegando a un nodo
+   */
+  getIncomingPackets(node: Node): Array<{ owner: Player; amount: number; progress: number }> {
+    const incomingPackets: Array<{ owner: Player; amount: number; progress: number }> = [];
+    
+    for (const edge of this.edges.values()) {
+      // Verificar si la arista llega a este nodo
+      if (edge.nodeB.id === node.id) {
+        // Agregar todos los paquetes de esta arista
+        for (const packet of edge.energyPackets) {
+          incomingPackets.push({
+            owner: packet.owner,
+            amount: packet.amount,
+            progress: packet.progress,
+          });
+        }
+      }
+    }
+    
+    return incomingPackets;
+  }
+
+  /**
+   * Obtiene todos los nodos adyacentes a un nodo dado
+   */
+  getAdjacentNodes(node: Node): Node[] {
+    const adjacentNodes: Node[] = [];
+    
+    for (const edge of this.edges.values()) {
+      if (edge.nodeA.id === node.id) {
+        adjacentNodes.push(edge.nodeB);
+      } else if (edge.nodeB.id === node.id) {
+        adjacentNodes.push(edge.nodeA);
+      }
+    }
+    
+    return adjacentNodes;
+  }
+
+  /**
+   * Encuentra la arista entre dos nodos
+   */
+  findEdge(nodeA: Node, nodeB: Node): Edge | null {
+    for (const edge of this.edges.values()) {
+      const matchesAB = edge.nodeA.id === nodeA.id && edge.nodeB.id === nodeB.id;
+      const matchesBA = edge.nodeA.id === nodeB.id && edge.nodeB.id === nodeA.id;
+      
+      if (matchesAB || matchesBA) {
+        return edge;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Obtiene todas las aristas conectadas a un nodo
+   */
+  getEdgesFromNode(node: Node): Edge[] {
+    const connectedEdges: Edge[] = [];
+    
+    for (const edge of this.edges.values()) {
+      if (edge.nodeA.id === node.id || edge.nodeB.id === node.id) {
+        connectedEdges.push(edge);
+      }
+    }
+    
+    return connectedEdges;
   }
 
   // ============ Game Loop ============

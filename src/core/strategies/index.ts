@@ -14,18 +14,12 @@
  * - AttackResolver: Coordinator that selects appropriate strategy
  */
 
-export { 
-  CollisionResolver,
-  OpposingPacketsStrategy,
-  SameDirectionAlliesStrategy,
-  OpposingAlliesStrategy,
-  type ICollisionStrategy,
+export {
+    CollisionResolver, OpposingAlliesStrategy, OpposingPacketsStrategy,
+    SameDirectionAlliesStrategy, type ICollisionStrategy
 } from './collision-strategy';
 
 export {
-  AttackResolver,
-  NeutralNodeAttackStrategy,
-  AllyNodeAttackStrategy,
-  EnemyNodeAttackStrategy,
-  type IAttackStrategy,
+    AllyNodeAttackStrategy, AttackResolver, EnemyNodeAttackStrategy, NeutralNodeAttackStrategy, type IAttackStrategy
 } from './attack-strategy';
+
