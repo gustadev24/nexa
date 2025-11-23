@@ -40,29 +40,41 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    console.log('🎮 GameScene.create() started');
+    
     // Obtener instancia del GameManager (Singleton)
     this.gameManager = GameManager.getInstance();
+    console.log('✅ GameManager instance obtained');
     
     // Inicializar Animation Manager
     this.animationManager = new AnimationManager(this);
+    console.log('✅ AnimationManager initialized');
     
     // Suscribirse a eventos del juego (Observer Pattern)
     this.subscribeToGameEvents();
+    console.log('✅ Game events subscribed');
     
     // Crear el grafo de prueba
     this.createTestGraph();
+    console.log('✅ Test graph created');
     
     // Inicializar AI para jugadores CPU
     this.initializeAI();
+    console.log('✅ AI initialized');
     
     // Inicializar UI
     this.createUI();
+    console.log('✅ UI created');
     
     // Iniciar el juego
     this.gameManager.startGame();
+    console.log('✅ Game started');
     
     // Setup input
     this.setupInput();
+    console.log('✅ Input setup complete');
+    
+    console.log('🎮 GameScene.create() completed');
   }
 
   update(_time: number, delta: number): void {
@@ -294,11 +306,16 @@ export default class GameScene extends Phaser.Scene {
    * Renderiza el grafo completo
    */
   private renderGraph(): void {
+    console.log('🎨 Starting renderGraph()');
+    console.log(`  Edges to render: ${this.gameManager.getAllEdges().length}`);
+    console.log(`  Nodes to render: ${this.gameManager.getAllNodes().length}`);
+    
     // Renderizar aristas con EdgeVisual
     for (const edge of this.gameManager.getAllEdges()) {
       const edgeVisual = new EdgeVisual(this, edge);
       this.edgeVisuals.set(edge.id, edgeVisual);
     }
+    console.log(`✅ ${this.edgeVisuals.size} EdgeVisuals created`);
     
     // Renderizar nodos con NodeVisual
     for (const node of this.gameManager.getAllNodes()) {
@@ -310,6 +327,8 @@ export default class GameScene extends Phaser.Scene {
         this.onNodeClicked(node);
       });
     }
+    console.log(`✅ ${this.nodeVisuals.size} NodeVisuals created`);
+    console.log('🎨 renderGraph() completed');
   }
 
   /**
