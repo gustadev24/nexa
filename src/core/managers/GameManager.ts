@@ -96,6 +96,11 @@ export class GameManager implements GameContext {
       throw new Error('Need at least 2 players to start the game');
     }
     
+    // Establecer que todos los jugadores están en el juego
+    for (const player of this.players.values()) {
+      player.setInGame(true);
+    }
+    
     this.gameStartTime = Date.now();
     this.elapsedTime = 0;
     this.lastDefenseUpdate = 0;

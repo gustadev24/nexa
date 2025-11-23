@@ -34,6 +34,9 @@ export default class GameScene extends Phaser.Scene {
   
   private selectedNode: Node | null = null;
   private hoveredNode: Node | null = null;
+  
+  // Almacenar asignaciones iniciales para ejecutar después de startGame()
+  private initialNodeAssignments: Array<{ node: Node; player: Player }> = [];
 
   constructor() {
     super({ key: 'GameScene' });
@@ -54,9 +57,18 @@ export default class GameScene extends Phaser.Scene {
     this.subscribeToGameEvents();
     console.log('✅ Game events subscribed');
     
-    // Crear el grafo de prueba
+    // Crear el grafo de prueba (esto crea jugadores y nodos)
     this.createTestGraph();
     console.log('✅ Test graph created');
+    
+    // IMPORTANTE: Iniciar el juego ANTES de capturar nodos
+    // esto establece isInGame = true para todos los jugadores
+    this.gameManager.startGame();
+    console.log('✅ Game started');
+    
+    // Ahora sí podemos capturar los nodos iniciales
+    this.captureInitialNodes();
+    console.log('✅ Initial nodes captured');
     
     // Inicializar AI para jugadores CPU
     this.initializeAI();
@@ -65,10 +77,6 @@ export default class GameScene extends Phaser.Scene {
     // Inicializar UI
     this.createUI();
     console.log('✅ UI created');
-    
-    // Iniciar el juego
-    this.gameManager.startGame();
-    console.log('✅ Game started');
     
     // Setup input
     this.setupInput();
@@ -253,12 +261,11 @@ export default class GameScene extends Phaser.Scene {
       this.gameManager.addNode(node);
     });
     
-    // AHORA asignar owners y capturar nodos (después de que todo esté en el GameManager)
-    node1.setOwner(player1);
-    player1.captureNode(node1);
-    
-    node4.setOwner(player2);
-    player2.captureNode(node4);
+    // Guardar referencias para capturar después
+    this.initialNodeAssignments = [
+      { node: node1, player: player1 },
+      { node: node4, player: player2 },
+    ];
     
     // Crear aristas
     const edge1 = new Edge({
@@ -332,6 +339,19 @@ export default class GameScene extends Phaser.Scene {
     }
     console.log(`✅ ${this.nodeVisuals.size} NodeVisuals created`);
     console.log('🎨 renderGraph() completed');
+  }
+
+  /**
+   * Captura los nodos iniciales para cada jugador
+   * DEBE llamarse DESPUÉS de gameManager.startGame() para que isInGame = true
+   */
+  private captureInitialNodes(): void {
+    for (const assignment of this.initialNodeAssignments) {
+      const { node, player } = assignment;
+      node.setOwner(player);
+      player.captureNode(node);
+      console.log(`✅ ${player.username} captured ${node.id}`);
+    }
   }
 
   /**
