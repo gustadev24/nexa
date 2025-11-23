@@ -5,6 +5,9 @@ import { Player } from '@/core/entities/player';
 import { GameManager } from '@/core/managers/GameManager';
 import { NodeType, PlayerType } from '@/core/types/common';
 import { GameEventType } from '@/core/types/events.types';
+import { AnimationManager } from '@/presentation/visuals/AnimationManager';
+import { EdgeVisual } from '@/presentation/visuals/EdgeVisual';
+import { NodeVisual } from '@/presentation/visuals/NodeVisual';
 import Phaser from 'phaser';
 
 /**
@@ -13,6 +16,13 @@ import Phaser from 'phaser';
  */
 export default class GameScene extends Phaser.Scene {
   private gameManager!: GameManager;
+  
+  // Visual components
+  private nodeVisuals: Map<string | number, NodeVisual> = new Map();
+  private edgeVisuals: Map<string | number, EdgeVisual> = new Map();
+  private animationManager!: AnimationManager;
+  
+  // Legacy graphics (keeping for UI)
   private nodeGraphics: Map<string | number, Phaser.GameObjects.Graphics> = new Map();
   private edgeGraphics: Map<string | number, Phaser.GameObjects.Graphics> = new Map();
   private packetGraphics: Map<string | number, Phaser.GameObjects.Graphics> = new Map();
@@ -28,6 +38,9 @@ export default class GameScene extends Phaser.Scene {
   create(): void {
     // Obtener instancia del GameManager (Singleton)
     this.gameManager = GameManager.getInstance();
+    
+    // Inicializar Animation Manager
+    this.animationManager = new AnimationManager(this);
     
     // Suscribirse a eventos del juego (Observer Pattern)
     this.subscribeToGameEvents();
@@ -49,7 +62,20 @@ export default class GameScene extends Phaser.Scene {
     // Actualizar GameManager (procesa ciclos de defensa y ataque)
     this.gameManager.update(delta);
     
-    // Actualizar visualización
+    // Actualizar Animation Manager
+    this.animationManager.update();
+    
+    // Actualizar visualización de nodos
+    for (const visual of this.nodeVisuals.values()) {
+      visual.update();
+    }
+    
+    // Actualizar visualización de aristas
+    for (const visual of this.edgeVisuals.values()) {
+      visual.update();
+    }
+    
+    // Actualizar visualización legacy (UI)
     this.updateVisualization();
   }
 
@@ -66,6 +92,14 @@ export default class GameScene extends Phaser.Scene {
     
     events.on(GameEventType.GAME_OVER, (data: any) => {
       console.log('🏁 Game Over!', data);
+      
+      // Reproducir animación de victoria/derrota
+      if (data.winner) {
+        this.animationManager.playVictoryAnimation(data.winner);
+      } else {
+        this.animationManager.playDefeatAnimation();
+      }
+      
       this.showGameOver(data.winner, data.reason);
     });
     
@@ -77,11 +111,27 @@ export default class GameScene extends Phaser.Scene {
     events.on(GameEventType.NODE_CAPTURED, (data: any) => {
       console.log('🏰 Node Captured:', data);
       this.updateNodeVisual(data.nodeId);
+      
+      // Animación de captura
+      const node = this.gameManager.getNode(data.nodeId);
+      if (node) {
+        this.animationManager.playCaptureAnimation(node, data.newOwner);
+        
+        const visual = this.nodeVisuals.get(data.nodeId);
+        if (visual) {
+          visual.playCaptureAnimation();
+        }
+      }
     });
     
     events.on(GameEventType.NODE_NEUTRALIZED, (data: any) => {
       console.log('⚪ Node Neutralized:', data);
       this.updateNodeVisual(data.nodeId);
+      
+      const visual = this.nodeVisuals.get(data.nodeId);
+      if (visual) {
+        visual.render();
+      }
     });
     
     // Eventos de energía
@@ -217,15 +267,44 @@ export default class GameScene extends Phaser.Scene {
    * Renderiza el grafo completo
    */
   private renderGraph(): void {
-    // Renderizar aristas
+    // Renderizar aristas con EdgeVisual
     for (const edge of this.gameManager.getAllEdges()) {
-      this.renderEdge(edge);
+      const edgeVisual = new EdgeVisual(this, edge);
+      this.edgeVisuals.set(edge.id, edgeVisual);
     }
     
-    // Renderizar nodos
+    // Renderizar nodos con NodeVisual
     for (const node of this.gameManager.getAllNodes()) {
-      this.renderNode(node);
+      const nodeVisual = new NodeVisual(this, node);
+      this.nodeVisuals.set(node.id, nodeVisual);
+      
+      // Setup click handler
+      nodeVisual.getContainer().on('pointerdown', () => {
+        this.onNodeClicked(node);
+      });
     }
+  }
+
+  /**
+   * Handler para click en nodo
+   */
+  private onNodeClicked(node: Node): void {
+    // Deseleccionar nodo anterior
+    if (this.selectedNode) {
+      const prevVisual = this.nodeVisuals.get(this.selectedNode.id);
+      if (prevVisual) {
+        prevVisual.setSelected(false);
+      }
+    }
+    
+    // Seleccionar nuevo nodo
+    this.selectedNode = node;
+    const visual = this.nodeVisuals.get(node.id);
+    if (visual) {
+      visual.setSelected(true);
+    }
+    
+    console.log('Selected node:', node.id, 'Owner:', node.owner?.id ?? 'neutral');
   }
 
   /**
