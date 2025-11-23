@@ -1,3 +1,4 @@
+import { AIDifficulty, BasicAI } from '@/application/ai/BasicAI';
 import { Edge } from '@/core/entities/edge';
 import type { Node } from '@/core/entities/node/node';
 import { NodeFactory } from '@/core/entities/node/node-factory';
@@ -16,6 +17,9 @@ import Phaser from 'phaser';
  */
 export default class GameScene extends Phaser.Scene {
   private gameManager!: GameManager;
+  
+  // AI Controllers
+  private aiControllers: Map<string | number, BasicAI> = new Map();
   
   // Visual components
   private nodeVisuals: Map<string | number, NodeVisual> = new Map();
@@ -48,6 +52,9 @@ export default class GameScene extends Phaser.Scene {
     // Crear el grafo de prueba
     this.createTestGraph();
     
+    // Inicializar AI para jugadores CPU
+    this.initializeAI();
+    
     // Inicializar UI
     this.createUI();
     
@@ -61,6 +68,11 @@ export default class GameScene extends Phaser.Scene {
   update(_time: number, delta: number): void {
     // Actualizar GameManager (procesa ciclos de defensa y ataque)
     this.gameManager.update(delta);
+    
+    // Actualizar AI Controllers
+    for (const ai of this.aiControllers.values()) {
+      ai.update(delta);
+    }
     
     // Actualizar Animation Manager
     this.animationManager.update();
@@ -77,6 +89,21 @@ export default class GameScene extends Phaser.Scene {
     
     // Actualizar visualización legacy (UI)
     this.updateVisualization();
+  }
+
+  /**
+   * Inicializa controladores de IA para jugadores CPU
+   */
+  private initializeAI(): void {
+    for (const player of this.gameManager.getAllPlayers()) {
+      if (player.type === PlayerType.AI) {
+        // Crear controlador de IA con dificultad media
+        const ai = new BasicAI(this.gameManager, player, AIDifficulty.MEDIUM);
+        this.aiControllers.set(player.id, ai);
+        
+        console.log(`🤖 AI initialized for ${player.username} (Difficulty: MEDIUM)`);
+      }
+    }
   }
 
   /**

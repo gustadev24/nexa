@@ -1,6 +1,8 @@
 import { Boot } from '@/presentation/scenes/boot';
+import { Preloader } from '@/presentation/scenes/preloader';
 import { MainMenu } from '@/presentation/scenes/main-menu';
-import { Game as MainGame } from '@/presentation/scenes/game';
+import GameScene from '@/presentation/scenes/game-scene-integrated';
+import { GameOver } from '@/presentation/scenes/game-over';
 import { AUTO, Game } from 'phaser';
 
 //  NEXA Game Configuration
@@ -12,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 768,
   parent: 'game-container',
   backgroundColor: '#001122',
-  scene: [Boot, MainMenu, MainGame],
+  scene: [Boot, Preloader, MainMenu, GameScene, GameOver],
   physics: {
     default: 'arcade',
     arcade: {
