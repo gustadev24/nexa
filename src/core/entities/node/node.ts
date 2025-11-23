@@ -166,10 +166,24 @@ export abstract class Node {
   }
 
   /**
+   * Alias para removeEnergyFromEdge
+   */
+  unassignEnergyFromEdge(edge: Edge, amount: number): void {
+    this.removeEnergyFromEdge(edge, amount);
+  }
+
+  /**
    * Obtiene la energía asignada a una arista específica
    */
   getAssignedEnergy(edge: Edge): number {
     return this._edgeAssignments.get(edge) ?? 0;
+  }
+
+  /**
+   * Alias para getAssignedEnergy
+   */
+  getEdgeAssignment(edge: Edge): number {
+    return this.getAssignedEnergy(edge);
   }
 
   /**
