@@ -110,6 +110,15 @@ export interface GameSnapshot {
     playerId: string | number;
     timeRemaining: number; // ms restantes para victoria
   };
+  
+  /** Snapshots de nodos para renderizado */
+  nodes?: NodeSnapshot[];
+  
+  /** Snapshots de aristas para renderizado */
+  edges?: EdgeSnapshot[];
+  
+  /** Snapshots de paquetes de energía para renderizado */
+  energyPackets?: EnergyPacketSnapshot[];
 }
 
 /**
@@ -127,4 +136,112 @@ export interface GameStateConfig {
   
   /** Tick inicial (opcional, por defecto 0) */
   initialTick?: number;
+}
+
+/**
+ * Snapshot de un nodo para renderizado
+ * Representa el estado visual de un nodo en un momento dado
+ */
+export interface NodeSnapshot {
+  /** ID único del nodo */
+  id: string | number;
+  
+  /** Posición X en el canvas */
+  x: number;
+  
+  /** Posición Y en el canvas */
+  y: number;
+  
+  /** Radio del nodo (tamaño) */
+  radius: number;
+  
+  /** ID del jugador propietario (null si neutral) */
+  ownerId: string | number | null;
+  
+  /** Color del propietario (gris si neutral) */
+  color: string;
+  
+  /** Tipo de nodo */
+  nodeType: 'basic' | 'attack' | 'defense' | 'energy' | 'super-energy';
+  
+  /** Energía almacenada en el nodo */
+  energyPool: number;
+  
+  /** Energía de defensa efectiva */
+  defenseEnergy: number;
+  
+  /** Si es el nodo inicial del jugador */
+  isInitialNode: boolean;
+  
+  /** Si el nodo es neutral */
+  isNeutral: boolean;
+}
+
+/**
+ * Snapshot de una arista para renderizado
+ * Representa el estado visual de una conexión entre nodos
+ */
+export interface EdgeSnapshot {
+  /** ID único de la arista */
+  id: string | number;
+  
+  /** ID del nodo origen (endpoint 1) */
+  fromNodeId: string | number;
+  
+  /** ID del nodo destino (endpoint 2) */
+  toNodeId: string | number;
+  
+  /** Posición X del nodo origen */
+  fromX: number;
+  
+  /** Posición Y del nodo origen */
+  fromY: number;
+  
+  /** Posición X del nodo destino */
+  toX: number;
+  
+  /** Posición Y del nodo destino */
+  toY: number;
+  
+  /** Longitud/peso de la arista (tiempo de viaje) */
+  length: number;
+  
+  /** Grosor de la línea proporcional al peso */
+  thickness: number;
+}
+
+/**
+ * Snapshot de un paquete de energía para renderizado
+ * Representa el estado visual de energía en tránsito
+ */
+export interface EnergyPacketSnapshot {
+  /** ID único del paquete */
+  id: string | number;
+  
+  /** ID del jugador propietario */
+  ownerId: string | number;
+  
+  /** Color del propietario */
+  color: string;
+  
+  /** Cantidad de energía */
+  amount: number;
+  
+  /** ID del nodo origen */
+  originNodeId: string | number;
+  
+  /** ID del nodo destino */
+  targetNodeId: string | number;
+  
+  /** Progreso del viaje (0 = origen, 1 = destino) */
+  progress: number;
+  
+  /** Posición X actual en el canvas */
+  x: number;
+  
+  /** Posición Y actual en el canvas */
+  y: number;
+  
+  /** Radio del paquete (proporcional a amount) */
+  radius: number;
 }
