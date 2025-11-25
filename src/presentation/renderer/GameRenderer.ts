@@ -1,8 +1,8 @@
 import type {
-  EdgeSnapshot,
-  EnergyPacketSnapshot,
-  GameSnapshot,
-  NodeSnapshot,
+    EdgeSnapshot,
+    EnergyPacketSnapshot,
+    GameSnapshot,
+    NodeSnapshot,
 } from '@/infrastructure/state/types';
 
 /**

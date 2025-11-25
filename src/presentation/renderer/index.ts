@@ -5,10 +5,10 @@
  * Exporta el GameRenderer y los tipos necesarios para el renderizado.
  */
 
-export { GameRenderer } from './GameRenderer';
 export type {
-  NodeSnapshot,
-  EdgeSnapshot,
-  EnergyPacketSnapshot,
-  GameSnapshot,
+    EdgeSnapshot,
+    EnergyPacketSnapshot,
+    GameSnapshot, NodeSnapshot
 } from '@/infrastructure/state/types';
+export { GameRenderer } from './GameRenderer';
+

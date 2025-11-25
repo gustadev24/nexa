@@ -1,6 +1,6 @@
+import type { EdgeSnapshot, EnergyPacketSnapshot, GameSnapshot, NodeSnapshot } from '@/infrastructure/state/types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GameRenderer } from './GameRenderer';
-import type { GameSnapshot, NodeSnapshot, EdgeSnapshot, EnergyPacketSnapshot } from '@/infrastructure/state/types';
 
 describe('GameRenderer', () => {
   let canvas: HTMLCanvasElement;
