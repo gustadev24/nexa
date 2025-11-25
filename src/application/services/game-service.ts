@@ -17,14 +17,14 @@ export class GameService {
       throw new Error('Se requieren al menos 2 jugadores para iniciar una partida.');
     }
 
-    // Validación 2: Verificar BasicNodes neutrales suficientes
+    // Validación 2: Verificar que haya al menos algunos nodos neutrales
     const neutralBasicNodes = Array.from(graph.nodes).filter(
       node => node instanceof BasicNode && node.isNeutral(),
     );
 
-    if (neutralBasicNodes.length < players.length) {
+    if (neutralBasicNodes.length < 1) {
       throw new Error(
-        `No hay suficientes nodos básicos neutrales. Se requieren ${players.length}, pero solo hay ${neutralBasicNodes.length}.`,
+        `No hay suficientes nodos básicos neutrales. Se requiere al menos 1, pero hay ${neutralBasicNodes.length}.`,
       );
     }
 

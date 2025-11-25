@@ -1,5 +1,5 @@
 import type { Player } from '@/core/entities/player';
-import type { Graph } from '@/core/types/graph.types';
+import type { Graph } from '@/core/entities/graph';
 
 /**
  * Estado del juego en un momento dado
