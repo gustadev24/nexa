@@ -13,8 +13,6 @@ export interface ValidationResult {
 }
 
 export class EnergyCommandService {
-  constructor() {}
-
   validateCommand(player: Player, node: Node): ValidationResult {
     if (!player.isInGame) return { valid: false, error: 'Player is not in a game.' };
     if (player.isEliminated) return { valid: false, error: 'Player is eliminated.' };
@@ -33,8 +31,9 @@ export class EnergyCommandService {
     try {
       node.assignEnergyToEdge(edge, amount);
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err?.message ?? String(err) };
+    }
+    catch (err) {
+      return { success: false, error: String(err) };
     }
   }
 
@@ -48,8 +47,9 @@ export class EnergyCommandService {
     try {
       node.removeEnergyFromEdge(edge, amount);
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err?.message ?? String(err) };
+    }
+    catch (err) {
+      return { success: false, error: String(err) };
     }
   }
 
@@ -61,7 +61,7 @@ export class EnergyCommandService {
     if (!player.ownsNode(toNode)) return { success: false, error: 'Player does not control destination node.' };
 
     // Check adjacency: there must be an edge connecting the two nodes
-    const connected = Array.from(fromNode.edges).some((e) => e.hasNode(toNode));
+    const connected = Array.from(fromNode.edges).some(e => e.hasNode(toNode));
     if (!connected) return { success: false, error: 'Nodes are not neighbors.' };
 
     if (fromNode.energyPool < amount) return { success: false, error: 'Insufficient energy in source node.' };
@@ -70,8 +70,9 @@ export class EnergyCommandService {
       fromNode.removeEnergy(amount);
       toNode.addEnergy(amount);
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err?.message ?? String(err) };
+    }
+    catch (err) {
+      return { success: false, error: String(err) };
     }
   }
 }

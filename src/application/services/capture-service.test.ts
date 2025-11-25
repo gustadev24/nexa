@@ -3,17 +3,11 @@ import { CaptureService } from '@/application/services/capture-service';
 import { Player } from '@/core/entities/player';
 import { BasicNode } from '@/core/entities/node/basic';
 import { Edge } from '@/core/entities/edge';
-import { Graph } from '@/core/entities/graph';
 
 describe('CaptureService', () => {
   let captureService: CaptureService;
   let p1: Player;
   let p2: Player;
-  
-  // Helper para crear grafos rápidos
-  const createGraph = (nodes: any[], edges: any[]) => {
-    return new Graph(new Set(nodes), new Set(edges));
-  };
 
   beforeEach(() => {
     captureService = new CaptureService();
@@ -82,7 +76,7 @@ describe('CaptureService', () => {
 
     const edge1 = new Edge('e1', [nodeA, nodeB], 10);
     const edge2 = new Edge('e2', [nodeB, nodeC], 10);
-    
+
     // Conectar nodos
     nodeA.addEdge(edge1);
     nodeB.addEdge(edge1);
@@ -91,19 +85,17 @@ describe('CaptureService', () => {
 
     // Asignar todo a P1
     p1.setInitialNode(nodeA);
-    [nodeA, nodeB, nodeC].forEach(n => {
+    [nodeA, nodeB, nodeC].forEach((n) => {
       p1.captureNode(n);
       n.setOwner(p1);
     });
 
-    const graph = createGraph([nodeA, nodeB, nodeC], [edge1, edge2]);
-
     // Simulamos que P1 pierde B (ahora es neutral o enemigo)
     p1.loseNode(nodeB);
-    nodeB.setOwner(null); 
+    nodeB.setOwner(null);
 
     // Ejecutar detección
-    const lostNodes = captureService.handleArticulationCapture(nodeB, p1, graph);
+    const lostNodes = captureService.handleArticulationCapture(nodeB, p1);
 
     expect(lostNodes).toHaveLength(1);
     expect(lostNodes[0]).toBe(nodeC);
@@ -118,20 +110,20 @@ describe('CaptureService', () => {
     const nodeC = new BasicNode('C');
     const edge1 = new Edge('e1', [nodeA, nodeB], 10);
     const edge2 = new Edge('e2', [nodeB, nodeC], 10);
-    
-    nodeA.addEdge(edge1); nodeB.addEdge(edge1);
-    nodeB.addEdge(edge2); nodeC.addEdge(edge2);
+
+    nodeA.addEdge(edge1);
+    nodeB.addEdge(edge1);
+    nodeB.addEdge(edge2);
+    nodeC.addEdge(edge2);
 
     p2.setInitialNode(nodeA);
-    [nodeA, nodeB, nodeC].forEach(n => {
+    [nodeA, nodeB, nodeC].forEach((n) => {
       p2.captureNode(n);
       n.setOwner(p2);
     });
 
-    const graph = createGraph([nodeA, nodeB, nodeC], [edge1, edge2]);
-
     // P1 ataca a B
-    const result = captureService.captureNodeWithArticulationCheck(nodeB, p1, p2, graph);
+    const result = captureService.captureNodeWithArticulationCheck(nodeB, p1, p2);
 
     expect(result.captured).toBe(true);
     expect(result.nodesLost).toContain(nodeC); // P2 perdió C por cascada
@@ -150,15 +142,19 @@ describe('CaptureService', () => {
     const nodeC = new BasicNode('C');
     const edge1 = new Edge('e1', [nodeA, nodeB], 10);
     const edge2 = new Edge('e2', [nodeB, nodeC], 10);
-    nodeA.addEdge(edge1); nodeB.addEdge(edge1); nodeB.addEdge(edge2); nodeC.addEdge(edge2);
+    nodeA.addEdge(edge1);
+    nodeB.addEdge(edge1);
+    nodeB.addEdge(edge2);
+    nodeC.addEdge(edge2);
 
     p1.setInitialNode(nodeA);
-    [nodeA, nodeB, nodeC].forEach(n => { p1.captureNode(n); n.setOwner(p1); });
+    [nodeA, nodeB, nodeC].forEach((n) => {
+      p1.captureNode(n);
+      n.setOwner(p1);
+    });
 
-    const graph = createGraph([nodeA, nodeB, nodeC], [edge1, edge2]);
-
-    expect(captureService.isArticulationPoint(nodeB, p1, graph)).toBe(true);
-    expect(captureService.isArticulationPoint(nodeC, p1, graph)).toBe(false); // C es final, no corta nada
+    expect(captureService.isArticulationPoint(nodeB, p1)).toBe(true);
+    expect(captureService.isArticulationPoint(nodeC, p1)).toBe(false); // C es final, no corta nada
   });
 
   it('getNodesAtRisk: debe predecir qué nodos se perderán', () => {
@@ -169,15 +165,19 @@ describe('CaptureService', () => {
     const nodeC = new BasicNode('C');
     const edge1 = new Edge('e1', [nodeA, nodeB], 10);
     const edge2 = new Edge('e2', [nodeB, nodeC], 10);
-    nodeA.addEdge(edge1); nodeB.addEdge(edge1); nodeB.addEdge(edge2); nodeC.addEdge(edge2);
+    nodeA.addEdge(edge1);
+    nodeB.addEdge(edge1);
+    nodeB.addEdge(edge2);
+    nodeC.addEdge(edge2);
 
     p1.setInitialNode(nodeA);
-    [nodeA, nodeB, nodeC].forEach(n => { p1.captureNode(n); n.setOwner(p1); });
-    
-    const graph = createGraph([nodeA, nodeB, nodeC], [edge1, edge2]);
+    [nodeA, nodeB, nodeC].forEach((n) => {
+      p1.captureNode(n);
+      n.setOwner(p1);
+    });
 
-    const risks = captureService.getNodesAtRisk(nodeB, p1, graph);
-    
+    const risks = captureService.getNodesAtRisk(nodeB, p1);
+
     expect(risks).toHaveLength(1);
     expect(risks[0]).toBe(nodeC);
   });

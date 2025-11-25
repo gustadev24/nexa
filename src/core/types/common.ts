@@ -30,16 +30,16 @@ export type Callback<T = void> = (data: T) => void;
 export enum NodeType {
   /** Nodo básico estándar */
   BASIC = 'BASIC',
-  
+
   /** Nodo de ataque (multiplica x2 la energía saliente) */
   ATTACK = 'ATTACK',
-  
+
   /** Nodo de defensa (multiplica x2 la defensa efectiva) */
   DEFENSE = 'DEFENSE',
-  
+
   /** Nodo de energía (genera energía al ser capturado) */
   ENERGY = 'ENERGY',
-  
+
   /** Nodo de super energía (genera más energía al ser capturado) */
   SUPER_ENERGY = 'SUPER_ENERGY',
 }
@@ -50,7 +50,7 @@ export enum NodeType {
 export enum PlayerType {
   /** Jugador humano */
   HUMAN = 'HUMAN',
-  
+
   /** Jugador controlado por IA */
   AI = 'AI',
 }
@@ -61,7 +61,7 @@ export enum PlayerType {
 export enum ConnectionState {
   /** Nodo conectado al nodo inicial del jugador */
   CONNECTED = 'CONNECTED',
-  
+
   /** Nodo desconectado del nodo inicial */
   DISCONNECTED = 'DISCONNECTED',
 }

@@ -11,7 +11,7 @@ export class GameService {
   /**
    * Inicializa una nueva partida
    */
-    public initializeGame(players: Player[], graph: Graph): Game {
+  public initializeGame(players: Player[], graph: Graph): Game {
     // Validación 1: Mínimo 2 jugadores
     if (players.length < 2) {
       throw new Error('Se requieren al menos 2 jugadores para iniciar una partida.');
@@ -19,12 +19,12 @@ export class GameService {
 
     // Validación 2: Verificar BasicNodes neutrales suficientes
     const neutralBasicNodes = Array.from(graph.nodes).filter(
-      (node) => node instanceof BasicNode && node.isNeutral()
+      node => node instanceof BasicNode && node.isNeutral(),
     );
 
     if (neutralBasicNodes.length < players.length) {
       throw new Error(
-        `No hay suficientes nodos básicos neutrales. Se requieren ${players.length}, pero solo hay ${neutralBasicNodes.length}.`
+        `No hay suficientes nodos básicos neutrales. Se requieren ${players.length}, pero solo hay ${neutralBasicNodes.length}.`,
       );
     }
 
@@ -76,8 +76,8 @@ export class GameService {
     }
 
     const game = this.currentGame;
-    const activePlayers = game.players.filter((p) => !p.isEliminated);
-    
+    const activePlayers = game.players.filter(p => !p.isEliminated);
+
     let winner: Player | null = null;
     let reason: GameResult['reason'] = 'draw';
 
@@ -85,14 +85,16 @@ export class GameService {
     if (activePlayers.length === 1) {
       winner = activePlayers[0];
       reason = 'elimination';
-    } else if (activePlayers.length > 1) {
-      const maxNodes = Math.max(...activePlayers.map((p) => p.controlledNodeCount));
-      const topPlayers = activePlayers.filter((p) => p.controlledNodeCount === maxNodes);
+    }
+    else if (activePlayers.length > 1) {
+      const maxNodes = Math.max(...activePlayers.map(p => p.controlledNodeCount));
+      const topPlayers = activePlayers.filter(p => p.controlledNodeCount === maxNodes);
 
       if (topPlayers.length === 1) {
         winner = topPlayers[0];
         reason = 'victory';
-      } else {
+      }
+      else {
         reason = 'draw';
       }
     }
@@ -118,10 +120,10 @@ export class GameService {
    * Remueve a un jugador.
    * @param forceRemove Si es true, lo saca del array de jugadores (útil para desconexiones en medio de la partida)
    */
-  public removePlayerFromGame(player: Player, forceRemove: boolean = true): void {
+  public removePlayerFromGame(player: Player, forceRemove = true): void {
     // 1. Liberar nodos
     const nodesToFree = Array.from(player.controlledNodes);
-    nodesToFree.forEach(node => {
+    nodesToFree.forEach((node) => {
       node.setOwner(null);
       node.clearAssignments();
     });
@@ -131,10 +133,10 @@ export class GameService {
 
     // 3. Sacar de la lista de la partida actual (solo si forceRemove es true)
     if (this.currentGame && forceRemove) {
-        const idx = this.currentGame.players.findIndex(p => p.equals(player));
-        if (idx !== -1) {
-            this.currentGame.players.splice(idx, 1);
-        }
+      const idx = this.currentGame.players.findIndex(p => p.equals(player));
+      if (idx !== -1) {
+        this.currentGame.players.splice(idx, 1);
+      }
     }
   }
 

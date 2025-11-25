@@ -1,11 +1,11 @@
+import { Edge } from '@/core/entities/edge';
+import { EnergyPacket } from '@/core/entities/energy-packets';
+import { BasicNode } from '@/core/entities/node/basic';
+import { Player } from '@/core/entities/player';
+import type { Graph } from '@/core/types/graph.types';
+import { GameStateManager } from '@/infrastructure/state/GameStateManager';
+import type { GameState, GameStateConfig } from '@/infrastructure/state/types';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { Edge } from '../../core/entities/edge';
-import { EnergyPacket } from '../../core/entities/energy-packets';
-import { BasicNode } from '../../core/entities/node/basic';
-import { Player } from '../../core/entities/player';
-import type { Graph } from '../../core/types/graph.types';
-import { GameStateManager } from './GameStateManager';
-import type { GameState, GameStateConfig } from './types';
 
 describe('GameStateManager', () => {
   let gameStateManager: GameStateManager;
@@ -283,25 +283,25 @@ describe('GameStateManager', () => {
       const snapshot = gameStateManager.getGameSnapshot(state);
 
       expect(snapshot.playerStats).toHaveLength(2);
-      
+
       const p1Stats = snapshot.playerStats.find(s => s.playerId === 'p1');
       const p2Stats = snapshot.playerStats.find(s => s.playerId === 'p2');
 
       expect(p1Stats).toBeDefined();
       expect(p2Stats).toBeDefined();
-      expect(p1Stats!.controlledNodes).toBe(1);
-      expect(p2Stats!.controlledNodes).toBe(1);
+      expect(p1Stats?.controlledNodes).toBe(1);
+      expect(p2Stats?.controlledNodes).toBe(1);
     });
 
     it('debe incluir advertencia de dominancia cuando corresponda', () => {
       // Player 1 necesita controlar >= 70% de nodos (3 de 3 = 100%)
       // Ya tiene node1, necesita capturar node2 y node3
-      
+
       // Player 2 pierde node2
       node2.setOwner(player1);
       player2.loseNode(node2);
       player1.captureNode(node2);
-      
+
       // Player 1 captura node3
       node3.setOwner(player1);
       player1.captureNode(node3);
@@ -312,8 +312,8 @@ describe('GameStateManager', () => {
       const snapshot = gameStateManager.getGameSnapshot(state);
 
       expect(snapshot.dominanceWarning).toBeDefined();
-      expect(snapshot.dominanceWarning!.playerId).toBe('p1');
-      expect(snapshot.dominanceWarning!.timeRemaining).toBe(5000); // 10000 - 5000
+      expect(snapshot.dominanceWarning?.playerId).toBe('p1');
+      expect(snapshot.dominanceWarning?.timeRemaining).toBe(5000); // 10000 - 5000
     });
 
     it('debe formatear correctamente el tiempo en mm:ss', () => {

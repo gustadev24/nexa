@@ -4,37 +4,37 @@ import type { Player } from '@/core/entities/player';
 import type { EdgeSnapshot, GameSnapshot, NodeSnapshot } from '@/infrastructure/state/types';
 import type { GameRenderer } from '@/presentation/renderer/GameRenderer';
 import type {
-    EdgeClickEvent,
-    EnergyCommand,
-    HitTestResult,
-    InputHandlerConfig,
-    NodeClickEvent,
-    SelectionState,
-} from './types';
+  EdgeClickEvent,
+  EnergyCommand,
+  HitTestResult,
+  InputHandlerConfig,
+  NodeClickEvent,
+  SelectionState,
+} from '@/presentation/input/types';
 
 /**
  * InputHandler - Manejador de entrada del juego NEXA
- * 
+ *
  * Traduce clicks y acciones del usuario en comandos del juego.
  * Maneja detección de clicks en nodos y aristas, selección de elementos,
  * y generación de comandos de energía.
- * 
+ *
  * Arquitectura:
  * - Event-driven: Escucha eventos de mouse/touch en el canvas
  * - Hit detection: Detecta qué elemento fue clickeado
  * - Command generation: Crea comandos para el EnergyCommandService
  * - State management: Mantiene estado de selección del usuario
- * 
+ *
  * @example
  * ```typescript
  * const inputHandler = new InputHandler();
  * inputHandler.initialize(canvas, renderer);
- * 
+ *
  * // Escuchar eventos
  * inputHandler.on('nodeClick', (event) => {
  *   console.log('Nodo clickeado:', event.node);
  * });
- * 
+ *
  * // Asignar energía
  * const command = inputHandler.handleEnergyAssignment(node, edge, 50);
  * energyCommandService.assignEnergyToEdge(command.player, command.sourceNode, command.target, command.amount);
@@ -45,14 +45,14 @@ export class InputHandler {
   private renderer: GameRenderer | null = null;
   private currentSnapshot: GameSnapshot | null = null;
   private currentPlayer: Player | null = null;
-  
+
   // Estado de selección
   private selectionState: SelectionState = {
     selectedNode: null,
     selectedEdge: null,
     selectionTime: 0,
   };
-  
+
   // Configuración
   private config: Required<InputHandlerConfig> = {
     allowRightClick: true,
@@ -63,10 +63,10 @@ export class InputHandler {
     minEnergyAmount: 1,
     maxEnergyAmount: 100,
   };
-  
+
   // Event listeners
-  private eventListeners: Map<string, Array<(event: any) => void>> = new Map();
-  
+  private eventListeners = new Map<string, ((event: unknown) => void)[]>();
+
   // Bound event handlers (para poder removerlos después)
   private boundHandlers: {
     onClick?: (e: MouseEvent) => void;
@@ -83,14 +83,14 @@ export class InputHandler {
   /**
    * Inicializa el manejador de entrada
    * Registra event listeners para mouse y touch
-   * 
+   *
    * @param canvas - Canvas HTML donde se renderiza el juego
    * @param renderer - GameRenderer para obtener transformaciones de coordenadas
    */
   public initialize(canvas: HTMLCanvasElement, renderer: GameRenderer): void {
     this.canvas = canvas;
     this.renderer = renderer;
-    
+
     // Configurar event listeners
     this.setupEventListeners();
   }
@@ -153,16 +153,18 @@ export class InputHandler {
     const hitResult = this.performHitTest(worldX, worldY);
 
     if (hitResult.node) {
-      const nodeEvent = this.handleNodeClick(event, hitResult.node, canvasX, canvasY, worldX, worldY, isRightClick);
+      const nodeEvent = this.handleNodeClick(hitResult.node, canvasX, canvasY, worldX, worldY, isRightClick);
       if (nodeEvent) {
         this.emit('nodeClick', nodeEvent);
       }
-    } else if (hitResult.edge) {
-      const edgeEvent = this.handleEdgeClick(event, hitResult.edge, canvasX, canvasY, worldX, worldY);
+    }
+    else if (hitResult.edge) {
+      const edgeEvent = this.handleEdgeClick(hitResult.edge, canvasX, canvasY, worldX, worldY);
       if (edgeEvent) {
         this.emit('edgeClick', edgeEvent);
       }
-    } else {
+    }
+    else {
       // Click en espacio vacío - limpiar selección
       this.clearSelection();
       this.emit('clearSelection', {});
@@ -176,9 +178,6 @@ export class InputHandler {
     if (!this.canvas || event.touches.length === 0) return;
 
     const touch = event.touches[0];
-    const rect = this.canvas.getBoundingClientRect();
-    const canvasX = touch.clientX - rect.left;
-    const canvasY = touch.clientY - rect.top;
 
     // Simular click
     const mouseEvent = new MouseEvent('click', {
@@ -193,13 +192,12 @@ export class InputHandler {
    * Maneja click en un nodo
    */
   public handleNodeClick(
-    event: MouseEvent,
     node: Node,
     canvasX: number,
     canvasY: number,
     worldX: number,
     worldY: number,
-    isRightClick = false
+    isRightClick = false,
   ): NodeClickEvent | null {
     const nodeEvent: NodeClickEvent = {
       node,
@@ -223,23 +221,23 @@ export class InputHandler {
    * Maneja click en una arista
    */
   public handleEdgeClick(
-    event: MouseEvent,
     edge: Edge,
     canvasX: number,
     canvasY: number,
     worldX: number,
-    worldY: number
+    worldY: number,
   ): EdgeClickEvent | null {
     // Determinar nodo origen (el seleccionado) y destino
     const [node1, node2] = edge.endpoints;
-    
+
     let sourceNode: Node;
     let targetNode: Node;
 
     if (this.selectionState.selectedNode && edge.hasNode(this.selectionState.selectedNode)) {
       sourceNode = this.selectionState.selectedNode;
       targetNode = edge.flipSide(sourceNode);
-    } else {
+    }
+    else {
       // Si no hay nodo seleccionado, usar el más cercano al click
       sourceNode = node1;
       targetNode = node2;
@@ -269,7 +267,7 @@ export class InputHandler {
   public handleEnergyAssignment(
     node: Node,
     edge: Edge,
-    amount: number
+    amount: number,
   ): EnergyCommand {
     if (!this.currentPlayer) {
       throw new Error('No hay jugador actual establecido. Usar setCurrentPlayer()');
@@ -278,7 +276,7 @@ export class InputHandler {
     // Validar cantidad
     const clampedAmount = Math.max(
       this.config.minEnergyAmount,
-      Math.min(this.config.maxEnergyAmount, amount)
+      Math.min(this.config.maxEnergyAmount, amount),
     );
 
     return {
@@ -349,26 +347,26 @@ export class InputHandler {
   private distanceToEdge(x: number, y: number, edge: EdgeSnapshot): number {
     // Distancia de punto a segmento de línea
     const { fromX, fromY, toX, toY } = edge;
-    
+
     const dx = toX - fromX;
     const dy = toY - fromY;
     const lengthSquared = dx * dx + dy * dy;
-    
+
     if (lengthSquared === 0) {
       // Arista degenerada (punto)
       return this.distanceToNode(x, y, { x: fromX, y: fromY } as NodeSnapshot);
     }
-    
+
     // Proyección del punto en la línea
     let t = ((x - fromX) * dx + (y - fromY) * dy) / lengthSquared;
     t = Math.max(0, Math.min(1, t));
-    
+
     const projX = fromX + t * dx;
     const projY = fromY + t * dy;
-    
+
     const distX = x - projX;
     const distY = y - projY;
-    
+
     return Math.sqrt(distX * distX + distY * distY);
   }
 
@@ -416,17 +414,17 @@ export class InputHandler {
   /**
    * Registra un event listener
    */
-  public on(eventName: string, callback: (event: any) => void): void {
+  public on(eventName: string, callback: (event: unknown) => void): void {
     if (!this.eventListeners.has(eventName)) {
       this.eventListeners.set(eventName, []);
     }
-    this.eventListeners.get(eventName)!.push(callback);
+    this.eventListeners.get(eventName)?.push(callback);
   }
 
   /**
    * Remueve un event listener
    */
-  public off(eventName: string, callback: (event: any) => void): void {
+  public off(eventName: string, callback: (event: unknown) => void): void {
     const listeners = this.eventListeners.get(eventName);
     if (listeners) {
       const index = listeners.indexOf(callback);
@@ -439,7 +437,7 @@ export class InputHandler {
   /**
    * Emite un evento
    */
-  private emit(eventName: string, event: any): void {
+  private emit(eventName: string, event: unknown): void {
     const listeners = this.eventListeners.get(eventName);
     if (listeners) {
       listeners.forEach(callback => callback(event));

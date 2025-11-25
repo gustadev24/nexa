@@ -8,18 +8,18 @@ import type { Player } from '@/core/entities/player';
 export interface NodeClickEvent {
   /** Nodo que fue clickeado */
   node: Node;
-  
+
   /** Coordenadas del click en el canvas */
   canvasX: number;
   canvasY: number;
-  
+
   /** Coordenadas del click en el mundo del juego */
   worldX: number;
   worldY: number;
-  
+
   /** Timestamp del evento */
   timestamp: number;
-  
+
   /** Si es un click derecho */
   isRightClick: boolean;
 }
@@ -30,21 +30,21 @@ export interface NodeClickEvent {
 export interface EdgeClickEvent {
   /** Arista que fue clickeada */
   edge: Edge;
-  
+
   /** Nodo origen desde donde se asignaría la energía */
   sourceNode: Node;
-  
+
   /** Nodo destino hacia donde fluiría la energía */
   targetNode: Node;
-  
+
   /** Coordenadas del click en el canvas */
   canvasX: number;
   canvasY: number;
-  
+
   /** Coordenadas del click en el mundo del juego */
   worldX: number;
   worldY: number;
-  
+
   /** Timestamp del evento */
   timestamp: number;
 }
@@ -55,19 +55,19 @@ export interface EdgeClickEvent {
 export interface EnergyCommand {
   /** Tipo de comando */
   type: 'assign' | 'remove' | 'redistribute';
-  
+
   /** Jugador que ejecuta el comando */
   player: Player;
-  
+
   /** Nodo origen de la energía */
   sourceNode: Node;
-  
+
   /** Arista o nodo destino */
   target: Edge | Node;
-  
+
   /** Cantidad de energía */
   amount: number;
-  
+
   /** Timestamp del comando */
   timestamp: number;
 }
@@ -78,10 +78,10 @@ export interface EnergyCommand {
 export interface SelectionState {
   /** Nodo seleccionado actualmente */
   selectedNode: Node | null;
-  
+
   /** Arista seleccionada actualmente */
   selectedEdge: Edge | null;
-  
+
   /** Timestamp de la selección */
   selectionTime: number;
 }
@@ -92,22 +92,22 @@ export interface SelectionState {
 export interface InputHandlerConfig {
   /** Permitir clicks con botón derecho */
   allowRightClick?: boolean;
-  
+
   /** Radio de tolerancia para click en nodos (en píxeles) */
   nodeTolerance?: number;
-  
+
   /** Radio de tolerancia para click en aristas (en píxeles) */
   edgeTolerance?: number;
-  
+
   /** Habilitar soporte táctil */
   enableTouch?: boolean;
-  
+
   /** Cantidad de energía por defecto */
   defaultEnergyAmount?: number;
-  
+
   /** Cantidad mínima de energía */
   minEnergyAmount?: number;
-  
+
   /** Cantidad máxima de energía */
   maxEnergyAmount?: number;
 }
@@ -118,13 +118,13 @@ export interface InputHandlerConfig {
 export interface HitTestResult {
   /** Si se detectó un hit */
   hit: boolean;
-  
+
   /** Nodo detectado (si aplica) */
   node?: Node;
-  
+
   /** Arista detectada (si aplica) */
   edge?: Edge;
-  
+
   /** Distancia al objeto más cercano */
   distance: number;
 }

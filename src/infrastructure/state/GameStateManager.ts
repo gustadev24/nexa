@@ -1,21 +1,21 @@
-import type { Player } from '../../core/entities/player';
+import type { Player } from '@/core/entities/player';
 import type {
-    GameSnapshot,
-    GameState,
-    GameStateConfig,
-    GameStatus,
-    PlayerStats,
-} from './types';
+  GameSnapshot,
+  GameState,
+  GameStateConfig,
+  GameStatus,
+  PlayerStats,
+} from '@/infrastructure/state/types';
 
 /**
  * GameStateManager - Gestor del estado de la partida
- * 
+ *
  * Responsable de:
  * - Mantener el estado completo del juego
  * - Trackear tiempo de dominancia para condición de victoria
  * - Calcular estadísticas de jugadores
  * - Generar snapshots inmutables para la UI
- * 
+ *
  * Patrón: Manager/Service
  */
 export class GameStateManager {
@@ -26,7 +26,7 @@ export class GameStateManager {
 
   /**
    * Crea un nuevo estado de juego
-   * 
+   *
    * @param config Configuración inicial del juego
    * @returns Estado de juego inicializado
    */
@@ -51,7 +51,7 @@ export class GameStateManager {
 
   /**
    * Actualiza el tiempo transcurrido en el juego
-   * 
+   *
    * @param state Estado actual del juego
    * @param deltaTime Tiempo a agregar en milisegundos
    */
@@ -62,10 +62,10 @@ export class GameStateManager {
 
   /**
    * Actualiza el tracker de dominancia de un jugador
-   * 
+   *
    * Se llama cuando un jugador mantiene >= 70% de los nodos
    * Acumula el tiempo de dominancia para verificar condición de victoria
-   * 
+   *
    * @param state Estado actual del juego
    * @param player Jugador que mantiene dominancia
    * @param deltaTime Tiempo a acumular en milisegundos
@@ -77,9 +77,9 @@ export class GameStateManager {
 
   /**
    * Resetea el tracker de dominancia de un jugador
-   * 
+   *
    * Se llama cuando un jugador pierde el 70% de control de nodos
-   * 
+   *
    * @param state Estado actual del juego
    * @param player Jugador cuyo tracker se reseteará
    */
@@ -89,7 +89,7 @@ export class GameStateManager {
 
   /**
    * Obtiene estadísticas detalladas de un jugador
-   * 
+   *
    * @param state Estado actual del juego
    * @param player Jugador del cual obtener estadísticas
    * @returns Estadísticas calculadas del jugador
@@ -97,7 +97,7 @@ export class GameStateManager {
   getPlayerStats(state: GameState, player: Player): PlayerStats {
     const totalNodes = state.graph.nodes.size;
     const controlledNodes = player.controlledNodes.size;
-    
+
     // Calcular energía almacenada (suma de energía en todos los nodos controlados)
     let storedEnergy = 0;
     for (const node of player.controlledNodes) {
@@ -118,8 +118,8 @@ export class GameStateManager {
     const totalEnergy = storedEnergy + transitEnergy;
 
     // Porcentaje de dominancia
-    const dominancePercentage = totalNodes > 0 
-      ? (controlledNodes / totalNodes) * 100 
+    const dominancePercentage = totalNodes > 0
+      ? (controlledNodes / totalNodes) * 100
       : 0;
 
     // Tiempo de dominancia acumulado
@@ -146,10 +146,10 @@ export class GameStateManager {
 
   /**
    * Genera un snapshot inmutable del estado actual para la UI
-   * 
+   *
    * Este snapshot no contiene referencias a entidades mutables,
    * solo datos primitivos y estructuras serializables
-   * 
+   *
    * @param state Estado actual del juego
    * @returns Snapshot del juego para consumo de la UI
    */
@@ -165,8 +165,8 @@ export class GameStateManager {
     const remainingTimeFormatted = this.formatTime(remainingTime);
 
     // Obtener estadísticas de todos los jugadores
-    const playerStats: PlayerStats[] = state.players.map(player => 
-      this.getPlayerStats(state, player)
+    const playerStats: PlayerStats[] = state.players.map(player =>
+      this.getPlayerStats(state, player),
     );
 
     // Determinar ganador y razón si el juego terminó
@@ -203,7 +203,7 @@ export class GameStateManager {
 
   /**
    * Cambia el estado del juego
-   * 
+   *
    * @param state Estado actual del juego
    * @param newStatus Nuevo estado
    */
@@ -213,7 +213,7 @@ export class GameStateManager {
 
   /**
    * Verifica si el juego ha terminado por alguna condición de victoria
-   * 
+   *
    * @param state Estado actual del juego
    * @param playerStats Estadísticas de los jugadores
    * @returns true si el juego debe terminar
@@ -242,14 +242,14 @@ export class GameStateManager {
 
   /**
    * Determina el ganador según las condiciones del juego
-   * 
+   *
    * @param state Estado del juego
    * @param playerStats Estadísticas de los jugadores
    * @returns Información del ganador o undefined si hay empate
    */
   private determineWinner(
     state: GameState,
-    playerStats: PlayerStats[]
+    playerStats: PlayerStats[],
   ): { playerId: string | number; reason: 'dominance' | 'time_limit' | 'elimination' } | undefined {
     // 1. Victoria por dominancia (70% durante 10 segundos)
     for (const stats of playerStats) {
@@ -267,9 +267,9 @@ export class GameStateManager {
     // 3. Victoria por tiempo límite (más nodos al finalizar)
     if (state.elapsedTime >= GameStateManager.GAME_DURATION_MS) {
       const sorted = [...activePlayers].sort(
-        (a, b) => b.controlledNodes - a.controlledNodes
+        (a, b) => b.controlledNodes - a.controlledNodes,
       );
-      
+
       if (sorted.length > 0) {
         // Verificar empate
         if (sorted.length > 1 && sorted[0].controlledNodes === sorted[1].controlledNodes) {
@@ -284,7 +284,7 @@ export class GameStateManager {
 
   /**
    * Verifica si hay advertencia de dominancia (jugador cerca de ganar)
-   * 
+   *
    * @param playerStats Estadísticas de los jugadores
    * @returns Información de advertencia o undefined
    */
@@ -307,7 +307,7 @@ export class GameStateManager {
 
   /**
    * Formatea milisegundos a formato mm:ss
-   * 
+   *
    * @param ms Milisegundos a formatear
    * @returns Tiempo en formato "mm:ss"
    */
@@ -320,10 +320,10 @@ export class GameStateManager {
 
   /**
    * Actualiza los trackers de dominancia según el estado actual
-   * 
+   *
    * Verifica qué jugadores cumplen el threshold de 70% y actualiza
    * o resetea sus trackers según corresponda
-   * 
+   *
    * @param state Estado del juego
    * @param deltaTime Tiempo transcurrido desde última actualización
    */
@@ -338,7 +338,8 @@ export class GameStateManager {
       if (dominancePercentage >= threshold) {
         // Jugador mantiene dominancia, acumular tiempo
         this.updateDominanceTracker(state, player, deltaTime);
-      } else {
+      }
+      else {
         // Jugador perdió dominancia, resetear
         this.resetDominanceTracker(state, player);
       }
@@ -348,7 +349,7 @@ export class GameStateManager {
   /**
    * Obtiene el estado actual del juego
    * Útil para debugging y logging
-   * 
+   *
    * @param state Estado del juego
    * @returns Resumen del estado en formato legible
    */

@@ -21,7 +21,7 @@ describe('GameService', () => {
     const n2 = new BasicNode('n2');
     const n3 = new BasicNode('n3'); // extra neutral
     const edge = new Edge('e1', [n1, n2], 100);
-    
+
     // Configurar grafo
     n1.addEdge(edge);
     n2.addEdge(edge);
@@ -31,7 +31,7 @@ describe('GameService', () => {
 
   it('debe inicializar una partida correctamente', () => {
     const game = gameService.initializeGame([player1, player2], graph);
-    
+
     expect(game.isActive).toBe(true);
     expect(player1.initialNode).toBeDefined();
     expect(player2.initialNode).toBeDefined();
@@ -46,7 +46,7 @@ describe('GameService', () => {
   it('debe lanzar error si el nodo inicial no es neutral o BasicNode', () => {
     const energyNode = new EnergyNode('e_node');
     const badGraph = new Graph(new Set([energyNode, new BasicNode('n2')]), new Set());
-    
+
     expect(() => gameService.initializeGame([player1, player2], badGraph))
       .toThrow(/no hay suficientes nodos básicos/i);
   });
@@ -58,7 +58,7 @@ describe('GameService', () => {
 
   it('endGame debe determinar el ganador por nodos', () => {
     gameService.initializeGame([player1, player2], graph);
-    
+
     // Simular que p1 captura un nodo extra
     const extraNode = new BasicNode('extra');
     player1.captureNode(extraNode);

@@ -30,9 +30,7 @@ export class VictoryService {
   private readonly TIME_LIMIT_MS = 180_000; // 3 minutes
 
   // dominance timers keyed by player id
-  private dominanceTimers: Map<ID, number> = new Map();
-
-  constructor() {}
+  private dominanceTimers = new Map<ID, number>();
 
   // Called every tick with the elapsed time since last tick (ms)
   trackDominance(game: Game, deltaTime: number): void {
@@ -46,7 +44,8 @@ export class VictoryService {
 
       if (percent >= this.DOMINANCE_PERCENT) {
         this.dominanceTimers.set(player.id, current + deltaTime);
-      } else {
+      }
+      else {
         this.dominanceTimers.set(player.id, 0);
       }
     }
@@ -76,7 +75,6 @@ export class VictoryService {
     const elapsed = Date.now() - game.startTime;
     if (elapsed < this.TIME_LIMIT_MS) return null;
 
-    const total = game.graph.nodes.size;
     const counts = game.players.map(p => ({ player: p, nodes: p.controlledNodeCount }));
     let max = -1;
     for (const c of counts) {
@@ -115,7 +113,7 @@ export class VictoryService {
 
     const players: PlayerNodeStat[] = game.players.map(p => ({
       playerId: p.id,
-      username: (p as any).username ?? undefined,
+      username: p.username,
       nodes: p.controlledNodeCount,
       percent: total > 0 ? (p.controlledNodeCount / total) * 100 : 0,
     }));

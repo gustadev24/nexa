@@ -3,12 +3,12 @@ import type { Node } from '@/core/entities/node/node';
 
 export class Graph {
   constructor(
-    public readonly nodes: Set<Node>, 
-    public readonly edges: Set<Edge>
+    public readonly nodes: Set<Node>,
+    public readonly edges: Set<Edge>,
   ) {}
 
   reset(): void {
-    this.nodes.forEach(node => {
+    this.nodes.forEach((node) => {
       node.setOwner(null);
       node.clearAssignments();
     });

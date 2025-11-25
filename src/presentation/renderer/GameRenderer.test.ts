@@ -1,6 +1,6 @@
 import type { EdgeSnapshot, EnergyPacketSnapshot, GameSnapshot, NodeSnapshot } from '@/infrastructure/state/types';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GameRenderer } from './GameRenderer';
+import { GameRenderer } from '@/presentation/renderer/GameRenderer';
 
 describe('GameRenderer', () => {
   let canvas: HTMLCanvasElement;
@@ -11,7 +11,7 @@ describe('GameRenderer', () => {
     canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 600;
-    
+
     // Mock del contexto 2D con getters y setters para propiedades
     let _fillStyle = '';
     let _strokeStyle = '';
@@ -22,7 +22,7 @@ describe('GameRenderer', () => {
     let _textBaseline: CanvasTextBaseline = 'alphabetic';
     let _shadowBlur = 0;
     let _shadowColor = '';
-    
+
     const mockContext = {
       clearRect: vi.fn(),
       fillRect: vi.fn(),
@@ -75,14 +75,14 @@ describe('GameRenderer', () => {
 
     it('debe lanzar error si el canvas no soporta 2D', () => {
       vi.spyOn(canvas, 'getContext').mockReturnValue(null);
-      
+
       expect(() => renderer.initialize(canvas)).toThrow('El canvas no soporta contexto 2D');
     });
 
     it('debe configurar el viewport inicial', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       expect(ctx).not.toBeNull();
       expect(ctx?.imageSmoothingEnabled).toBe(true);
       expect(ctx?.imageSmoothingQuality).toBe('high');
@@ -138,15 +138,15 @@ describe('GameRenderer', () => {
     it('debe limpiar el canvas antes de renderizar', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       renderer.renderGraph(mockSnapshot);
-      
+
       expect(ctx?.fillRect).toHaveBeenCalled();
     });
 
     it('debe renderizar sin errores cuando no hay nodos ni aristas', () => {
       renderer.initialize(canvas);
-      
+
       expect(() => renderer.renderGraph(mockSnapshot)).not.toThrow();
     });
   });
@@ -173,9 +173,9 @@ describe('GameRenderer', () => {
     it('debe renderizar un nodo básico correctamente', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       renderer.renderNode(mockNode);
-      
+
       expect(ctx?.arc).toHaveBeenCalled();
       expect(ctx?.fill).toHaveBeenCalled();
       expect(ctx?.stroke).toHaveBeenCalled();
@@ -184,20 +184,20 @@ describe('GameRenderer', () => {
     it('debe renderizar un nodo neutral con color gris', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       // Spy para capturar todas las asignaciones de fillStyle
       const fillStyleValues: string[] = [];
-      
+
       Object.defineProperty(ctx, 'fillStyle', {
         get() { return fillStyleValues[fillStyleValues.length - 1] || ''; },
         set(value: string) {
           fillStyleValues.push(value);
-        }
+        },
       });
-      
+
       const neutralNode = { ...mockNode, isNeutral: true, ownerId: null };
       renderer.renderNode(neutralNode);
-      
+
       // Verificar que en algún momento se usó el color neutral
       expect(fillStyleValues).toContain('#808080');
     });
@@ -205,10 +205,10 @@ describe('GameRenderer', () => {
     it('debe renderizar indicador especial para nodo inicial', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       const initialNode = { ...mockNode, isInitialNode: true };
       renderer.renderNode(initialNode);
-      
+
       // Debe dibujar un arco adicional para el doble borde
       expect(ctx?.arc).toHaveBeenCalledTimes(2);
     });
@@ -234,9 +234,9 @@ describe('GameRenderer', () => {
     it('debe renderizar una arista correctamente', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       renderer.renderEdge(mockEdge);
-      
+
       expect(ctx?.moveTo).toHaveBeenCalled();
       expect(ctx?.lineTo).toHaveBeenCalled();
       expect(ctx?.stroke).toHaveBeenCalled();
@@ -266,9 +266,9 @@ describe('GameRenderer', () => {
     it('debe renderizar paquetes de energía correctamente', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       renderer.renderEnergyPackets(mockPackets);
-      
+
       expect(ctx?.arc).toHaveBeenCalled();
       expect(ctx?.fill).toHaveBeenCalled();
       expect(ctx?.stroke).toHaveBeenCalled();
@@ -277,15 +277,15 @@ describe('GameRenderer', () => {
     it('debe renderizar múltiples paquetes', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       const multiplePackets = [
         mockPackets[0],
         { ...mockPackets[0], id: 2, x: 180, y: 180 },
         { ...mockPackets[0], id: 3, x: 210, y: 210 },
       ];
-      
+
       renderer.renderEnergyPackets(multiplePackets);
-      
+
       // Debe dibujar un círculo por cada paquete
       expect(ctx?.arc).toHaveBeenCalledTimes(3);
     });
@@ -325,16 +325,16 @@ describe('GameRenderer', () => {
     it('debe renderizar información de tiempo', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       renderer.renderUI(mockSnapshot);
-      
+
       expect(ctx?.fillText).toHaveBeenCalled();
     });
 
     it('debe renderizar advertencia de dominancia si existe', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       const snapshotWithWarning = {
         ...mockSnapshot,
         dominanceWarning: {
@@ -342,25 +342,25 @@ describe('GameRenderer', () => {
           timeRemaining: 5000,
         },
       };
-      
+
       renderer.renderUI(snapshotWithWarning);
-      
+
       expect(ctx?.fillText).toHaveBeenCalled();
     });
 
     it('debe renderizar mensaje de victoria si el juego terminó', () => {
       renderer.initialize(canvas);
       const ctx = renderer.getContext();
-      
+
       const finishedSnapshot = {
         ...mockSnapshot,
         status: 'finished' as const,
         winnerId: 1,
         victoryReason: 'dominance' as const,
       };
-      
+
       renderer.renderUI(finishedSnapshot);
-      
+
       expect(ctx?.fillText).toHaveBeenCalled();
     });
   });
@@ -378,7 +378,7 @@ describe('GameRenderer', () => {
     it('debe limitar el zoom a valores válidos', () => {
       renderer.setZoom(10); // Muy alto
       renderer.setZoom(0.01); // Muy bajo
-      
+
       // No debe lanzar error, debe limitar internamente
       expect(() => renderer.setZoom(10)).not.toThrow();
     });

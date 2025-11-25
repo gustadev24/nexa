@@ -4,7 +4,7 @@ import { Player } from '@/core/entities/player';
 import type { GameSnapshot } from '@/infrastructure/state/types';
 import { GameRenderer } from '@/presentation/renderer/GameRenderer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { InputHandler } from './InputHandler';
+import { InputHandler } from '@/presentation/input/InputHandler';
 
 describe('InputHandler', () => {
   let canvas: HTMLCanvasElement;
@@ -24,14 +24,13 @@ describe('InputHandler', () => {
 
     // Mock del renderer
     renderer = new GameRenderer();
-    vi.spyOn(renderer, 'getContext').mockReturnValue({} as any);
-
+    vi.spyOn(renderer, 'getContext').mockReturnValue(canvas.getContext('2d') as CanvasRenderingContext2D);
     // Crear entidades de prueba
-    player1 = new Player({ id: 1, username: 'Player1', color: '#FF0000' });
+    player1 = new Player({ id: 1, username: 'Player1', color: { r: 255, g: 0, b: 0 } });
     node1 = new BasicNode(1);
     node2 = new BasicNode(2);
     edge1 = new Edge(1, [node1, node2], 10);
-    
+
     node1.addEdge(edge1);
     node2.addEdge(edge1);
 
@@ -52,9 +51,9 @@ describe('InputHandler', () => {
 
     it('debe configurar event listeners en el canvas', () => {
       const addEventListenerSpy = vi.spyOn(canvas, 'addEventListener');
-      
+
       inputHandler.initialize(canvas, renderer);
-      
+
       expect(addEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
       expect(addEventListenerSpy).toHaveBeenCalledWith('contextmenu', expect.any(Function));
       expect(addEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function));
@@ -63,11 +62,11 @@ describe('InputHandler', () => {
     it('no debe configurar touch si está deshabilitado', () => {
       const handlerWithoutTouch = new InputHandler({ enableTouch: false });
       const addEventListenerSpy = vi.spyOn(canvas, 'addEventListener');
-      
+
       handlerWithoutTouch.initialize(canvas, renderer);
-      
+
       expect(addEventListenerSpy).not.toHaveBeenCalledWith('touchstart', expect.any(Function));
-      
+
       handlerWithoutTouch.dispose();
     });
   });
@@ -104,16 +103,13 @@ describe('InputHandler', () => {
 
   describe('handleNodeClick', () => {
     it('debe generar evento de click en nodo', () => {
-      const mockEvent = new MouseEvent('click');
-      
       const nodeEvent = inputHandler.handleNodeClick(
-        mockEvent,
         node1,
         100,
         100,
         50,
         50,
-        false
+        false,
       );
 
       expect(nodeEvent).not.toBeNull();
@@ -126,25 +122,20 @@ describe('InputHandler', () => {
     });
 
     it('debe actualizar el nodo seleccionado', () => {
-      const mockEvent = new MouseEvent('click');
-      
-      inputHandler.handleNodeClick(mockEvent, node1, 100, 100, 50, 50);
+      inputHandler.handleNodeClick(node1, 100, 100, 50, 50);
 
       expect(inputHandler.getSelectedNode()).toBe(node1);
       expect(inputHandler.getSelectedEdge()).toBeNull();
     });
 
     it('debe manejar click derecho', () => {
-      const mockEvent = new MouseEvent('contextmenu');
-      
       const nodeEvent = inputHandler.handleNodeClick(
-        mockEvent,
         node1,
         100,
         100,
         50,
         50,
-        true
+        true,
       );
 
       expect(nodeEvent?.isRightClick).toBe(true);
@@ -153,15 +144,12 @@ describe('InputHandler', () => {
 
   describe('handleEdgeClick', () => {
     it('debe generar evento de click en arista', () => {
-      const mockEvent = new MouseEvent('click');
-      
       const edgeEvent = inputHandler.handleEdgeClick(
-        mockEvent,
         edge1,
         100,
         100,
         50,
-        50
+        50,
       );
 
       expect(edgeEvent).not.toBeNull();
@@ -171,22 +159,18 @@ describe('InputHandler', () => {
     });
 
     it('debe usar nodo seleccionado como origen si está conectado a la arista', () => {
-      const mockEvent = new MouseEvent('click');
-      
       // Seleccionar node1 primero
-      inputHandler.handleNodeClick(mockEvent, node1, 0, 0, 0, 0);
-      
+      inputHandler.handleNodeClick(node1, 0, 0, 0, 0);
+
       // Click en arista
-      const edgeEvent = inputHandler.handleEdgeClick(mockEvent, edge1, 100, 100, 50, 50);
+      const edgeEvent = inputHandler.handleEdgeClick(edge1, 100, 100, 50, 50);
 
       expect(edgeEvent?.sourceNode).toBe(node1);
       expect(edgeEvent?.targetNode).toBe(node2);
     });
 
     it('debe actualizar la arista seleccionada', () => {
-      const mockEvent = new MouseEvent('click');
-      
-      inputHandler.handleEdgeClick(mockEvent, edge1, 100, 100, 50, 50);
+      inputHandler.handleEdgeClick(edge1, 100, 100, 50, 50);
 
       expect(inputHandler.getSelectedEdge()).toBe(edge1);
     });
@@ -209,11 +193,11 @@ describe('InputHandler', () => {
 
     it('debe lanzar error si no hay jugador establecido', () => {
       const handlerWithoutPlayer = new InputHandler();
-      
-      expect(() => 
-        handlerWithoutPlayer.handleEnergyAssignment(node1, edge1, 50)
+
+      expect(() =>
+        handlerWithoutPlayer.handleEnergyAssignment(node1, edge1, 50),
       ).toThrow('No hay jugador actual establecido');
-      
+
       handlerWithoutPlayer.dispose();
     });
 
@@ -251,8 +235,7 @@ describe('InputHandler', () => {
     });
 
     it('debe retornar el nodo seleccionado', () => {
-      const mockEvent = new MouseEvent('click');
-      inputHandler.handleNodeClick(mockEvent, node1, 0, 0, 0, 0);
+      inputHandler.handleNodeClick(node1, 0, 0, 0, 0);
 
       expect(inputHandler.getSelectedNode()).toBe(node1);
     });
@@ -264,8 +247,7 @@ describe('InputHandler', () => {
     });
 
     it('debe retornar la arista seleccionada', () => {
-      const mockEvent = new MouseEvent('click');
-      inputHandler.handleEdgeClick(mockEvent, edge1, 0, 0, 0, 0);
+      inputHandler.handleEdgeClick(edge1, 0, 0, 0, 0);
 
       expect(inputHandler.getSelectedEdge()).toBe(edge1);
     });
@@ -273,11 +255,9 @@ describe('InputHandler', () => {
 
   describe('clearSelection', () => {
     it('debe limpiar la selección', () => {
-      const mockEvent = new MouseEvent('click');
-      
       // Seleccionar nodo y arista
-      inputHandler.handleNodeClick(mockEvent, node1, 0, 0, 0, 0);
-      inputHandler.handleEdgeClick(mockEvent, edge1, 0, 0, 0, 0);
+      inputHandler.handleNodeClick(node1, 0, 0, 0, 0);
+      inputHandler.handleEdgeClick(edge1, 0, 0, 0, 0);
 
       expect(inputHandler.getSelectedNode()).not.toBeNull();
       expect(inputHandler.getSelectedEdge()).not.toBeNull();
@@ -293,12 +273,9 @@ describe('InputHandler', () => {
   describe('event system', () => {
     it('debe permitir registrar y emitir eventos', () => {
       const callback = vi.fn();
-      
+
       inputHandler.on('nodeClick', callback);
-      
-      const mockEvent = new MouseEvent('click');
-      const nodeEvent = inputHandler.handleNodeClick(mockEvent, node1, 0, 0, 0, 0);
-      
+
       // Simular emisión interna (ya que el click real requiere canvas inicializado)
       inputHandler.initialize(canvas, renderer);
       inputHandler.updateSnapshot({
@@ -332,14 +309,13 @@ describe('InputHandler', () => {
 
     it('debe permitir remover event listeners', () => {
       const callback = vi.fn();
-      
+
       inputHandler.on('nodeClick', callback);
       inputHandler.off('nodeClick', callback);
-      
+
       // Verificar que no se llama después de remover
-      const mockEvent = new MouseEvent('click');
-      inputHandler.handleNodeClick(mockEvent, node1, 0, 0, 0, 0);
-      
+      inputHandler.handleNodeClick(node1, 0, 0, 0, 0);
+
       expect(callback).not.toHaveBeenCalled();
     });
   });
@@ -347,21 +323,20 @@ describe('InputHandler', () => {
   describe('dispose', () => {
     it('debe limpiar todos los event listeners', () => {
       const removeEventListenerSpy = vi.spyOn(canvas, 'removeEventListener');
-      
+
       inputHandler.initialize(canvas, renderer);
       inputHandler.dispose();
-      
+
       expect(removeEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function));
       expect(removeEventListenerSpy).toHaveBeenCalledWith('contextmenu', expect.any(Function));
       expect(removeEventListenerSpy).toHaveBeenCalledWith('touchstart', expect.any(Function));
     });
 
     it('debe limpiar la selección', () => {
-      const mockEvent = new MouseEvent('click');
-      inputHandler.handleNodeClick(mockEvent, node1, 0, 0, 0, 0);
-      
+      inputHandler.handleNodeClick(node1, 0, 0, 0, 0);
+
       inputHandler.dispose();
-      
+
       expect(inputHandler.getSelectedNode()).toBeNull();
     });
   });
@@ -375,7 +350,7 @@ describe('InputHandler', () => {
       });
 
       expect(customHandler).toBeDefined();
-      
+
       customHandler.dispose();
     });
 
@@ -387,10 +362,10 @@ describe('InputHandler', () => {
 
       customHandler.setCurrentPlayer(player1);
       const command = customHandler.handleEnergyAssignment(node1, edge1, 10);
-      
+
       // defaultEnergyAmount por defecto es 10
       expect(command.amount).toBe(10);
-      
+
       customHandler.dispose();
     });
   });

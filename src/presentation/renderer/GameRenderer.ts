@@ -1,28 +1,28 @@
 import type {
-    EdgeSnapshot,
-    EnergyPacketSnapshot,
-    GameSnapshot,
-    NodeSnapshot,
+  EdgeSnapshot,
+  EnergyPacketSnapshot,
+  GameSnapshot,
+  NodeSnapshot,
 } from '@/infrastructure/state/types';
 
 /**
  * GameRenderer - Renderizador del grafo del juego NEXA
- * 
+ *
  * Responsable de dibujar el estado completo del juego en un canvas HTML5 usando Canvas 2D API.
  * Renderiza nodos, aristas, paquetes de energía en tránsito y la UI del juego.
- * 
+ *
  * Arquitectura:
  * - Utiliza Canvas 2D API para renderizado eficiente
  * - Recibe snapshots inmutables del estado del juego
  * - Mantiene configuración de viewport y escala
  * - Rendering pipeline: Aristas → Nodos → Paquetes de Energía → UI
- * 
+ *
  * @example
  * ```typescript
  * const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
  * const renderer = new GameRenderer();
  * renderer.initialize(canvas);
- * 
+ *
  * // En cada frame del game loop
  * const snapshot = gameStateManager.getSnapshot();
  * renderer.renderGraph(snapshot);
@@ -32,55 +32,50 @@ import type {
 export class GameRenderer {
   private canvas: HTMLCanvasElement | null = null;
   private ctx: CanvasRenderingContext2D | null = null;
-  
+
   // Configuración de viewport
-  private scale: number = 1;
-  private offsetX: number = 0;
-  private offsetY: number = 0;
-  
+  private scale = 1;
+  private offsetX = 0;
+  private offsetY = 0;
+
   // Constantes de renderizado
-  private readonly NODE_RADIUS_BASE = 30;
   private readonly NODE_BORDER_WIDTH = 3;
   private readonly EDGE_THICKNESS_BASE = 2;
   private readonly PACKET_RADIUS_MIN = 4;
   private readonly PACKET_RADIUS_MAX = 12;
   private readonly NEUTRAL_COLOR = '#808080';
-  
+
   // Colores por tipo de nodo (indicadores visuales)
   private readonly NODE_TYPE_COLORS = {
-    basic: '#FFFFFF',
-    attack: '#FF4444',
-    defense: '#4444FF',
-    energy: '#44FF44',
+    'basic': '#FFFFFF',
+    'attack': '#FF4444',
+    'defense': '#4444FF',
+    'energy': '#44FF44',
     'super-energy': '#FFD700',
   };
-
-  constructor() {
-    // Inicialización básica
-  }
 
   /**
    * Inicializa el renderer con un canvas HTML
    * Configura el contexto 2D y el viewport inicial
-   * 
+   *
    * @param canvas - Elemento canvas HTML donde se renderizará el juego
    * @throws Error si el canvas no soporta contexto 2D
    */
   public initialize(canvas: HTMLCanvasElement): void {
     this.canvas = canvas;
     const context = canvas.getContext('2d');
-    
+
     if (!context) {
       throw new Error('El canvas no soporta contexto 2D');
     }
-    
+
     this.ctx = context;
-    
+
     // Configurar viewport inicial (centrado)
     this.scale = 1;
     this.offsetX = canvas.width / 2;
     this.offsetY = canvas.height / 2;
-    
+
     // Configuración de calidad de renderizado
     this.ctx.imageSmoothingEnabled = true;
     this.ctx.imageSmoothingQuality = 'high';
@@ -88,13 +83,13 @@ export class GameRenderer {
 
   /**
    * Renderiza el grafo completo (aristas, nodos y paquetes de energía)
-   * 
+   *
    * Orden de renderizado:
    * 1. Limpiar canvas
    * 2. Aristas (fondo)
    * 3. Nodos (medio)
    * 4. Paquetes de energía (frente)
-   * 
+   *
    * @param snapshot - Estado inmutable del juego
    */
   public renderGraph(snapshot: GameSnapshot): void {
@@ -128,13 +123,13 @@ export class GameRenderer {
 
   /**
    * Renderiza un nodo individual
-   * 
+   *
    * Elementos visuales:
    * - Círculo con color del propietario (gris si neutral)
    * - Borde con color del tipo de nodo
    * - Barra de energía/defensa
    * - Indicador si es nodo inicial
-   * 
+   *
    * @param node - Snapshot del nodo a renderizar
    */
   public renderNode(node: NodeSnapshot): void {
@@ -179,17 +174,17 @@ export class GameRenderer {
     this.ctx.fillText(
       Math.floor(node.energyPool).toString(),
       canvasX,
-      canvasY + radius * 0.3
+      canvasY + radius * 0.3,
     );
   }
 
   /**
    * Renderiza una arista individual
-   * 
+   *
    * Elementos visuales:
    * - Línea entre dos nodos
    * - Grosor proporcional al peso de la arista
-   * 
+   *
    * @param edge - Snapshot de la arista a renderizar
    */
   public renderEdge(edge: EdgeSnapshot): void {
@@ -203,7 +198,7 @@ export class GameRenderer {
     // Calcular grosor de la línea basado en el peso de la arista
     const thickness = Math.max(
       this.EDGE_THICKNESS_BASE,
-      edge.thickness * this.scale
+      edge.thickness * this.scale,
     );
 
     // Dibujar la línea
@@ -219,12 +214,12 @@ export class GameRenderer {
     if (edge.length > 5) {
       const midX = (fromX + toX) / 2;
       const midY = (fromY + toY) / 2;
-      
+
       this.ctx.fillStyle = '#FFFFFF';
       this.ctx.font = '10px Arial';
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
-      
+
       // Fondo para el texto
       const text = edge.length.toFixed(0);
       const textWidth = this.ctx.measureText(text).width;
@@ -233,9 +228,9 @@ export class GameRenderer {
         midX - textWidth / 2 - 2,
         midY - 6,
         textWidth + 4,
-        12
+        12,
       );
-      
+
       // Texto
       this.ctx.fillStyle = '#FFFFFF';
       this.ctx.fillText(text, midX, midY);
@@ -244,12 +239,12 @@ export class GameRenderer {
 
   /**
    * Renderiza los paquetes de energía en tránsito
-   * 
+   *
    * Elementos visuales:
    * - Círculos coloreados según propietario
    * - Tamaño proporcional a la cantidad de energía
    * - Posición según el progreso del viaje
-   * 
+   *
    * @param packets - Array de paquetes de energía a renderizar
    */
   public renderEnergyPackets(packets: EnergyPacketSnapshot[]): void {
@@ -259,20 +254,20 @@ export class GameRenderer {
 
     for (const packet of packets) {
       const [canvasX, canvasY] = this.worldToCanvas(packet.x, packet.y);
-      
+
       // Calcular radio del paquete basado en la cantidad de energía
       const radius = Math.max(
         this.PACKET_RADIUS_MIN,
         Math.min(
           this.PACKET_RADIUS_MAX,
-          (packet.amount / 20) * this.PACKET_RADIUS_MAX
-        )
+          (packet.amount / 20) * this.PACKET_RADIUS_MAX,
+        ),
       ) * this.scale;
 
       // Dibujar el paquete como un círculo
       this.ctx.beginPath();
       this.ctx.arc(canvasX, canvasY, radius, 0, Math.PI * 2);
-      
+
       // Color del propietario
       this.ctx.fillStyle = packet.color;
       this.ctx.fill();
@@ -301,13 +296,13 @@ export class GameRenderer {
 
   /**
    * Renderiza la UI del juego
-   * 
+   *
    * Elementos visuales:
    * - Energía total de cada jugador
    * - Tiempo restante
    * - Porcentaje de dominancia
    * - Indicadores de victoria próxima
-   * 
+   *
    * @param snapshot - Estado inmutable del juego
    */
   public renderUI(snapshot: GameSnapshot): void {
@@ -382,7 +377,7 @@ export class GameRenderer {
       this.ctx.fillText(
         player.username + (player.isEliminated ? ' (ELIMINADO)' : ''),
         padding,
-        y
+        y,
       );
 
       y += lineHeight;
@@ -396,7 +391,7 @@ export class GameRenderer {
       this.ctx.fillText(
         `Energía: ${Math.floor(player.totalEnergy)} (${Math.floor(player.storedEnergy)} + ${Math.floor(player.transitEnergy)} en tránsito)`,
         padding + 20,
-        y
+        y,
       );
 
       y += lineHeight;
@@ -407,7 +402,7 @@ export class GameRenderer {
       this.ctx.fillText(
         `Nodos: ${player.controlledNodes} (${player.dominancePercentage.toFixed(1)}%)`,
         padding,
-        y
+        y,
       );
 
       // Tiempo de dominancia si aplica
@@ -417,7 +412,7 @@ export class GameRenderer {
         this.ctx.fillText(
           `Dominancia: ${dominanceSeconds}s / 10s`,
           padding + 150,
-          y
+          y,
         );
       }
 
@@ -488,13 +483,13 @@ export class GameRenderer {
     this.ctx.fillText(
       reasonText[snapshot.victoryReason || 'time_limit'],
       centerX,
-      centerY + 50
+      centerY + 50,
     );
   }
 
   /**
    * Convierte coordenadas del mundo del juego a coordenadas del canvas
-   * 
+   *
    * @param x - Coordenada X del mundo
    * @param y - Coordenada Y del mundo
    * @returns Coordenadas transformadas [canvasX, canvasY]
@@ -507,7 +502,7 @@ export class GameRenderer {
 
   /**
    * Ajusta el zoom del viewport
-   * 
+   *
    * @param zoomLevel - Nivel de zoom (1 = normal, >1 = acercado, <1 = alejado)
    */
   public setZoom(zoomLevel: number): void {
@@ -516,7 +511,7 @@ export class GameRenderer {
 
   /**
    * Ajusta el offset del viewport
-   * 
+   *
    * @param x - Offset horizontal
    * @param y - Offset vertical
    */
@@ -534,7 +529,7 @@ export class GameRenderer {
 
   /**
    * Renderiza el icono del tipo de nodo
-   * 
+   *
    * @param node - Nodo a renderizar
    * @param x - Posición X en canvas
    * @param y - Posición Y en canvas
@@ -544,7 +539,7 @@ export class GameRenderer {
     node: NodeSnapshot,
     x: number,
     y: number,
-    radius: number
+    radius: number,
   ): void {
     if (!this.ctx) return;
 
@@ -598,7 +593,8 @@ export class GameRenderer {
           const py = y + r * Math.sin(angle);
           if (i === 0) {
             this.ctx.moveTo(px, py);
-          } else {
+          }
+          else {
             this.ctx.lineTo(px, py);
           }
         }
@@ -615,7 +611,7 @@ export class GameRenderer {
 
   /**
    * Renderiza la barra de energía del nodo
-   * 
+   *
    * @param node - Nodo a renderizar
    * @param x - Posición X en canvas
    * @param y - Posición Y en canvas
@@ -625,7 +621,7 @@ export class GameRenderer {
     node: NodeSnapshot,
     x: number,
     y: number,
-    radius: number
+    radius: number,
   ): void {
     if (!this.ctx) return;
 

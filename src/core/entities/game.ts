@@ -10,11 +10,11 @@ export interface GameResult {
 }
 
 export class Game {
-  public isActive: boolean = true;
+  public isActive = true;
   public readonly startTime: number = Date.now();
 
   constructor(
     public readonly players: Player[],
-    public readonly graph: Graph
+    public readonly graph: Graph,
   ) {}
 }

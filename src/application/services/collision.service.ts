@@ -5,11 +5,11 @@ import type { Player } from '@/core/entities/player';
 import {
   type ArrivalResult,
   ArrivalOutcome,
-} from './arrival-result.interface';
+} from '@/application/services/arrival-result.interface';
 import {
   type CollisionResult,
   type WasteWarning,
-} from './collision-result.interface';
+} from '@/application/services/collision-result.interface';
 
 export class CollisionService {
   private static readonly COLLISION_THRESHOLD = 0.01;
