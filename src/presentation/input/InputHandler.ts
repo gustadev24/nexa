@@ -1,15 +1,15 @@
 import type { Edge } from '@/core/entities/edge';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
+import type { EdgeSnapshot, GameSnapshot, NodeSnapshot } from '@/infrastructure/state/types';
 import type { GameRenderer } from '@/presentation/renderer/GameRenderer';
-import type { GameSnapshot, NodeSnapshot, EdgeSnapshot } from '@/infrastructure/state/types';
 import type {
-  EdgeClickEvent,
-  EnergyCommand,
-  HitTestResult,
-  InputHandlerConfig,
-  NodeClickEvent,
-  SelectionState,
+    EdgeClickEvent,
+    EnergyCommand,
+    HitTestResult,
+    InputHandlerConfig,
+    NodeClickEvent,
+    SelectionState,
 } from './types';
 
 /**

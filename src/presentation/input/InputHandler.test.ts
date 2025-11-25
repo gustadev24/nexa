@@ -1,10 +1,10 @@
+import { Edge } from '@/core/entities/edge';
+import { BasicNode } from '@/core/entities/node/basic';
+import { Player } from '@/core/entities/player';
+import type { GameSnapshot } from '@/infrastructure/state/types';
+import { GameRenderer } from '@/presentation/renderer/GameRenderer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InputHandler } from './InputHandler';
-import { GameRenderer } from '@/presentation/renderer/GameRenderer';
-import { Player } from '@/core/entities/player';
-import { BasicNode } from '@/core/entities/node/basic';
-import { Edge } from '@/core/entities/edge';
-import type { GameSnapshot, NodeSnapshot, EdgeSnapshot } from '@/infrastructure/state/types';
 
 describe('InputHandler', () => {
   let canvas: HTMLCanvasElement;

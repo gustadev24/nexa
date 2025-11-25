@@ -7,10 +7,11 @@
 
 export { InputHandler } from './InputHandler';
 export type {
-  EdgeClickEvent,
-  EnergyCommand,
-  HitTestResult,
-  InputHandlerConfig,
-  NodeClickEvent,
-  SelectionState,
+    EdgeClickEvent,
+    EnergyCommand,
+    HitTestResult,
+    InputHandlerConfig,
+    NodeClickEvent,
+    SelectionState
 } from './types';
+
