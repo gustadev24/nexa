@@ -1,9 +1,7 @@
-/* eslint-disable import-x/no-named-as-default-member */
 import stylistic from '@stylistic/eslint-plugin';
 import eslint from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tsEslint from 'typescript-eslint';
-import importPlugin from 'eslint-plugin-import-x';
 import globals from 'globals';
 
 export default defineConfig(
@@ -15,8 +13,6 @@ export default defineConfig(
     semi: true,
     jsx: false,
   }),
-  importPlugin.flatConfigs.recommended,
-  importPlugin.flatConfigs.typescript,
   {
     files: ['**/*.ts', '**/*.js', '**/*.mjs'],
     languageOptions: {
@@ -27,14 +23,6 @@ export default defineConfig(
       ecmaVersion: 2020,
       sourceType: 'module',
     },
-    settings: {
-      'import-x/resolver': {
-        typescript: {
-          alwaysTryTypes: true,
-          project: './tsconfig.json',
-        },
-      },
-    },
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
@@ -42,6 +30,7 @@ export default defineConfig(
           message: 'Relative imports are not allowed, use absolute imports instead.',
         }],
       }],
+      '@typescript-eslint/no-extraneous-class': 'off',
     },
   },
   {

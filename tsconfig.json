@@ -24,7 +24,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-    }
+    },
+    "types": [
+      "vite-plugin-terminal/client"
+    ]
   },
   "include": ["src", "scripts", "*.mjs", "*.ts"]
 }

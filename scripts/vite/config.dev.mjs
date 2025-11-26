@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import path from 'path';
+import Terminal from 'vite-plugin-terminal';
 
 export default defineConfig({
   base: './',
@@ -20,4 +21,5 @@ export default defineConfig({
   server: {
     port: 8080,
   },
+  plugins: [Terminal()],
 });
