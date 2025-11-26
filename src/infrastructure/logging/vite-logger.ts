@@ -1,4 +1,4 @@
-import type { Logger } from '@/core/interfaces/logger';
+import type { Logger } from '@/core/logging/logger';
 import terminal from 'virtual:terminal';
 
 export class ViteLogger implements Logger {

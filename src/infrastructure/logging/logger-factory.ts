@@ -1,4 +1,4 @@
-import type { Logger } from '@/core/interfaces/logger';
+import type { Logger } from '@/core/logging/logger';
 import { ComposeLogger } from '@/infrastructure/logging/compose-logger';
 import { ConsoleLogger } from '@/infrastructure/logging/console-logger';
 import { ViteLogger } from '@/infrastructure/logging/vite-logger';

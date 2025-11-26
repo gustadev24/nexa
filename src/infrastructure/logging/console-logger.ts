@@ -1,4 +1,4 @@
-import type { Logger } from '@/core/interfaces/logger';
+import type { Logger } from '@/core/logging/logger';
 
 export class ConsoleLogger implements Logger {
   info(message: string, ...args: unknown[]): void {
