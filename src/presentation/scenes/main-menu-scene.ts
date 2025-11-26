@@ -1,3 +1,4 @@
+import { GameScene } from '@/presentation/scenes/game-scene';
 import { Scene } from 'phaser';
 
 /**
@@ -6,7 +7,7 @@ import { Scene } from 'phaser';
  * Displays the main menu with a futuristic, minimalist design.
  * Features a "Play" button that transitions to the game scene.
  */
-export class MainMenu extends Scene {
+export class MainMenuScene extends Scene {
   private playButton?: Phaser.GameObjects.Container;
   private title?: Phaser.GameObjects.Text;
   private subtitle?: Phaser.GameObjects.Text;
@@ -225,14 +226,12 @@ export class MainMenu extends Scene {
   }
 
   private startGame() {
-    console.log('[NEXA] Starting game with integrated system...');
-
     // Fade out
     this.cameras.main.fadeOut(500, 0, 17, 34);
 
     this.cameras.main.once('camerafadeoutcomplete', () => {
       // Launch the main Game scene
-      this.scene.start('Game');
+      this.scene.start(new GameScene());
     });
   }
 }

@@ -1,13 +1,13 @@
 import { Scene } from 'phaser';
 import type { GameController } from '@/presentation/game/GameController';
-import { NodeType, PlayerType } from '@/core/types/common';
+import { NodeType } from '@/core/types/common';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import type { Graph } from '@/core/entities/graph';
 import { EnergyCommandService } from '@/application/services/energy-command-service';
 import { AIControllerService } from '@/application/services/ai-controller.service';
 import type { Player } from '@/core/entities/player';
-import { GameFactory, type GraphConfig } from '@/presentation/game/GameFactory';
+import { GameFactory, type GraphConfig, type NodeConfig } from '@/presentation/game/GameFactory';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -16,7 +16,7 @@ enum GamePhase {
   GAME_OVER = 'GAME_OVER',
 }
 
-export class Game extends Scene {
+export class GameScene extends Scene {
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private gameController: GameController | null = null;
   private energyCommandService: EnergyCommandService | null = null;
@@ -329,7 +329,7 @@ export class Game extends Scene {
     });
   }
 
-  private renderInitialNode(nodeConfig: any): void {
+  private renderInitialNode(nodeConfig: NodeConfig): void {
     const pos = this.nodePositions.get(nodeConfig.id);
     if (!pos) return;
 
@@ -406,7 +406,7 @@ export class Game extends Scene {
 
     // Player selects their initial node
     this.playerSelectedNodeId = clickedNodeId;
-    this.highlightSelectedNode(clickedNodeId, 0x00ffff, 'Player 1');
+    this.highlightSelectedNode(clickedNodeId, 0x00ffff);
     this.selectionText?.setText(`You selected ${clickedNodeId} as your base!`);
     this.phaseText?.setText('WAITING FOR AI...');
 
@@ -426,7 +426,7 @@ export class Game extends Scene {
 
     const aiNode = Phaser.Utils.Array.GetRandom(availableNodes);
     this.aiSelectedNodeId = aiNode.id;
-    this.highlightSelectedNode(aiNode.id, 0xff00ff, 'Player 2');
+    this.highlightSelectedNode(aiNode.id, 0xff00ff);
 
     this.gamePhase = GamePhase.WAITING_AI_SELECTION;
     this.phaseText?.setText('STARTING GAME...');
@@ -435,7 +435,7 @@ export class Game extends Scene {
     setTimeout(() => this.initializeGameWithSelections(), 1000);
   }
 
-  private highlightSelectedNode(nodeId: string, color: number, playerName: string): void {
+  private highlightSelectedNode(nodeId: string, color: number): void {
     const container = this.nodeGraphics.get(nodeId);
     if (!container) return;
 
@@ -482,14 +482,12 @@ export class Game extends Scene {
         id: 'player-1',
         username: 'Player 1',
         color: '#00ffff',
-        type: PlayerType.HUMAN,
         initialNodeId: this.playerSelectedNodeId,
       },
       {
         id: 'player-2',
         username: 'AI Player',
         color: '#ff00ff',
-        type: PlayerType.AI,
         initialNodeId: this.aiSelectedNodeId,
       },
     ];
@@ -523,7 +521,7 @@ export class Game extends Scene {
   }
 
   private handleGameplayInput(pointer: Phaser.Input.Pointer): void {
-    const gameState = this.gameController?.getGameState();
+    const gameState: Infrag = this.gameController?.getGameState();
     if (!gameState) return;
 
     const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
