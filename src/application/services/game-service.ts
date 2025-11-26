@@ -17,32 +17,29 @@ export class GameService {
       throw new Error('Se requieren al menos 2 jugadores para iniciar una partida.');
     }
 
-    // Validación 2: Verificar que haya al menos algunos nodos neutrales
-    const neutralBasicNodes = Array.from(graph.nodes).filter(
-      node => node instanceof BasicNode && node.isNeutral(),
-    );
-
-    if (neutralBasicNodes.length < 1) {
-      throw new Error(
-        `No hay suficientes nodos básicos neutrales. Se requiere al menos 1, pero hay ${neutralBasicNodes.length}.`,
-      );
-    }
-
-    // PASO CRUCIAL: Configurar estado de los jugadores PRIMERO
+    // PASO 1: Configurar estado de los jugadores PRIMERO
     // Esto evita el error "Player is not in a game" al asignar nodos
     players.forEach((player) => {
-      player.setInGame(true); // <--- Activamos primero
+      player.setInGame(true);
       player.increaseEnergy(this.INITIAL_ENERGY);
     });
 
-    // Crear la instancia del juego
+    // PASO 2: Crear la instancia del juego
     this.currentGame = new Game([...players], graph);
 
-    // Asignar nodo inicial a cada jugador
-    // Ahora sí podemos capturar nodos porque isInGame es true
-    players.forEach((player, index) => {
-      const initialNode = neutralBasicNodes[index];
-      this.assignInitialNode(player, initialNode);
+    // PASO 3: Asignar y capturar nodos iniciales
+    // Los jugadores ya deben tener su initialNode configurado por GameFactory
+    players.forEach((player) => {
+      const initialNode = player.initialNode;
+      if (!initialNode) {
+        throw new Error(`El jugador ${player.username} no tiene nodo inicial configurado.`);
+      }
+
+      // Cualquier tipo de nodo puede ser inicial según la especificación
+      // No hay restricción de que deba ser BasicNode
+
+      // Capturar el nodo inicial del jugador
+      this.captureInitialNode(player, initialNode);
     });
 
     console.log(`[GameService] Partida inicializada con ${players.length} jugadores`);
@@ -50,21 +47,16 @@ export class GameService {
   }
 
   /**
-   * Asigna un nodo inicial a un jugador con validaciones estrictas
+   * Captura un nodo inicial para un jugador
+   * El nodo ya debe estar configurado como initialNode del jugador
    */
-  public assignInitialNode(player: Player, node: Node): void {
-    if (!(node instanceof BasicNode)) {
-      throw new Error(`El nodo inicial debe ser de tipo BasicNode. Se recibió: ${node.constructor.name}`);
-    }
-
-    if (!node.isNeutral()) {
-      throw new Error(`El nodo ${node.id} no está neutral y no puede ser asignado.`);
-    }
-
-    // Secuencia requerida
-    player.setInitialNode(node);
+  private captureInitialNode(player: Player, node: Node): void {
+    // Capturar el nodo (añadirlo a controlledNodes del jugador)
     player.captureNode(node);
+    // Asignar ownership del nodo
     node.setOwner(player);
+
+    console.log(`[GameService] Jugador ${player.username} capturó nodo inicial ${node.id}`);
   }
 
   /**

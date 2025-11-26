@@ -2,7 +2,7 @@ import { GameService } from '@/application/services/game-service';
 import { TickService } from '@/application/services/tick.service';
 import { VictoryService } from '@/application/services/victory-service';
 
-import { GameStateManager } from '@/infrastructure/state/GameStateManager';
+import { GameStateManager } from '@/infrastructure/state/game-state-manager';
 import { GameRenderer } from '@/presentation/renderer/GameRenderer';
 import { GameController } from '@/presentation/game/GameController';
 
@@ -11,9 +11,13 @@ import { Player } from '@/core/entities/player';
 import { Node } from '@/core/entities/node/node';
 import { BasicNode } from '@/core/entities/node/basic';
 import { SuperEnergyNode } from '@/core/entities/node/super-energy';
+import { EnergyNode } from '@/core/entities/node/energy';
+import { AttackNode } from '@/core/entities/node/attack';
+import { DefenseNode } from '@/core/entities/node/defense';
+import { FastRegenNode } from '@/core/entities/node/fast-regen';
 import { Edge } from '@/core/entities/edge';
 import { NodeType, PlayerType } from '@/core/types/common';
-import type { GameStateConfig, GameState } from '@/infrastructure/state/types';
+import type { GameStateConfig, GameState } from '@/infrastructure/types/types';
 
 /**
  * Configuración para crear un nodo
@@ -104,7 +108,7 @@ export class GameFactory {
     console.log('[GameFactory] Grafo creado');
 
     // 3. Asignar nodos iniciales a los jugadores
-    this.assignInitialNodes(graph, players, graphConfig, playerConfigs);
+    this.assignInitialNodes(graph, players, graphConfig);
     console.log('[GameFactory] Nodos iniciales asignados');
 
     // 4. Crear servicios de aplicación
@@ -155,36 +159,42 @@ export class GameFactory {
     // Crear un mapa de players por ID para fácil acceso
     const playerMap = new Map<string, Player>();
     players.forEach(player => playerMap.set(player.id as string, player));
-    const nodes = new Set<BasicNode | SuperEnergyNode>();
-    const nodeMap = new Map<string, BasicNode | SuperEnergyNode>();
+    const nodes = new Set<Node>();
+    const nodeMap = new Map<string, Node>();
 
     // Crear nodos
     for (const nodeConfig of config.nodes) {
-      let node: BasicNode | SuperEnergyNode;
+      let node: Node;
 
-      if (nodeConfig.type === NodeType.SUPER_ENERGY) {
-        node = new SuperEnergyNode(nodeConfig.id);
-      }
-      else {
-        node = new BasicNode(nodeConfig.id);
+      switch (nodeConfig.type) {
+        case NodeType.SUPER_ENERGY:
+          node = new SuperEnergyNode(nodeConfig.id);
+          break;
+        case NodeType.ENERGY:
+          node = new EnergyNode(nodeConfig.id);
+          break;
+        case NodeType.ATTACK:
+          node = new AttackNode(nodeConfig.id);
+          break;
+        case NodeType.DEFENSE:
+          node = new DefenseNode(nodeConfig.id);
+          break;
+        case NodeType.FAST_REGEN:
+          node = new FastRegenNode(nodeConfig.id);
+          break;
+        case NodeType.BASIC:
+        default:
+          node = new BasicNode(nodeConfig.id);
+          break;
       }
 
-      // Asignar owner si existe
-      if (nodeConfig.ownerId) {
-        const owner = playerMap.get(nodeConfig.ownerId);
-        if (owner) {
-          node.setOwner(owner);
-          console.log(`[GameFactory] Nodo ${nodeConfig.id} asignado a ${owner.username}`);
-        }
-        else {
-          console.warn(`[GameFactory] Owner ${nodeConfig.ownerId} no encontrado para nodo ${nodeConfig.id}`);
-        }
-      }
-
-      // Asignar energía de defensa inicial
+      // Asignar energía de defensa inicial ANTES de asignar owner
       if (nodeConfig.defenseEnergy !== undefined) {
         node.addEnergy(nodeConfig.defenseEnergy);
       }
+
+      // NO asignar owner aquí - lo haremos después de que GameService configure el jugador
+      // Solo guardamos la referencia para usar después
 
       nodes.add(node);
       nodeMap.set(nodeConfig.id, node);
@@ -235,22 +245,25 @@ export class GameFactory {
 
   /**
    * Asigna nodos iniciales a los jugadores
+   * NOTA: Solo configuramos la referencia, NO capturamos aquí
+   * GameService.initializeGame manejará la captura correcta
    */
   private assignInitialNodes(
     graph: Graph,
     players: Player[],
-    _graphConfig: GraphConfig,
-    playerConfigs: PlayerConfig[],
+    graphConfig: GraphConfig,
   ): void {
     const nodeMap = new Map<string, Node>();
     graph.nodes.forEach(node => nodeMap.set(node.id as string, node));
 
-    playerConfigs.forEach((playerConfig) => {
-      if (playerConfig.initialNodeId) {
-        const player = players.find(p => p.id === playerConfig.id);
-        const node = nodeMap.get(playerConfig.initialNodeId);
+    // Ahora asignamos el owner inicial para los nodos de jugador
+    graphConfig.nodes.forEach((nodeConfig) => {
+      if (nodeConfig.ownerId && nodeConfig.isInitialNode) {
+        const player = players.find(p => p.id === nodeConfig.ownerId);
+        const node = nodeMap.get(nodeConfig.id);
 
         if (player && node) {
+          // Configurar nodo inicial (sin capturar todavia)
           player.setInitialNode(node);
           console.log(`[GameFactory] Jugador ${player.username} tiene nodo inicial ${node.id}`);
         }

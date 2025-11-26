@@ -42,6 +42,9 @@ export enum NodeType {
 
   /** Nodo de super energía (genera más energía al ser capturado) */
   SUPER_ENERGY = 'SUPER_ENERGY',
+
+  /** Nodo de regeneración rápida (reduce intervalos de emisión) */
+  FAST_REGEN = 'FAST_REGEN',
 }
 
 /**

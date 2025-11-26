@@ -5,7 +5,7 @@ import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
 
 export class TickService {
-  private static readonly DEFAULT_SPEED = 100;
+  private static readonly DEFAULT_SPEED = 0.0003; // Very slow: ~3-4 seconds to traverse edge of length 1
   private static readonly COLLISION_THRESHOLD = 0.01;
 
   private lastDefenseUpdate = new Map<Node, number>();
@@ -71,17 +71,31 @@ export class TickService {
           if (assignedEnergy > 0) {
             const attackEnergy = node.getAttackEnergy(edge);
 
-            if (attackEnergy > 0) {
-              const target = edge.flipSide(node);
+            // Only emit if node has enough energy available
+            // Available energy = total - all assignments (defense calculation already accounts for this)
+            const availableEnergy = node.energyPool;
+            const totalAssigned = Array.from(node.edges).reduce((sum, e) => sum + node.getAssignedEnergy(e), 0);
+            const energyForDefense = availableEnergy - totalAssigned;
 
-              const packet = new EnergyPacket(
-                node.owner,
-                attackEnergy,
-                node,
-                target,
-              );
+            if (energyForDefense >= 0 && assignedEnergy <= availableEnergy) {
+              if (attackEnergy > 0) {
+                const target = edge.flipSide(node);
 
-              edge.addEnergyPacket(packet);
+                // CRITICAL: Do NOT subtract energy when emitting!
+                // Nodes are INFINITE GENERATORS while controlled
+                // The assignment defines how much energy to GENERATE per interval
+                // Energy in the node stays constant - it's a continuous generator
+                // Defense = pool - assigned (energy not being used to attack)
+
+                const packet = new EnergyPacket(
+                  node.owner,
+                  attackEnergy,
+                  node,
+                  target,
+                );
+
+                edge.addEnergyPacket(packet);
+              }
             }
           }
         }
@@ -199,6 +213,8 @@ export class TickService {
           captureCount++;
         }
         else if (targetNode.owner?.equals(attackingPlayer)) {
+          // Energy arrives at friendly node - just integrate it
+          // This increases the node's pool which increases defense
           targetNode.addEnergy(packet.amount);
         }
         else {
@@ -241,6 +257,9 @@ export class TickService {
     if (node.energyAddition > 0) {
       attacker.increaseEnergy(node.energyAddition);
     }
+
+    // Transfer assigned energy from attacking nodes to the captured node
+    this.transferAssignmentsToNode(node, attacker);
   }
 
   private captureEnemyNode(
@@ -276,6 +295,9 @@ export class TickService {
       attacker.increaseEnergy(node.energyAddition);
     }
 
+    // Transfer assigned energy from attacking nodes to the captured node
+    this.transferAssignmentsToNode(node, attacker);
+
     return true;
   }
 
@@ -283,7 +305,10 @@ export class TickService {
     const previousOwner = node.owner;
 
     if (previousOwner) {
-      previousOwner.loseNode(node);
+      // Only call loseNode if the player actually owns the node
+      if (previousOwner.ownsNode(node)) {
+        previousOwner.loseNode(node);
+      }
 
       if (node.energyAddition > 0) {
         previousOwner.decreaseEnergy(node.energyAddition);
@@ -293,6 +318,41 @@ export class TickService {
     node.setOwner(null);
     node.removeEnergy(node.energyPool);
     node.clearAssignments();
+  }
+
+  /**
+   * Transfer assigned energy from attacker's nodes to the captured node
+   * When you capture a node, the energy you had assigned to attack it
+   * should be transferred to the captured node's pool
+   */
+  private transferAssignmentsToNode(capturedNode: Node, attacker: Player): void {
+    // Find all nodes owned by attacker
+    const attackerNodes = Array.from(attacker.controlledNodes);
+
+    // For each attacker node, check if it has assignments to the captured node
+    for (const attackerNode of attackerNodes) {
+      if (attackerNode === capturedNode) continue;
+
+      // Check all edges of this attacker node
+      for (const edge of attackerNode.edges) {
+        // If this edge connects to the captured node
+        if (edge.hasNode(capturedNode)) {
+          const assignedEnergy = attackerNode.getAssignedEnergy(edge);
+
+          if (assignedEnergy > 0) {
+            // Transfer the assigned energy to the captured node
+            capturedNode.addEnergy(assignedEnergy);
+
+            // Clear the assignment since they're now friendly
+            attackerNode.removeEnergyFromEdge(edge, assignedEnergy);
+
+            console.log(
+              `[TickService] Transferred ${assignedEnergy} energy from ${attackerNode.id} to captured ${capturedNode.id}`,
+            );
+          }
+        }
+      }
+    }
   }
 
   reset(): void {

@@ -5,7 +5,7 @@ import type {
   GameStateConfig,
   GameStatus,
   PlayerStats,
-} from '@/infrastructure/state/types';
+} from '@/infrastructure/types/types';
 
 /**
  * GameStateManager - Gestor del estado de la partida
