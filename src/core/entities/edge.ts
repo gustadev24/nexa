@@ -3,7 +3,7 @@ import type { Node } from '@/core/entities/node/node';
 import type { ID } from '@/core/types/common';
 
 export class Edge {
-  private id: ID;
+  private _id: ID;
   private _length: number;
 
   private _nodes: [Node, Node];
@@ -12,9 +12,13 @@ export class Edge {
 
   constructor(id: ID, nodes: [Node, Node], length: number) {
     this._length = length;
-    this.id = id;
+    this._id = id;
     this._nodes = nodes;
     this._energyPackets = [];
+  }
+
+  get id(): ID {
+    return this._id;
   }
 
   get length(): number {
@@ -62,6 +66,6 @@ export class Edge {
   }
 
   equals(edge: Edge): boolean {
-    return this.id === edge.id;
+    return this._id === edge._id;
   }
 }

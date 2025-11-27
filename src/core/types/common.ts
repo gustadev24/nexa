@@ -39,23 +39,6 @@ export enum NodeType {
 
   /** Nodo de energía (genera energía al ser capturado) */
   ENERGY = 'ENERGY',
-
-  /** Nodo de super energía (genera más energía al ser capturado) */
-  SUPER_ENERGY = 'SUPER_ENERGY',
-
-  /** Nodo de regeneración rápida (reduce intervalos de emisión) */
-  FAST_REGEN = 'FAST_REGEN',
-}
-
-/**
- * Tipos de jugadores
- */
-export enum PlayerType {
-  /** Jugador humano */
-  HUMAN = 'HUMAN',
-
-  /** Jugador controlado por IA */
-  AI = 'AI',
 }
 
 /**

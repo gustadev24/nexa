@@ -17,11 +17,11 @@ export abstract class Node {
   protected abstract readonly _defenseMultiplier: number;
   protected abstract readonly _energyAddition: number;
 
-  constructor(id: ID) {
+  constructor(id: ID, edges?: Set<Edge>) {
     this._id = id;
     this._owner = null;
     this._energyPool = 0;
-    this._edges = new Set();
+    this._edges = edges ?? new Set();
     this._edgeAssignments = new Map();
   }
 
@@ -53,11 +53,18 @@ export abstract class Node {
 
   // Estado
   isNeutral(): boolean { return this._owner === null; }
-  hasEdge(edge: Edge): boolean { return this._edges.has(edge); }
+  hasEdge(edge: Edge): boolean {
+    return this._edges.has(edge);
+  }
 
   // Modificadores
   setOwner(player: Player | null): void { this._owner = player; }
-  addEdge(edge: Edge): void { this._edges.add(edge); }
+  addEdge(edge: Edge): void {
+    if (!edge.hasNode(this)) {
+      throw new Error('Edge does not connect to this node.');
+    }
+    this._edges.add(edge);
+  }
 
   addEnergy(amount: number): void {
     if (amount < 0) throw new Error('Amount must be positive.');
