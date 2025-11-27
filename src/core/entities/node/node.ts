@@ -60,6 +60,15 @@ export abstract class Node {
     return this._edges.has(edge);
   }
 
+  hasEdgeTo(node: Node): boolean {
+    for (const edge of this._edges) {
+      if (edge.flipSide(this).equals(node)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Modificadores
   setOwner(player: Player | null): void { this._owner = player; }
   addEdge(edge: Edge): void {
