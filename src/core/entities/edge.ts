@@ -1,6 +1,6 @@
 import type { EnergyPacket } from '@/core/entities/energy-packets';
 import type { Node } from '@/core/entities/node/node';
-import type { ID } from '@/core/types/common';
+import type { ID } from '@/core/types/id';
 
 export class Edge {
   private _id: ID;

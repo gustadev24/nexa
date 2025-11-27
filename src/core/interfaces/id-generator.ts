@@ -1,4 +1,4 @@
-import type { ID } from '@/core/types/common';
+import type { ID } from '@/core/types/id';
 
 export interface IdGenerator {
   generate(): ID;

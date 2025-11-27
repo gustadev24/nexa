@@ -1,5 +1,5 @@
 import type { IdGenerator } from '@/core/interfaces/id-generator';
-import type { ID } from '@/core/types/common';
+import type { ID } from '@/core/types/id';
 
 export class UuidGenerator implements IdGenerator {
   generate(): ID {
