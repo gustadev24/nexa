@@ -7,21 +7,21 @@ export class ComposeLogger implements Logger {
     this._loggers = loggers || [];
   }
 
-  private log(method: keyof Logger, message: string, ...args: unknown[]): void {
+  private log(method: keyof Logger, context: string, message: string, ...args: unknown[]): void {
     for (const logger of this._loggers) {
-      logger[method](message, ...args);
+      logger[method](context, message, ...args);
     }
   }
 
-  info(message: string, ...args: unknown[]): void {
-    this.log('info', message, ...args);
+  info(context: string, message: string, ...args: unknown[]): void {
+    this.log('info', context, message, ...args);
   }
 
-  warn(message: string, ...args: unknown[]): void {
-    this.log('warn', message, ...args);
+  warn(context: string, message: string, ...args: unknown[]): void {
+    this.log('warn', context, message, ...args);
   }
 
-  error(message: string, ...args: unknown[]): void {
-    this.log('error', message, ...args);
+  error(context: string, message: string, ...args: unknown[]): void {
+    this.log('error', context, message, ...args);
   }
 }
