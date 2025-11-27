@@ -1,7 +1,8 @@
 // node.ts
 import type { Edge } from '@/core/entities/edge';
 import type { Player } from '@/core/entities/player';
-import type { ID } from '@/core/types/common';
+import type { ID } from '@/core/types/id';
+import type { NodeType } from '@/core/types/node-type';
 
 export abstract class Node {
   protected _id: ID;
@@ -16,6 +17,7 @@ export abstract class Node {
   protected abstract readonly _attackMultiplier: number;
   protected abstract readonly _defenseMultiplier: number;
   protected abstract readonly _energyAddition: number;
+  protected abstract readonly _nodeType: NodeType;
 
   constructor(id: ID, edges?: Set<Edge>) {
     this._id = id;
@@ -35,6 +37,7 @@ export abstract class Node {
   get attackMultiplier(): number { return this._attackMultiplier; }
   get defenseMultiplier(): number { return this._defenseMultiplier; }
   get edges(): ReadonlySet<Edge> { return this._edges; }
+  get nodeType(): NodeType { return this._nodeType; }
 
   // Defensa efectiva
   defenseEnergy(): number {
