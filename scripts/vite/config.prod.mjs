@@ -23,12 +23,12 @@ export default defineConfig({
   logLevel: 'warning',
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '../src'),
-      '@/scenes': path.resolve(__dirname, '../src/scenes'),
-      '@/entities': path.resolve(__dirname, '../src/entities'),
-      '@/core': path.resolve(__dirname, '../src/core'),
-      '@/ui': path.resolve(__dirname, '../src/ui'),
-      '@/assets': path.resolve(__dirname, '../src/assets'),
+      '@': path.resolve(__dirname, '../../src'),
+      '@/scenes': path.resolve(__dirname, '../../src/scenes'),
+      '@/entities': path.resolve(__dirname, '../../src/entities'),
+      '@/core': path.resolve(__dirname, '../../src/core'),
+      '@/ui': path.resolve(__dirname, '../../src/ui'),
+      '@/assets': path.resolve(__dirname, '../../src/assets'),
     },
   },
   build: {

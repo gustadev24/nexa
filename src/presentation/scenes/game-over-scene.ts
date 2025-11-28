@@ -6,7 +6,7 @@ export class GameOverScene extends Scene {
   gameover_text: Phaser.GameObjects.Text;
 
   constructor() {
-    super('GameOver');
+    super('GameOverScene');
   }
 
   create() {

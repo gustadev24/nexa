@@ -1,4 +1,4 @@
-import type { EnergyPacket } from '@/core/entities/energy-packets';
+import type { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Player } from '@/core/entities/player';
 import type { Edge } from '@/core/entities/edge';
 

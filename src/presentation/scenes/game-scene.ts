@@ -1,13 +1,16 @@
+import { GameFactory } from '@/presentation/game/game-factory';
 import { Scene } from 'phaser';
 import type { GameController } from '@/presentation/game/game-controller';
-import { NodeType } from '@/core/types/id';
+import { NodeType } from '@/core/types/node-type';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import type { Graph } from '@/core/entities/graph';
 import { EnergyCommandService } from '@/application/services/energy-command-service';
 import { AIControllerService } from '@/application/services/ai-controller.service';
+import { GraphService } from '@/application/services/graph/graph-service';
+import { UuidGenerator } from '@/application/services/helpers/uuid-generator';
+import { LoggerFactory } from '@/application/logging/logger-factory';
 import type { Player } from '@/core/entities/player';
-import { GameFactory, type GraphConfig, type NodeConfig } from '@/presentation/game/game-factory';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -50,11 +53,8 @@ export class GameScene extends Scene {
   // Selection
   private selectedNode: Node | null = null;
 
-  // Graph config
-  private graphConfig: GraphConfig | null = null;
-
   constructor() {
-    super('Game');
+    super('GameScene');
   }
 
   create() {
@@ -223,100 +223,44 @@ export class GameScene extends Scene {
   }
 
   private generateRandomGraph(): void {
-    const { width, height } = this.scale;
+    const idGenerator = new UuidGenerator();
+    const logger = LoggerFactory.create();
+    const graphService = new GraphService(idGenerator, logger);
 
     // Generate 8-12 nodes
     const nodeCount = Phaser.Math.Between(8, 12);
-    const nodes = [];
-    const edges = [];
+    this.gameGraph = graphService.generateRandomGraph(nodeCount);
 
-    // Create positions (circular distribution with variation)
+    // Map positions for rendering
+    const { width, height } = this.scale;
     const centerX = width / 2;
     const centerY = height / 2;
     const radius = Math.min(width, height) * 0.3;
 
-    // Distribute node types:
-    // 50% BASIC, 20% ENERGY, 15% ATTACK, 10% DEFENSE, 5% FAST_REGEN
-    const nodeTypes: NodeType[] = [];
-    for (let i = 0; i < nodeCount; i++) {
-      const rand = Math.random();
-      if (rand < 0.5) {
-        nodeTypes.push(NodeType.BASIC);
-      }
-      else if (rand < 0.7) {
-        nodeTypes.push(NodeType.ENERGY);
-      }
-      else if (rand < 0.85) {
-        nodeTypes.push(NodeType.ATTACK);
-      }
-      else if (rand < 0.95) {
-        nodeTypes.push(NodeType.DEFENSE);
-      }
-      else {
-        nodeTypes.push(NodeType.FAST_REGEN);
-      }
-    }
-
-    for (let i = 0; i < nodeCount; i++) {
+    const nodes = Array.from(this.gameGraph.nodes);
+    nodes.forEach((node, i) => {
       const angle = (i / nodeCount) * Math.PI * 2;
       const radiusVariation = Phaser.Math.FloatBetween(0.8, 1.2);
       const x = centerX + Math.cos(angle) * radius * radiusVariation;
       const y = centerY + Math.sin(angle) * radius * radiusVariation;
 
-      const nodeId = `node-${i + 1}`;
-      this.nodePositions.set(nodeId, { x, y });
+      this.nodePositions.set(String(node.id), { x, y });
+    });
 
-      const nodeType = nodeTypes[i];
-      const defenseEnergy = nodeType === NodeType.ENERGY ? 30 : 50;
-
-      nodes.push({
-        id: nodeId,
-        type: nodeType,
-        ownerId: null,
-        defenseEnergy,
-        isInitialNode: false,
-      });
-    }
-
-    // Create edges - ring + random connections
-    for (let i = 0; i < nodeCount; i++) {
-      const sourceId = `node-${i + 1}`;
-
-      // Connect to next (ring)
-      const nextId = `node-${((i + 1) % nodeCount) + 1}`;
-      edges.push({ sourceId, targetId: nextId, weight: 1 });
-
-      // Add random connections
-      if (Phaser.Math.Between(0, 100) < 60) {
-        const skipCount = Phaser.Math.Between(2, Math.floor(nodeCount / 3));
-        const targetIdx = (i + skipCount) % nodeCount;
-        const targetId = `node-${targetIdx + 1}`;
-
-        const edgeExists = edges.some(
-          e => (e.sourceId === sourceId && e.targetId === targetId)
-            || (e.sourceId === targetId && e.targetId === sourceId),
-        );
-
-        if (!edgeExists && targetId !== sourceId) {
-          edges.push({ sourceId, targetId, weight: 1 });
-        }
-      }
-    }
-
-    this.graphConfig = { nodes, edges };
     this.renderInitialGraph();
   }
 
   private renderInitialGraph(): void {
-    if (!this.graphConfig) return;
+    if (!this.gameGraph) return;
 
     // Render edges
-    this.graphConfig.edges.forEach((edgeConfig) => {
-      const posA = this.nodePositions.get(edgeConfig.sourceId);
-      const posB = this.nodePositions.get(edgeConfig.targetId);
+    this.gameGraph.edges.forEach((edge) => {
+      const [nodeA, nodeB] = edge.endpoints;
+      const posA = this.nodePositions.get(String(nodeA.id));
+      const posB = this.nodePositions.get(String(nodeB.id));
       if (!posA || !posB) return;
 
-      const edgeId = `${edgeConfig.sourceId}-${edgeConfig.targetId}`;
+      const edgeId = String(edge.id);
       const graphics = this.add.graphics();
       graphics.lineStyle(2, 0x004466, 0.6);
       graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
@@ -324,22 +268,22 @@ export class GameScene extends Scene {
     });
 
     // Render nodes
-    this.graphConfig.nodes.forEach((nodeConfig) => {
-      this.renderInitialNode(nodeConfig);
+    this.gameGraph.nodes.forEach((node) => {
+      this.renderInitialNode(node);
     });
   }
 
-  private renderInitialNode(nodeConfig: NodeConfig): void {
-    const pos = this.nodePositions.get(nodeConfig.id);
+  private renderInitialNode(node: Node): void {
+    const pos = this.nodePositions.get(String(node.id));
     if (!pos) return;
 
     const container = this.add.container(pos.x, pos.y);
-    this.nodeGraphics.set(nodeConfig.id, container);
+    this.nodeGraphics.set(String(node.id), container);
 
     let color = 0x888888;
     let label = 'N';
 
-    switch (nodeConfig.type) {
+    switch (node.nodeType) {
       case NodeType.ENERGY:
         color = 0xffaa00;
         label = 'E';
@@ -352,10 +296,7 @@ export class GameScene extends Scene {
         color = 0x4444ff;
         label = 'D';
         break;
-      case NodeType.FAST_REGEN:
-        color = 0x44ff44;
-        label = 'F';
-        break;
+      case NodeType.BASIC:
       default:
         color = 0x888888;
         label = 'N';
@@ -369,7 +310,7 @@ export class GameScene extends Scene {
       fontSize: '20px',
       color: '#fff',
     }).setOrigin(0.5);
-    const energyText = this.add.text(0, radius + 15, nodeConfig.defenseEnergy?.toString() || '50', {
+    const energyText = this.add.text(0, radius + 15, Math.floor(node.defenseEnergy()).toString(), {
       fontFamily: 'Orbitron, monospace',
       fontSize: '14px',
       color: '#00ff88',
@@ -415,18 +356,18 @@ export class GameScene extends Scene {
   }
 
   private aiSelectNode(): void {
-    if (!this.graphConfig) return;
+    if (!this.gameGraph) return;
 
     // AI picks random node different from player
-    const availableNodes = this.graphConfig.nodes.filter(
-      n => n.id !== this.playerSelectedNodeId,
+    const availableNodes = Array.from(this.gameGraph.nodes).filter(
+      n => String(n.id) !== this.playerSelectedNodeId,
     );
 
     if (availableNodes.length === 0) return;
 
     const aiNode = Phaser.Utils.Array.GetRandom(availableNodes);
-    this.aiSelectedNodeId = aiNode.id;
-    this.highlightSelectedNode(aiNode.id, 0xff00ff);
+    this.aiSelectedNodeId = String(aiNode.id);
+    this.highlightSelectedNode(this.aiSelectedNodeId, 0xff00ff);
 
     this.gamePhase = GamePhase.WAITING_AI_SELECTION;
     this.phaseText?.setText('STARTING GAME...');
@@ -459,23 +400,10 @@ export class GameScene extends Scene {
   }
 
   private initializeGameWithSelections(): void {
-    if (!this.graphConfig || !this.playerSelectedNodeId || !this.aiSelectedNodeId) return;
+    if (!this.gameGraph || !this.playerSelectedNodeId || !this.aiSelectedNodeId) return;
 
-    // Update graph config with selected nodes
-    const updatedNodes = this.graphConfig.nodes.map((node) => {
-      if (node.id === this.playerSelectedNodeId) {
-        return { ...node, ownerId: 'player-1', defenseEnergy: 100, isInitialNode: true };
-      }
-      if (node.id === this.aiSelectedNodeId) {
-        return { ...node, ownerId: 'player-2', defenseEnergy: 100, isInitialNode: true };
-      }
-      return node;
-    });
-
-    const updatedGraphConfig = {
-      nodes: updatedNodes,
-      edges: this.graphConfig.edges,
-    };
+    // No need to manually update graph nodes here, GameFactory.assignInitialNodes will do it
+    // based on playerConfigs.
 
     const playersConfig = [
       {
@@ -494,7 +422,7 @@ export class GameScene extends Scene {
 
     try {
       const factory = GameFactory.getInstance();
-      const result = factory.createGame(updatedGraphConfig, playersConfig);
+      const result = factory.createGame(playersConfig, this.gameGraph);
 
       this.gameController = result.gameController;
       this.currentPlayer = result.players[0];
@@ -503,7 +431,9 @@ export class GameScene extends Scene {
       this.energyCommandService = new EnergyCommandService();
       this.aiControllerService = new AIControllerService();
 
-      this.gameController.startGame(result.gameState);
+      if (this.gameController) {
+        this.gameController.startGame(result.gameState);
+      }
       console.log('[Game] Game started with', result.graph.nodes.size, 'nodes');
 
       this.gamePhase = GamePhase.PLAYING;
@@ -511,8 +441,8 @@ export class GameScene extends Scene {
       this.selectionText?.setText('Select your nodes and assign energy to edges');
 
       // Render initial state
-      result.graph.nodes.forEach(node => this.renderNode(node));
-      result.graph.edges.forEach(edge => this.renderConnection(edge));
+      result.graph.nodes.forEach((node: Node) => this.renderNode(node));
+      result.graph.edges.forEach((edge: Edge) => this.renderConnection(edge));
     }
     catch (error) {
       console.error('[Game] Failed to initialize:', error);
@@ -521,12 +451,14 @@ export class GameScene extends Scene {
   }
 
   private handleGameplayInput(pointer: Phaser.Input.Pointer): void {
-    const gameState: Infrag = this.gameController?.getGameState();
+    const gameState = this.gameController?.getGameState();
     if (!gameState) return;
 
     const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
     if (clickedNodeId) {
-      const node = Array.from(gameState.graph.nodes).find(n => String(n.id) === clickedNodeId);
+      // Explicitly cast/type to avoid 'unknown' error
+      const nodes: Node[] = Array.from(gameState.graph.nodes);
+      const node = nodes.find(n => String(n.id) === clickedNodeId);
       if (node) {
         // SHIFT + Click = redistribution mode
         if (pointer.event.shiftKey && node.owner?.id === this.currentPlayer?.id) {
@@ -693,8 +625,13 @@ export class GameScene extends Scene {
     }
   }
 
-  update(): void {
+  update(_time: number, delta: number): void {
     if (this.gamePhase === GamePhase.PLAYING) {
+      // Update game controller logic
+      if (this.gameController) {
+        this.gameController.update(delta);
+      }
+
       // Run game logic
       this.checkVictory();
       this.updateAI();
@@ -780,7 +717,7 @@ export class GameScene extends Scene {
     const aiPlayer = this.allPlayers.find(p => p.id === 'player-2');
     if (aiPlayer && !aiPlayer.isEliminated) {
       try {
-        this.aiControllerService.executeAITurn(aiPlayer, this.gameGraph, Date.now());
+        this.aiControllerService.executeAITurn(aiPlayer, Date.now());
       }
       catch (error) {
         console.error('[Game] AI error:', error);
@@ -858,25 +795,21 @@ export class GameScene extends Scene {
     let label = 'N';
 
     // Determine node type and color
-    const nodeType = (node as any).constructor.name;
     if (node.isNeutral()) {
-      switch (nodeType) {
-        case 'EnergyNode':
+      switch (node.nodeType) {
+        case NodeType.ENERGY:
           color = 0xffaa00;
           label = 'E';
           break;
-        case 'AttackNode':
+        case NodeType.ATTACK:
           color = 0xff4444;
           label = 'A';
           break;
-        case 'DefenseNode':
+        case NodeType.DEFENSE:
           color = 0x4444ff;
           label = 'D';
           break;
-        case 'FastRegenNode':
-          color = 0x44ff44;
-          label = 'F';
-          break;
+        case NodeType.BASIC:
         default:
           color = 0x888888;
           label = 'N';

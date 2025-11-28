@@ -1,17 +1,17 @@
-import type { GameService } from '@/application/services/game-service';
+import type { GameService } from '@/application/services/game/game-service';
 import type { TickService } from '@/application/services/tick.service';
 import type { VictoryResult, VictoryService } from '@/application/services/victory-service';
-import type { GameStateManager } from '@/infrastructure/state/GameStateManager';
+import type { GameStateManager } from '@/application/services/game/game-state-manager';
 import type { GameRenderer } from '@/presentation/renderer/game-renderer';
-import type { GameState as InfraGameState } from '@/infrastructure/state/types';
+import type { GameState as InfraGameState } from '@/application/interfaces/game/game-state';
 import type { GameState as AppGameState } from '@/application/services/game-state.interface';
 
 /**
  * GameController - Coordinador principal del ciclo de juego
  *
  * Responsabilidades:
- * - Orquestar el game loop principal
- * - Coordinar servicios (tick, victory, render)
+ * - Orquestar el game loop principal (driven by external update)
+ * - Coordinar servicios (tick, victory)
  * - Manejar eventos de input
  * - Controlar inicio/pausa/fin del juego
  *
@@ -25,8 +25,6 @@ export class GameController {
   private gameRenderer: GameRenderer;
 
   private gameState: InfraGameState | null = null;
-  private animationFrameId: number | null = null;
-  private lastTickTime = 0;
 
   constructor(
     gameService: GameService,
@@ -43,34 +41,28 @@ export class GameController {
   }
 
   /**
-   * Inicia el juego y el game loop
+   * Inicia el juego
    */
   startGame(gameState: InfraGameState): void {
-    if (this.animationFrameId !== null) {
-      console.warn('[GameController] El juego ya está en ejecución');
-      return;
-    }
-
     this.gameState = gameState;
-    this.lastTickTime = performance.now();
     this.gameStateManager.setGameStatus(gameState, 'playing');
-
     console.log('[GameController] Iniciando juego...');
-    this.gameLoop(this.lastTickTime);
+
+    // Render inicial
+    if (this.gameRenderer) {
+      this.gameRenderer.renderGraph(this.gameStateManager.getGameSnapshot(gameState));
+      this.gameRenderer.renderUI(this.gameStateManager.getGameSnapshot(gameState));
+    }
   }
 
   /**
-   * Game loop principal - ejecuta cada frame
+   * Actualiza el estado del juego (debe ser llamado por el loop externo)
+   * @param deltaTime Tiempo transcurrido en milisegundos
    */
-  private gameLoop(currentTime: number): void {
-    if (!this.gameState) {
-      console.error('[GameController] No hay estado de juego activo');
+  update(deltaTime: number): void {
+    if (!this.gameState || this.gameState.status !== 'playing') {
       return;
     }
-
-    // Calcular delta time en milisegundos
-    const deltaTime = currentTime - this.lastTickTime;
-    this.lastTickTime = currentTime;
 
     // 1. Ejecutar tick del juego
     const appGameState: AppGameState = {
@@ -96,16 +88,16 @@ export class GameController {
 
     if (victoryResult.gameEnded) {
       this.handleGameEnd(victoryResult);
-      return;
     }
 
-    // 5. Renderizar el estado actual (si tiene método render)
-    if ('render' in this.gameRenderer && typeof this.gameRenderer.render === 'function') {
-      this.gameRenderer.render(this.gameState);
+    // 5. Renderizar (opcional, si se usa el renderer de canvas)
+    if (this.gameRenderer) {
+      // Nota: GameScene de Phaser ya renderiza por su cuenta,
+      // pero mantenemos esto por si se usa un canvas overlay o debug.
+      // Si gameRenderer requiere snapshot:
+      this.gameRenderer.renderGraph(snapshot);
+      this.gameRenderer.renderUI(snapshot);
     }
-
-    // 6. Continuar el loop
-    this.animationFrameId = requestAnimationFrame(time => this.gameLoop(time));
   }
 
   /**
@@ -117,28 +109,25 @@ export class GameController {
     console.log('[GameController] Juego terminado:', victoryResult);
     this.gameStateManager.setGameStatus(this.gameState, 'finished');
 
-    // Renderizar estado final (si tiene método render)
-    if ('render' in this.gameRenderer && typeof this.gameRenderer.render === 'function') {
-      this.gameRenderer.render(this.gameState);
+    // Renderizar estado final
+    if (this.gameRenderer) {
+      const snapshot = this.gameStateManager.getGameSnapshot(this.gameState);
+      this.gameRenderer.renderGraph(snapshot);
+      this.gameRenderer.renderUI(snapshot);
     }
 
     // Finalizar el juego a través del servicio
     const gameResult = this.gameService.endGame();
     console.log('[GameController] Resultado final:', gameResult);
-
-    // Detener el loop
-    this.stopGame();
   }
 
   /**
    * Detiene el juego
    */
   stopGame(): void {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
+    if (this.gameState) {
+      this.gameStateManager.setGameStatus(this.gameState, 'finished');
     }
-
     console.log('[GameController] Juego detenido');
   }
 
@@ -146,9 +135,8 @@ export class GameController {
    * Pausa el juego
    */
   pauseGame(): void {
-    if (this.gameState && this.animationFrameId !== null) {
-      // Pausar simplemente deteniendo el loop
-      this.stopGame();
+    if (this.gameState) {
+      this.gameStateManager.setGameStatus(this.gameState, 'waiting'); // Or 'paused' if added to enum
       console.log('[GameController] Juego pausado');
     }
   }
@@ -157,9 +145,8 @@ export class GameController {
    * Reanuda el juego
    */
   resumeGame(): void {
-    if (this.gameState && this.gameState.status === 'playing') {
-      this.lastTickTime = performance.now();
-      this.gameLoop(this.lastTickTime);
+    if (this.gameState && this.gameState.status === 'waiting') {
+      this.gameStateManager.setGameStatus(this.gameState, 'playing');
       console.log('[GameController] Juego reanudado');
     }
   }
@@ -183,7 +170,7 @@ export class GameController {
    * Verifica si el juego está activo
    */
   isGameActive(): boolean {
-    return this.animationFrameId !== null && this.gameState !== null;
+    return this.gameState !== null && this.gameState.status === 'playing';
   }
 
   /**

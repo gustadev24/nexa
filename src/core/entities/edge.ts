@@ -33,6 +33,10 @@ export class Edge {
     return this._transitEnergy;
   }
 
+  get energyPackets(): EnergyPacket[] {
+    return this._transitEnergy;
+  }
+
   addEnergyPacket(packet: EnergyPacket): void {
     this._transitEnergy.push(packet);
   }

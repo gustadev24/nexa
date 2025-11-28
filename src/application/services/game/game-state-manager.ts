@@ -1,11 +1,8 @@
 import type { Player } from '@/core/entities/player';
-import type {
-  GameSnapshot,
-  GameState,
-  GameStateConfig,
-  GameStatus,
-  PlayerStats,
-} from '@/infrastructure/types/types';
+import type { GameSnapshot } from '@/application/interfaces/game/game-snapshot';
+import type { GameState, GameStateConfig } from '@/application/interfaces/game/game-state';
+import type { GameStatus } from '@/application/interfaces/game/game-status';
+import type { PlayerSnapshot as PlayerStats } from '@/application/interfaces/player/player-snapshot';
 
 /**
  * GameStateManager - Gestor del estado de la partida

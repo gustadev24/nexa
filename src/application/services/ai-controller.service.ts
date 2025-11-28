@@ -1,5 +1,4 @@
 import type { Player } from '@/core/entities/player';
-import type { Graph } from '@/core/entities/graph';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import { EnergyCommandService } from './energy-command-service';
@@ -24,7 +23,7 @@ export class AIControllerService {
   /**
    * Ejecuta una acción de IA para el jugador dado
    */
-  public executeAITurn(player: Player, graph: Graph, currentTime: number): void {
+  public executeAITurn(player: Player, currentTime: number): void {
     // Limitar frecuencia de acciones
     if (currentTime - this.lastActionTime < this.ACTION_INTERVAL) {
       return;
@@ -51,10 +50,10 @@ export class AIControllerService {
     const sourceNode = nodesByEnergy[0];
 
     // Buscar objetivo: prioridad a neutrales, luego enemigos débiles
-    const target = this.findBestTarget(sourceNode, player, graph);
+    const target = this.findBestTarget(sourceNode, player);
 
     if (target) {
-      const { edge, targetNode } = target;
+      const { edge } = target;
 
       // Calcular cuánta energía asignar - SIEMPRE en incrementos de 10
       const availableEnergy = sourceNode.energyPool;
@@ -85,7 +84,6 @@ export class AIControllerService {
   private findBestTarget(
     sourceNode: Node,
     player: Player,
-    graph: Graph,
   ): { edge: Edge; targetNode: Node } | null {
     const adjacentEdges = Array.from(sourceNode.edges);
 

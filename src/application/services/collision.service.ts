@@ -1,11 +1,11 @@
 import type { Edge } from '@/core/entities/edge';
-import type { EnergyPacket } from '@/core/entities/energy-packets';
+import { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
 import {
-  type ArrivalResult,
   ArrivalOutcome,
 } from '@/application/services/arrival-result.interface';
+import { type ArrivalIntent } from '@/application/services/arrival-intent.interface';
 import {
   type CollisionResult,
   type WasteWarning,
@@ -95,57 +95,57 @@ export class CollisionService {
     return results;
   }
 
-  resolveNodeArrival(packet: EnergyPacket, node: Node): ArrivalResult {
+  /**
+   * Determina la intención de lo que debe ocurrir cuando un paquete de energía llega a un nodo.
+   * NO MUTAR el estado del juego aquí; solo devolver la intención.
+   */
+  resolveNodeArrivalIntent(packet: EnergyPacket, node: Node): ArrivalIntent {
     const attackingPlayer = packet.owner;
+    const previousOwner = node.owner;
 
     if (node.isNeutral()) {
-      return this.resolveNeutralNodeArrival(packet, node, attackingPlayer);
+      return this.determineNeutralNodeArrivalIntent(packet, node, attackingPlayer);
     }
 
     if (node.owner?.equals(attackingPlayer)) {
-      return this.resolveFriendlyNodeArrival(packet, node);
+      return this.determineFriendlyNodeArrivalIntent(packet, node);
     }
 
-    return this.resolveEnemyNodeArrival(packet, node, attackingPlayer);
+    return this.determineEnemyNodeArrivalIntent(packet, node, attackingPlayer, previousOwner);
   }
 
-  private resolveFriendlyNodeArrival(
+  private determineFriendlyNodeArrivalIntent(
     packet: EnergyPacket,
     node: Node,
-  ): ArrivalResult {
-    node.addEnergy(packet.amount);
-
+  ): ArrivalIntent {
     return {
       outcome: ArrivalOutcome.INTEGRATED,
       node,
       packet,
+      attacker: packet.owner,
+      previousOwner: node.owner,
+      energyAmount: packet.amount,
       energyIntegrated: packet.amount,
     };
   }
 
-  private resolveNeutralNodeArrival(
+  private determineNeutralNodeArrivalIntent(
     packet: EnergyPacket,
     node: Node,
     attacker: Player,
-  ): ArrivalResult {
+  ): ArrivalIntent {
     const defenseEnergy = node.defenseEnergy();
     const attackEnergy = packet.amount;
 
     if (attackEnergy > defenseEnergy) {
-      node.setOwner(attacker);
-      node.addEnergy(attackEnergy);
-      attacker.captureNode(node);
-
-      if (node.energyAddition > 0) {
-        attacker.increaseEnergy(node.energyAddition);
-      }
-
       return {
         outcome: ArrivalOutcome.CAPTURED,
         node,
         packet,
-        capturedBy: attacker,
-        energyIntegrated: attackEnergy,
+        attacker,
+        previousOwner: null,
+        energyAmount: attackEnergy,
+        energyIntegrated: attackEnergy - defenseEnergy, // Restante después de superar defensa neutral
       };
     }
 
@@ -154,7 +154,9 @@ export class CollisionService {
         outcome: ArrivalOutcome.NEUTRALIZED,
         node,
         packet,
-        energyLost: attackEnergy,
+        attacker,
+        previousOwner: null,
+        energyAmount: attackEnergy,
       };
     }
 
@@ -162,90 +164,63 @@ export class CollisionService {
       outcome: ArrivalOutcome.DEFEATED,
       node,
       packet,
-      energyLost: attackEnergy,
+      attacker,
+      previousOwner: null,
+      energyAmount: attackEnergy,
     };
   }
 
-  private resolveEnemyNodeArrival(
+  private determineEnemyNodeArrivalIntent(
     packet: EnergyPacket,
     node: Node,
     attacker: Player,
-  ): ArrivalResult {
+    previousOwner: Player | null,
+  ): ArrivalIntent {
     const defenseEnergy = node.defenseEnergy();
     const attackEnergy = packet.amount;
 
     if (attackEnergy > defenseEnergy) {
-      const previousOwner = node.owner;
-
-      if (previousOwner) {
-        const energyAdditionLost = node.energyAddition;
-        previousOwner.loseNode(node);
-
-        if (energyAdditionLost > 0) {
-          previousOwner.decreaseEnergy(energyAdditionLost);
-        }
-      }
-
-      node.setOwner(attacker);
-      node.clearAssignments();
-
-      const remainingEnergy = attackEnergy - defenseEnergy;
-      node.removeEnergy(node.energyPool);
-      node.addEnergy(remainingEnergy);
-
-      attacker.captureNode(node);
-
-      if (node.energyAddition > 0) {
-        attacker.increaseEnergy(node.energyAddition);
-      }
-
       return {
         outcome: ArrivalOutcome.CAPTURED,
         node,
         packet,
-        capturedBy: attacker,
-        energyIntegrated: remainingEnergy,
+        attacker,
+        previousOwner,
+        energyAmount: attackEnergy,
+        energyIntegrated: attackEnergy - defenseEnergy,
+        clearNodeAssignments: true, // Debe limpiarse al ser capturado
       };
     }
 
     if (attackEnergy === defenseEnergy) {
-      const previousOwner = node.owner;
-
-      if (previousOwner) {
-        previousOwner.loseNode(node);
-
-        if (node.energyAddition > 0) {
-          previousOwner.decreaseEnergy(node.energyAddition);
-        }
-      }
-
-      node.setOwner(null);
-      node.removeEnergy(node.energyPool);
-      node.clearAssignments();
-
       return {
         outcome: ArrivalOutcome.NEUTRALIZED,
         node,
         packet,
-        energyLost: attackEnergy,
+        attacker,
+        previousOwner,
+        energyAmount: attackEnergy,
+        clearNodeAssignments: true,
       };
     }
 
-    const actualDefenseEnergy = defenseEnergy / node.defenseMultiplier;
-    node.removeEnergy(actualDefenseEnergy);
-
+    // Ataque es menor que la defensa
+    // La energía de defensa se reduce, y el paquete atacante podría regresar
+    // node.defenseMultiplier unused here for calculation as intention doesn't mutate
     const returnPacket = this.handleDefeatedEnergy(packet, packet.origin);
 
     return {
       outcome: ArrivalOutcome.DEFEATED,
       node,
       packet,
-      energyLost: attackEnergy,
+      attacker,
+      previousOwner,
+      energyAmount: attackEnergy,
       returnPacket: returnPacket ?? undefined,
     };
   }
 
-  handleDefeatedEnergy(
+  private handleDefeatedEnergy(
     packet: EnergyPacket,
     originNode: Node,
   ): EnergyPacket | null {

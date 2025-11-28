@@ -101,7 +101,7 @@ export class CaptureService {
     attacker.captureNode(node);
 
     // Paso 3: Asignar nuevo dueño al nodo
-    node.setOwner(attacker);
+    node.owner = attacker;
 
     // Paso 4: Aplicar bonificación de energía
     attacker.increaseEnergy(energyBonus);
@@ -164,7 +164,7 @@ export class CaptureService {
     previousOwner.loseNode(node);
 
     // Paso 2: Nodo queda sin dueño
-    node.setOwner(null);
+    node.owner = null;
 
     // Paso 3: Limpiar asignaciones de energía
     node.clearAssignments();
@@ -237,7 +237,7 @@ export class CaptureService {
     // para mantener la entidad Player simple y la lógica en el servicio
     disconnectedNodes.forEach((node) => {
       affectedPlayer.loseNode(node);
-      node.setOwner(null);
+      node.owner = null;
       node.clearAssignments();
     });
 
@@ -369,7 +369,7 @@ export class CaptureService {
 
     // Simular remoción temporal del nodo
     const originalOwner = node.owner;
-    node.setOwner(null);
+    node.owner = null;
 
     // Encontrar nodos conectados sin este nodo
     const connectedNodes = player.initialNode
@@ -377,7 +377,7 @@ export class CaptureService {
       : new Set<Node>();
 
     // Restaurar propietario
-    node.setOwner(originalOwner);
+    node.owner = originalOwner;
 
     // Si hay nodos controlados que no están conectados, es articulación
     const allNodesConnected = Array.from(player.controlledNodes).every(
@@ -414,7 +414,7 @@ export class CaptureService {
 
     // Simular captura
     const originalOwner = node.owner;
-    node.setOwner(null);
+    node.owner = null;
 
     // Encontrar nodos desconectados
     const connectedNodes = player.initialNode
@@ -430,7 +430,7 @@ export class CaptureService {
     }
 
     // Restaurar propietario
-    node.setOwner(originalOwner);
+    node.owner = originalOwner;
 
     return nodesAtRisk;
   }

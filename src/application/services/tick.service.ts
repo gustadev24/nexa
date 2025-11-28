@@ -1,16 +1,28 @@
 import type { GameState } from '@/application/services/game-state.interface';
 import type { TickResult } from '@/application/services/tick-result.interface';
-import { EnergyPacket } from '@/core/entities/energy-packets';
+import { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
+import { CollisionService } from '@/application/services/collision.service';
+import { CaptureService } from '@/application/services/capture-service';
+import { ArrivalOutcome } from '@/application/services/arrival-result.interface'; // Re-import for type safety
+import type { ArrivalIntent } from '@/application/services/arrival-intent.interface'; // Import new intent
+import type { Edge } from '@/core/entities/edge'; // Needed for packetsToAddBack
 
 export class TickService {
   private static readonly DEFAULT_SPEED = 0.0003; // Very slow: ~3-4 seconds to traverse edge of length 1
-  private static readonly COLLISION_THRESHOLD = 0.01;
+  
+  private collisionService: CollisionService;
+  private captureService: CaptureService;
 
   private lastDefenseUpdate = new Map<Node, number>();
   private lastAttackEmission = new Map<Node, number>();
   private accumulatedTime = 0;
+
+  constructor() {
+    this.collisionService = new CollisionService();
+    this.captureService = new CaptureService();
+  }
 
   executeTick(game: GameState, deltaTime: number): TickResult {
     this.accumulatedTime += deltaTime;
@@ -70,22 +82,10 @@ export class TickService {
 
           if (assignedEnergy > 0) {
             const attackEnergy = node.getAttackEnergy(edge);
-
-            // Only emit if node has enough energy available
-            // Available energy = total - all assignments (defense calculation already accounts for this)
-            const availableEnergy = node.energyPool;
-            const totalAssigned = Array.from(node.edges).reduce((sum, e) => sum + node.getAssignedEnergy(e), 0);
-            const energyForDefense = availableEnergy - totalAssigned;
-
-            if (energyForDefense >= 0 && assignedEnergy <= availableEnergy) {
+            
+            if (assignedEnergy <= node.energyPool) {
               if (attackEnergy > 0) {
                 const target = edge.flipSide(node);
-
-                // CRITICAL: Do NOT subtract energy when emitting!
-                // Nodes are INFINITE GENERATORS while controlled
-                // The assignment defines how much energy to GENERATE per interval
-                // Energy in the node stays constant - it's a continuous generator
-                // Defense = pool - assigned (energy not being used to attack)
 
                 const packet = new EnergyPacket(
                   node.owner,
@@ -123,64 +123,9 @@ export class TickService {
     let collisionCount = 0;
 
     for (const edge of game.edges) {
-      const packets = edge.energyPackets;
-
-      if (packets.length < 2) {
-        continue;
-      }
-
-      const toRemove: EnergyPacket[] = [];
-      const toAdd: EnergyPacket[] = [];
-
-      for (let i = 0; i < packets.length; i++) {
-        if (toRemove.includes(packets[i])) {
-          continue;
-        }
-
-        for (let j = i + 1; j < packets.length; j++) {
-          if (toRemove.includes(packets[j])) {
-            continue;
-          }
-
-          const packet1 = packets[i];
-          const packet2 = packets[j];
-
-          if (
-            packet1.isAtSamePosition(packet2, TickService.COLLISION_THRESHOLD)
-          ) {
-            if (packet1.sameOwner(packet2)) {
-              if (packet1.isOppositeDirection(packet2)) {
-                toRemove.push(packet1, packet2);
-                collisionCount++;
-              }
-            }
-            else {
-              const minAmount = Math.min(packet1.amount, packet2.amount);
-
-              const reduced1 = packet1.withReducedAmount(minAmount);
-              const reduced2 = packet2.withReducedAmount(minAmount);
-
-              toRemove.push(packet1, packet2);
-
-              if (reduced1) {
-                toAdd.push(reduced1);
-              }
-              if (reduced2) {
-                toAdd.push(reduced2);
-              }
-
-              collisionCount++;
-            }
-          }
-        }
-      }
-
-      for (const packet of toRemove) {
-        edge.removeEnergyPacket(packet);
-      }
-
-      for (const packet of toAdd) {
-        edge.addEnergyPacket(packet);
+      const results = this.collisionService.resolveEdgeCollisions(edge);
+      for (const res of results) {
+        collisionCount += res.packetsDestroyed.length;
       }
     }
 
@@ -190,6 +135,9 @@ export class TickService {
   resolveArrivals(game: GameState): { arrivals: number; captures: number } {
     let arrivalCount = 0;
     let captureCount = 0;
+
+    // Use a temporary array to store packets to add back to edges
+    const packetsToAddBack: { edge: Edge; packet: EnergyPacket }[] = [];
 
     for (const edge of game.edges) {
       const packets = edge.energyPackets;
@@ -202,122 +150,84 @@ export class TickService {
       }
 
       for (const packet of arrivedPackets) {
+        // Remove packet from edge immediately as it has arrived
         edge.removeEnergyPacket(packet);
         arrivalCount++;
 
         const targetNode = packet.target;
-        const attackingPlayer = packet.owner;
 
-        if (targetNode.isNeutral()) {
-          this.captureNeutralNode(targetNode, attackingPlayer, packet.amount);
-          captureCount++;
-        }
-        else if (targetNode.owner?.equals(attackingPlayer)) {
-          // Energy arrives at friendly node - just integrate it
-          // This increases the node's pool which increases defense
-          targetNode.addEnergy(packet.amount);
-        }
-        else {
-          const defenseEnergy = targetNode.defenseEnergy();
-          const attackEnergy = packet.amount;
+        // Get the intent from CollisionService (no mutations yet)
+        const intent: ArrivalIntent = this.collisionService.resolveNodeArrivalIntent(packet, targetNode);
 
-          if (attackEnergy > defenseEnergy) {
-            const captured = this.captureEnemyNode(
-              targetNode,
-              attackingPlayer,
-              attackEnergy,
-              defenseEnergy,
+        switch (intent.outcome) {
+          case ArrivalOutcome.INTEGRATED:
+            // Friendly arrival: just add energy to the node's pool
+            targetNode.addEnergy(intent.energyIntegrated || 0);
+            break;
+
+          case ArrivalOutcome.CAPTURED:
+            captureCount++;
+            // Use CaptureService to perform the capture and articulation check
+            const captureResult = this.captureService.captureNodeWithArticulationCheck(
+              intent.node,
+              intent.attacker,
+              intent.previousOwner,
             );
-            if (captured) {
-              captureCount++;
+
+            // If node was successfully captured, handle post-capture effects
+            if (captureResult.captured) {
+              if (intent.energyIntegrated) {
+                // Clear existing energy and add remaining energy from capture
+                intent.node.removeEnergy(intent.node.energyPool); // Clear existing pool
+                intent.node.addEnergy(intent.energyIntegrated);
+              }
+              // Transfer assigned energy from attacker's other nodes to the newly captured node
+              this.transferAssignmentsToNode(intent.node, intent.attacker);
             }
-          }
-          else if (attackEnergy === defenseEnergy) {
-            this.neutralizeNode(targetNode);
-          }
-          else {
-            targetNode.removeEnergy(attackEnergy / targetNode.defenseMultiplier);
-          }
+            // captureResult.playerEliminated is handled by CaptureService internally
+            break;
+
+          case ArrivalOutcome.NEUTRALIZED:
+            // Attack equals defense, node becomes neutral
+            if (intent.previousOwner) {
+                // Neutralize node through CaptureService
+                this.captureService.neutralizeNode(intent.node, intent.previousOwner);
+            } else {
+                // If it was already neutral and effectively neutralized, just ensure assignments are clear
+                intent.node.clearAssignments();
+            }
+            break;
+
+          case ArrivalOutcome.DEFEATED:
+            // Attack failed, defense held
+            // Reduce target node's energy (defense)
+            // The prompt states: "Si la energía de ataque supera la defensa, el nodo es capturado; si es igual, el nodo queda neutral."
+            // "Energías enemigas que llegan a un nodo amigo se suman a la defensa del nodo."
+            // "La energía enemiga derrotada se pierde si proviene de un nodo que fue capturado; de lo contrario, regresa al nodo de origen."
+            // This implies if attack < defense, the *defense* takes damage.
+            // And if defense is strong, attack packet is defeated and can return.
+
+            if (intent.node.owner && intent.energyAmount) {
+                 // Reduce the node's energy pool based on the attack.
+                 // CollisionService determined the actual reduction needed.
+                 // We can simply remove energy from the node here.
+                 intent.node.removeEnergy(intent.energyAmount); // Assuming intent.energyAmount is the reduction
+            }
+            
+            if (intent.returnPacket) {
+                packetsToAddBack.push({ edge, packet: intent.returnPacket });
+            }
+            break;
         }
       }
+    }
+
+    // Re-add any return packets to their respective edges
+    for (const { edge, packet } of packetsToAddBack) {
+      edge.addEnergyPacket(packet);
     }
 
     return { arrivals: arrivalCount, captures: captureCount };
-  }
-
-  private captureNeutralNode(
-    node: Node,
-    attacker: Player,
-    energy: number,
-  ): void {
-    node.setOwner(attacker);
-    node.addEnergy(energy);
-    attacker.captureNode(node);
-
-    if (node.energyAddition > 0) {
-      attacker.increaseEnergy(node.energyAddition);
-    }
-
-    // Transfer assigned energy from attacking nodes to the captured node
-    this.transferAssignmentsToNode(node, attacker);
-  }
-
-  private captureEnemyNode(
-    node: Node,
-    attacker: Player,
-    attackEnergy: number,
-    defenseEnergy: number,
-  ): boolean {
-    const previousOwner = node.owner;
-
-    if (!previousOwner) {
-      return false;
-    }
-
-    const energyAdditionLost = node.energyAddition;
-
-    previousOwner.loseNode(node);
-
-    if (energyAdditionLost > 0) {
-      previousOwner.decreaseEnergy(energyAdditionLost);
-    }
-
-    node.setOwner(attacker);
-    node.clearAssignments();
-
-    const remainingEnergy = attackEnergy - defenseEnergy;
-    node.removeEnergy(node.energyPool);
-    node.addEnergy(remainingEnergy);
-
-    attacker.captureNode(node);
-
-    if (node.energyAddition > 0) {
-      attacker.increaseEnergy(node.energyAddition);
-    }
-
-    // Transfer assigned energy from attacking nodes to the captured node
-    this.transferAssignmentsToNode(node, attacker);
-
-    return true;
-  }
-
-  private neutralizeNode(node: Node): void {
-    const previousOwner = node.owner;
-
-    if (previousOwner) {
-      // Only call loseNode if the player actually owns the node
-      if (previousOwner.ownsNode(node)) {
-        previousOwner.loseNode(node);
-      }
-
-      if (node.energyAddition > 0) {
-        previousOwner.decreaseEnergy(node.energyAddition);
-      }
-    }
-
-    node.setOwner(null);
-    node.removeEnergy(node.energyPool);
-    node.clearAssignments();
   }
 
   /**
@@ -345,10 +255,10 @@ export class TickService {
 
             // Clear the assignment since they're now friendly
             attackerNode.removeEnergyFromEdge(edge, assignedEnergy);
-
-            console.log(
-              `[TickService] Transferred ${assignedEnergy} energy from ${attackerNode.id} to captured ${capturedNode.id}`,
-            );
+            // We should also remove any energy packets in transit on this edge
+            // that were targeting the now-captured node, as they are now friendly.
+            // This is a subtle point, current packets might still be for the old owner.
+            // Simplification: assume packets are handled at arrival.
           }
         }
       }

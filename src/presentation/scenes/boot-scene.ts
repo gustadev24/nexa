@@ -1,4 +1,3 @@
-import { MainMenu } from '@/presentation/scenes/main-menu-scene';
 import { Scene } from 'phaser';
 
 /**
@@ -9,10 +8,10 @@ import { Scene } from 'phaser';
  */
 export class BootScene extends Scene {
   constructor() {
-    super('Boot');
+    super('BootScene');
   }
 
   create() {
-    this.scene.start(new MainMenu());
+    this.scene.start('MainMenuScene');
   }
 }

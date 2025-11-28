@@ -1,4 +1,3 @@
-import { GameScene } from '@/presentation/scenes/game-scene';
 import { Scene } from 'phaser';
 
 /**
@@ -13,7 +12,7 @@ export class MainMenuScene extends Scene {
   private subtitle?: Phaser.GameObjects.Text;
 
   constructor() {
-    super('MainMenu');
+    super('MainMenuScene');
   }
 
   create() {
@@ -231,7 +230,7 @@ export class MainMenuScene extends Scene {
 
     this.cameras.main.once('camerafadeoutcomplete', () => {
       // Launch the main Game scene
-      this.scene.start(new GameScene());
+      this.scene.start('GameScene');
     });
   }
 }

@@ -1,7 +1,7 @@
 import type { Logger } from '@/core/logging/logger';
-import { ComposeLogger } from '@/infrastructure/logging/compose-logger';
-import { ConsoleLogger } from '@/infrastructure/logging/console-logger';
-import { ViteLogger } from '@/infrastructure/logging/vite-logger';
+import { ComposeLogger } from '@/application/logging/compose-logger';
+import { ConsoleLogger } from '@/application/logging/console-logger';
+import { ViteLogger } from '@/application/logging/vite-logger';
 
 export class LoggerFactory {
   static create(): Logger {

@@ -113,6 +113,10 @@ export class Player {
     this._controlledNodes.add(node);
   }
 
+  loseNode(node: Node) {
+    this.releaseNode(node);
+  }
+
   releaseNode(node: Node) {
     if (!this.isInGame) {
       throw new Error('Player is not in a game.');

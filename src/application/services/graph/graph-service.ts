@@ -78,7 +78,7 @@ export class GraphService implements Loggeable {
       const fromNode = nodesArray[Math.floor(Math.random() * nodeCount)];
       const toNode = nodesArray[Math.floor(Math.random() * nodeCount)];
       // Evitar bucles y aristas duplicadas
-      if (fromNode.id !== toNode.id && !fromNode.hasEdgeTo(toNode)) {
+      if (fromNode.id !== toNode.id && !graph.hasEdgeBetween(fromNode, toNode)) {
         const edgeId = this.idGenerator.generate();
         const edge = new Edge(edgeId, [fromNode, toNode], Math.floor(Math.random() * 10) + 1);
         graph.registerEdge(edge, fromNode, toNode);
@@ -88,8 +88,9 @@ export class GraphService implements Loggeable {
 
   private generateRandomSpecialNode(): Node {
     const nodeId = this.idGenerator.generate();
-    const randomNumber = Math.floor((Math.random() * Object.keys(NodeType).length) - 1);
-    const randomType = Object.values(NodeType)[randomNumber];
+    const specialTypes = Object.values(NodeType).filter(type => type !== NodeType.BASIC);
+    const randomType = specialTypes[Math.floor(Math.random() * specialTypes.length)];
+    
     switch (randomType) {
       case NodeType.ATTACK:
         return new AttackNode(nodeId);

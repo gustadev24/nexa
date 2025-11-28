@@ -1,7 +1,7 @@
 import type { Game } from '@/core/entities/game';
 import type { Graph } from '@/core/entities/graph';
 import type { Player } from '@/core/entities/player';
-import type { ID } from '@/core/types/common';
+import type { ID } from '@/core/types/id';
 
 export interface PlayerNodeStat {
   playerId: ID;

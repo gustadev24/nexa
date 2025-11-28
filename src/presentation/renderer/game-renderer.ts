@@ -1,9 +1,7 @@
-import type {
-  EdgeSnapshot,
-  EnergyPacketSnapshot,
-  GameSnapshot,
-  NodeSnapshot,
-} from '@/infrastructure/state/types';
+import type { EdgeSnapshot } from '@/application/interfaces/edge/edge-snapshot';
+import type { EnergyPacketSnapshot } from '@/application/interfaces/energy-packet/energy-packet-snapshot';
+import type { GameSnapshot } from '@/application/interfaces/game/game-snapshot';
+import type { NodeSnapshot } from '@/application/interfaces/node/node-snapshot';
 
 /**
  * GameRenderer - Renderizador del grafo del juego NEXA
@@ -544,6 +542,7 @@ export class GameRenderer {
     if (!this.ctx) return;
 
     const iconSize = radius * 0.4;
+    // Note: node.nodeType in snapshot is already an existing NodeType string ('basic', 'attack', 'defense', 'energy')
     this.ctx.fillStyle = this.NODE_TYPE_COLORS[node.nodeType];
 
     switch (node.nodeType) {
@@ -579,25 +578,6 @@ export class GameRenderer {
         this.ctx.lineTo(x - iconSize * 0.3, y + iconSize);
         this.ctx.lineTo(x + iconSize * 0.5, y);
         this.ctx.lineTo(x, y);
-        this.ctx.closePath();
-        this.ctx.fill();
-        break;
-
-      case 'super-energy':
-        // Estrella
-        this.ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-          const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-          const r = i % 2 === 0 ? iconSize : iconSize * 0.5;
-          const px = x + r * Math.cos(angle);
-          const py = y + r * Math.sin(angle);
-          if (i === 0) {
-            this.ctx.moveTo(px, py);
-          }
-          else {
-            this.ctx.lineTo(px, py);
-          }
-        }
         this.ctx.closePath();
         this.ctx.fill();
         break;

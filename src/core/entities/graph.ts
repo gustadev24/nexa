@@ -53,6 +53,9 @@ export class Graph {
     this._adjacencyMatrix[fromIndex][toIndex] = edge.id;
     this._adjacencyMatrix[toIndex][fromIndex] = edge.id; // Undirected graph
     this._edges.add(edge);
+
+    fromNode.addEdge(edge);
+    toNode.addEdge(edge);
   }
 
   reset(): void {
