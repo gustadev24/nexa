@@ -57,8 +57,7 @@ export class Graph {
 
   reset(): void {
     this._nodes.forEach((node) => {
-      node.setOwner(null);
-      node.clearAssignments();
+      node.resetToNeutral();
     });
     this._edges.forEach(edge => edge.clearEnergyPackets());
   }

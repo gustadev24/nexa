@@ -2,9 +2,9 @@ import { GameService } from '@/application/services/game-service';
 import { TickService } from '@/application/services/tick.service';
 import { VictoryService } from '@/application/services/victory-service';
 
-import { GameStateManager } from '@/infrastructure/state/game-state-manager';
-import { GameRenderer } from '@/presentation/renderer/GameRenderer';
-import { GameController } from '@/presentation/game/GameController';
+import { GameStateManager } from '@/application/services/game/game-state-manager';
+import { GameRenderer } from '@/presentation/renderer/game-renderer';
+import { GameController } from '@/presentation/game/game-controller';
 
 import { Graph } from '@/core/entities/graph';
 import { Player } from '@/core/entities/player';
@@ -16,57 +16,8 @@ import { AttackNode } from '@/core/entities/node/attack';
 import { DefenseNode } from '@/core/entities/node/defense';
 import { FastRegenNode } from '@/core/entities/node/fast-regen';
 import { Edge } from '@/core/entities/edge';
-import { NodeType, PlayerType } from '@/core/types/common';
+import { NodeType, PlayerType } from '@/core/types/id';
 import type { GameStateConfig, GameState } from '@/infrastructure/types/types';
-
-/**
- * Configuración para crear un nodo
- */
-export interface NodeConfig {
-  id: string;
-  type: NodeType;
-  ownerId?: string | null;
-  defenseEnergy?: number;
-  isInitialNode?: boolean;
-}
-
-/**
- * Configuración para crear una arista
- */
-export interface EdgeConfig {
-  sourceId: string;
-  targetId: string;
-  weight?: number;
-}
-
-/**
- * Configuración completa del grafo
- */
-export interface GraphConfig {
-  nodes: NodeConfig[];
-  edges: EdgeConfig[];
-}
-
-/**
- * Configuración del jugador
- */
-export interface PlayerConfig {
-  id: string;
-  username: string;
-  color: string;
-  type?: PlayerType;
-  initialNodeId?: string;
-}
-
-/**
- * Resultado de la creación del juego
- */
-export interface GameCreationResult {
-  gameController: GameController;
-  gameState: GameState;
-  graph: Graph;
-  players: Player[];
-}
 
 /**
  * GameFactory - Factoría para crear instancias completas del juego NEXA

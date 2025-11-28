@@ -1,4 +1,4 @@
-import type { EnergyPacket } from '@/core/entities/energy-packets';
+import type { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Node } from '@/core/entities/node/node';
 import type { ID } from '@/core/types/id';
 
@@ -8,13 +8,13 @@ export class Edge {
 
   private _nodes: [Node, Node];
 
-  private _energyPackets: EnergyPacket[];
+  private _transitEnergy: EnergyPacket[];
 
   constructor(id: ID, nodes: [Node, Node], length: number) {
     this._length = length;
     this._id = id;
     this._nodes = nodes;
-    this._energyPackets = [];
+    this._transitEnergy = [];
   }
 
   get id(): ID {
@@ -29,26 +29,26 @@ export class Edge {
     return this._nodes;
   }
 
-  get energyPackets(): EnergyPacket[] {
-    return this._energyPackets;
+  get transitEnergy(): EnergyPacket[] {
+    return this._transitEnergy;
   }
 
   addEnergyPacket(packet: EnergyPacket): void {
-    this._energyPackets.push(packet);
+    this._transitEnergy.push(packet);
   }
 
   removeEnergyPacket(packet: EnergyPacket): void {
-    const index = this._energyPackets.indexOf(packet);
+    const index = this._transitEnergy.indexOf(packet);
     if (index !== -1) {
-      this._energyPackets.splice(index, 1);
+      this._transitEnergy.splice(index, 1);
     }
     else {
-      throw new Error('Energy packet not found on this edge.');
+      throw new Error('EnergyPacket packet not found on this edge.');
     }
   }
 
   clearEnergyPackets(): void {
-    this._energyPackets = [];
+    this._transitEnergy = [];
   }
 
   flipSide(node: Node): Node {

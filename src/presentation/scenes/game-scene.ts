@@ -1,13 +1,13 @@
 import { Scene } from 'phaser';
-import type { GameController } from '@/presentation/game/GameController';
-import { NodeType } from '@/core/types/common';
+import type { GameController } from '@/presentation/game/game-controller';
+import { NodeType } from '@/core/types/id';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import type { Graph } from '@/core/entities/graph';
 import { EnergyCommandService } from '@/application/services/energy-command-service';
 import { AIControllerService } from '@/application/services/ai-controller.service';
 import type { Player } from '@/core/entities/player';
-import { GameFactory, type GraphConfig, type NodeConfig } from '@/presentation/game/GameFactory';
+import { GameFactory, type GraphConfig, type NodeConfig } from '@/presentation/game/game-factory';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',

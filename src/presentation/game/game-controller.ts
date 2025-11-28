@@ -2,7 +2,7 @@ import type { GameService } from '@/application/services/game-service';
 import type { TickService } from '@/application/services/tick.service';
 import type { VictoryResult, VictoryService } from '@/application/services/victory-service';
 import type { GameStateManager } from '@/infrastructure/state/GameStateManager';
-import type { GameRenderer } from '@/presentation/renderer/GameRenderer';
+import type { GameRenderer } from '@/presentation/renderer/game-renderer';
 import type { GameState as InfraGameState } from '@/infrastructure/state/types';
 import type { GameState as AppGameState } from '@/application/services/game-state.interface';
 

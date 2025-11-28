@@ -5,7 +5,7 @@ import { BasicNode } from '@/core/entities/node/basic';
 import { DefenseNode } from '@/core/entities/node/defense';
 import { EnergyNode } from '@/core/entities/node/energy';
 import type { Node } from '@/core/entities/node/node';
-import type { IdGenerator } from '@/core/interfaces/id-generator';
+import type { IdGenerator } from '@/core/helpers/id-generator';
 import type { Loggeable } from '@/core/logging/loggeable';
 import type { Logger } from '@/core/logging/logger';
 import { NodeType } from '@/core/types/node-type';
