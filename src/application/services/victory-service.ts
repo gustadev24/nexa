@@ -34,12 +34,53 @@ export class VictoryService {
   // dominance timers keyed by player id
   private dominanceTimers = new Map<ID, number>();
 
+  /**
+   * Obtiene el tiempo de dominancia acumulado de un jugador
+   * @param playerId ID del jugador
+   * @returns Tiempo en milisegundos que el jugador ha estado dominando
+   */
+  getDominanceTime(playerId: ID): number {
+    return this.dominanceTimers.get(playerId) ?? 0;
+  }
+
+  /**
+   * Obtiene el porcentaje de progreso hacia la victoria por dominancia
+   * @param playerId ID del jugador
+   * @returns Porcentaje de 0 a 100
+   */
+  getDominanceProgress(playerId: ID): number {
+    const time = this.getDominanceTime(playerId);
+    return Math.min(100, (time / this.DOMINANCE_DURATION_MS) * 100);
+  }
+
   // Called every tick with the elapsed time since last tick (ms)
   trackDominance(game: Game, deltaTime: number): void {
     const total = game.graph.nodes.size;
     if (total === 0) return;
 
     for (const player of game.players) {
+      const nodes = player.controlledNodeCount;
+      const percent = (nodes / total) * 100;
+      const current = this.dominanceTimers.get(player.id) ?? 0;
+
+      if (percent >= this.DOMINANCE_PERCENT) {
+        this.dominanceTimers.set(player.id, current + deltaTime);
+      }
+      else {
+        this.dominanceTimers.set(player.id, 0);
+      }
+    }
+  }
+
+  /**
+   * Rastrea dominancia usando Players y Graph directamente
+   * Compatible con GameController
+   */
+  trackDominanceDirect(players: Player[], graph: Graph, deltaTime: number): void {
+    const total = graph.nodes.size;
+    if (total === 0) return;
+
+    for (const player of players) {
       const nodes = player.controlledNodeCount;
       const percent = (nodes / total) * 100;
       const current = this.dominanceTimers.get(player.id) ?? 0;

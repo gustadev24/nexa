@@ -75,14 +75,13 @@ export class GameFactory {
     const gameStateManager = new GameStateManager();
     console.log('[GameFactory] GameStateManager creado');
 
-    // 5. Configurar jugadores y asignar nodos iniciales (después de crear el grafo y jugadores)
-    players.forEach(player => player.prepareForGame());
-    this.assignInitialNodes(graph, players, playerConfigs);
-    console.log('[GameFactory] Nodos iniciales asignados y jugadores preparados');
-
-    // 6. Inicializar el juego con GameService
+    // 5. Inicializar el juego con GameService (esto llama prepareForGame internamente)
     gameService.initializeGame(players, graph);
     console.log('[GameFactory] Game inicializado con GameService');
+
+    // 6. Asignar y capturar nodos iniciales (después de prepareForGame)
+    this.assignInitialNodes(graph, players, playerConfigs, gameService);
+    console.log('[GameFactory] Nodos iniciales asignados y capturados');
 
     // 7. Crear estado de juego con GameStateManager
     const gameStateConfig: GameStateConfig = {
@@ -136,7 +135,8 @@ export class GameFactory {
   private assignInitialNodes(
     graph: Graph,
     players: Player[],
-    playerConfigs: PlayerConfig[], // Changed from graphConfig to playerConfigs
+    playerConfigs: PlayerConfig[],
+    gameService: GameService,
   ): void {
     const nodeMap = new Map<ID, Node>();
     graph.nodes.forEach(node => nodeMap.set(node.id as ID, node));
@@ -147,8 +147,9 @@ export class GameFactory {
         const node = nodeMap.get(playerConfig.initialNodeId);
 
         if (player && node) {
-          player.initialNode = node;
-          console.log(`[GameFactory] Jugador ${player.username} tiene nodo inicial ${node.id}`);
+          // Capturar el nodo inicial usando el servicio
+          gameService.captureInitialNode(player, node);
+          console.log(`[GameFactory] Jugador ${player.username} capturó nodo inicial ${node.id}`);
         }
       }
     });

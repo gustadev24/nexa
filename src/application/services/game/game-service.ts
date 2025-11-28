@@ -51,10 +51,12 @@ export class GameService implements Loggeable {
       throw new Error(`El nodo ${node.id} ya está asignado al jugador ${node.owner.username}.`);
     }
 
-    // Capturar el nodo (añadirlo a controlledNodes del jugador)
+    // Asignar el nodo inicial (el setter ya agrega a controlledNodes automáticamente)
     player.initialNode = node;
     // Asignar ownership del nodo
     node.owner = player;
+    // Aumentar la energía del jugador por el nodo capturado
+    player.increaseEnergy(node.energyAddition);
 
     this.log.info(this, `Jugador ${player.username} capturó nodo inicial ${node.id}.`);
   }

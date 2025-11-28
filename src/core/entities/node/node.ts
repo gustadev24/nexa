@@ -14,19 +14,24 @@ export abstract class Node {
   protected abstract readonly _nodeType: NodeType;
 
   protected _id: ID;
+  protected _name: string;
   protected _owner: Player | null = null;
   protected _energyPool: number;
+  protected _currentDefense: number; // Defensa actual que se reduce con ataques
   protected _edges: Set<Edge>;
   protected _edgeAssignments = new Map<Edge, number>();
 
-  constructor(id: ID, edges?: Set<Edge>) {
+  constructor(id: ID, edges?: Set<Edge>, name?: string) {
     this._id = id;
-    this._energyPool = this.energyAddition;
+    this._name = name ?? String(id);
+    this._energyPool = 0; // Se inicializa después con energyAddition
+    this._currentDefense = 0; // Se inicializa después
     this._edges = edges ?? new Set();
   }
 
   // Getters
   get id(): ID { return this._id; }
+  get name(): string { return this._name; }
   get owner(): Player | null { return this._owner; }
   set owner(player: Player | null) { this._owner = player; }
   get energyAddition(): number { return this._energyAddition; }
@@ -39,13 +44,20 @@ export abstract class Node {
   get nodeType(): NodeType { return this._nodeType; }
   get edgeAssignments(): ReadonlyMap<Edge, number> { return this._edgeAssignments; }
 
-  // Defensa efectiva
+  // Defensa efectiva actual (puede estar reducida por ataques)
   defenseEnergy(): number {
-    let assigned = 0;
-    for (const energy of this._edgeAssignments.values()) {
-      assigned += energy;
-    }
-    return (this._energyPool - assigned) * this._defenseMultiplier;
+    return this._currentDefense;
+  }
+
+  // Regenera la defensa basándose en el pool actual
+  regenerateDefense(): void {
+    this._currentDefense = this._energyPool * this._defenseMultiplier;
+  }
+
+  // Reduce la defensa por un ataque (sin afectar el pool)
+  reduceDefense(amount: number): void {
+    if (amount < 0) throw new Error('Amount must be positive.');
+    this._currentDefense = Math.max(0, this._currentDefense - amount);
   }
 
   // Energía de ataque para una arista
@@ -80,6 +92,8 @@ export abstract class Node {
   addEnergy(amount: number): void {
     if (amount < 0) throw new Error('Amount must be positive.');
     this._energyPool += amount;
+    // Al agregar energía al pool, también regenerar defensa
+    this.regenerateDefense();
   }
 
   removeEnergy(amount: number): void {
@@ -91,6 +105,14 @@ export abstract class Node {
     if (!this.hasEdge(edge)) {
       throw new Error('Edge not connected to this node.');
     }
+    if (amount < 0) throw new Error('Amount must be positive.');
+    if (this._energyPool < amount) throw new Error('Insufficient energy in pool.');
+
+    // Reducir el pool al asignar energía
+    this._energyPool -= amount;
+    // Regenerar defensa ya que el pool cambió
+    this.regenerateDefense();
+
     const current = this._edgeAssignments.get(edge) ?? 0;
     this._edgeAssignments.set(edge, current + amount);
   }
@@ -99,8 +121,17 @@ export abstract class Node {
     if (!this.hasEdge(edge)) {
       throw new Error('Edge not connected to this node.');
     }
+    if (amount < 0) throw new Error('Amount must be positive.');
+
     const current = this._edgeAssignments.get(edge) ?? 0;
-    this._edgeAssignments.set(edge, Math.max(0, current - amount));
+    const actualRemoval = Math.min(amount, current);
+
+    // Devolver energía al pool al desasignar
+    this._energyPool += actualRemoval;
+    // Regenerar defensa ya que el pool cambió
+    this.regenerateDefense();
+
+    this._edgeAssignments.set(edge, current - actualRemoval);
   }
 
   getAssignedEnergy(edge: Edge): number {
@@ -110,6 +141,7 @@ export abstract class Node {
   resetToNeutral(): void {
     this._owner = null;
     this._energyPool = this.energyAddition;
+    this.regenerateDefense();
     this.clearAssignments();
   }
 

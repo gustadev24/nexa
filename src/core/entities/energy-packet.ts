@@ -7,13 +7,15 @@ export class EnergyPacket {
   private readonly _origin: Node;
   private readonly _target: Node;
   private _progress: number; // 0 = en origin, 1 = en target
+  private readonly _isTransfer: boolean; // true si es transferencia entre aliados, false si es ataque
 
-  constructor(owner: Player, amount: number, origin: Node, target: Node) {
+  constructor(owner: Player, amount: number, origin: Node, target: Node, isTransfer = false) {
     this._owner = owner;
     this._amount = amount;
     this._origin = origin;
     this._target = target;
     this._progress = 0;
+    this._isTransfer = isTransfer;
   }
 
   get owner(): Player { return this._owner; }
@@ -21,6 +23,7 @@ export class EnergyPacket {
   get origin(): Node { return this._origin; }
   get target(): Node { return this._target; }
   get progress(): number { return this._progress; }
+  get isTransfer(): boolean { return this._isTransfer; }
 
   advance(delta: number, edgeLength: number, speed: number): void {
     const progressDelta = (speed * delta) / edgeLength;
@@ -60,6 +63,7 @@ export class EnergyPacket {
       newAmount,
       this._origin,
       this._target,
+      this._isTransfer,
     );
     packet._progress = this._progress;
     return packet;
@@ -71,6 +75,7 @@ export class EnergyPacket {
       this._amount,
       this._target, // Ahora es origen
       this._origin, // Ahora es destino
+      this._isTransfer,
     );
     packet._progress = 1 - this._progress;
     return packet;

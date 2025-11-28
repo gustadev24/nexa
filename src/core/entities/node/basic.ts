@@ -6,6 +6,6 @@ export class BasicNode extends Node {
   protected readonly _defenseInterval = 1500; // 1.5 seconds
   protected readonly _attackMultiplier = 1;
   protected readonly _defenseMultiplier = 1;
-  protected readonly _energyAddition = 5;
+  protected readonly _energyAddition = 40;
   protected readonly _nodeType = NodeType.BASIC;
 }

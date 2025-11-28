@@ -41,16 +41,21 @@ export class GraphService implements Loggeable {
   private addBasicNodes(graph: Graph, count: number): void {
     for (let i = 0; i < count; i++) {
       const nodeId = this.idGenerator.generate();
+      const nodeName = `N${i + 1}`; // N1, N2, N3, etc.
       // Crear nodo básico y registrarlo en el grafo
-      const basicNode = new BasicNode(nodeId);
+      const basicNode = new BasicNode(nodeId, undefined, nodeName);
+      // Inicializar energyPool con energyAddition (debe hacerse después del constructor)
+      basicNode.addEnergy(basicNode.energyAddition);
       graph.registerNode(basicNode);
     }
   }
 
   private addSpecialNodes(graph: Graph, count: number): void {
+    const counters = { attack: 0, defense: 0, energy: 0 };
+
     for (let i = 0; i < count; i++) {
       // Crear nodo especial aleatorio y registrarlo en el grafo
-      const specialNode = this.generateRandomSpecialNode();
+      const specialNode = this.generateRandomSpecialNode(counters);
       graph.registerNode(specialNode);
     }
   }
@@ -86,20 +91,35 @@ export class GraphService implements Loggeable {
     }
   }
 
-  private generateRandomSpecialNode(): Node {
+  private generateRandomSpecialNode(counters: { attack: number; defense: number; energy: number }): Node {
     const nodeId = this.idGenerator.generate();
     const specialTypes = Object.values(NodeType).filter(type => type !== NodeType.BASIC);
     const randomType = specialTypes[Math.floor(Math.random() * specialTypes.length)];
-    
+
+    let node: Node;
+    let nodeName: string;
+
     switch (randomType) {
       case NodeType.ATTACK:
-        return new AttackNode(nodeId);
+        counters.attack++;
+        nodeName = `A${counters.attack}`; // A1, A2, etc.
+        node = new AttackNode(nodeId, undefined, nodeName);
+        break;
       case NodeType.DEFENSE:
-        return new DefenseNode(nodeId);
+        counters.defense++;
+        nodeName = `D${counters.defense}`; // D1, D2, etc.
+        node = new DefenseNode(nodeId, undefined, nodeName);
+        break;
       case NodeType.ENERGY:
-        return new EnergyNode(nodeId);
+        counters.energy++;
+        nodeName = `E${counters.energy}`; // E1, E2, etc.
+        node = new EnergyNode(nodeId, undefined, nodeName);
+        break;
       default:
         throw new Error('Tipo de nodo especial desconocido.');
     }
+    // Inicializar energyPool con energyAddition (debe hacerse después del constructor)
+    node.addEnergy(node.energyAddition);
+    return node;
   }
 }

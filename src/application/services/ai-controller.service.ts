@@ -1,7 +1,7 @@
 import type { Player } from '@/core/entities/player';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
-import { EnergyCommandService } from './energy-command-service';
+import EnergyCommandService from '@/application/services/energy-command-service';
 
 /**
  * AIControllerService - Controla el comportamiento de jugadores IA
@@ -14,7 +14,7 @@ import { EnergyCommandService } from './energy-command-service';
 export class AIControllerService {
   private energyCommandService: EnergyCommandService;
   private lastActionTime = 0;
-  private readonly ACTION_INTERVAL = 2000; // ms entre decisiones - más lento para dar tiempo al jugador
+  private readonly ACTION_INTERVAL = 1000; // ms entre decisiones - más activo para ser competitivo
 
   constructor() {
     this.energyCommandService = new EnergyCommandService();
@@ -40,7 +40,7 @@ export class AIControllerService {
 
     // Estrategia: seleccionar nodo con más energía disponible
     const nodesByEnergy = controlledNodes
-      .filter(node => node.energyPool > 40) // Solo nodos con energía suficiente - aumentado para ser menos agresivo
+      .filter(node => node.energyPool >= 10) // Solo nodos con energía suficiente para al menos una acción
       .sort((a, b) => b.energyPool - a.energyPool);
 
     if (nodesByEnergy.length === 0) {
@@ -57,19 +57,19 @@ export class AIControllerService {
 
       // Calcular cuánta energía asignar - SIEMPRE en incrementos de 10
       const availableEnergy = sourceNode.energyPool;
-      const currentAssignment = sourceNode.getAssignedEnergy(edge);
 
       // Estrategia: asignar 10 de energía por acción (igual que el jugador)
       const amountToAdd = 10;
 
       // Solo asignar si hay suficiente energía disponible
-      if (availableEnergy >= amountToAdd + currentAssignment) {
+      if (availableEnergy >= amountToAdd) {
         this.energyCommandService.assignEnergyToEdge(
           player,
           sourceNode,
           edge,
           amountToAdd,
         );
+        console.log(`[AI] Asignando ${amountToAdd} de energía desde nodo ${sourceNode.id} hacia ${target.targetNode.id}`);
       }
     }
     else {

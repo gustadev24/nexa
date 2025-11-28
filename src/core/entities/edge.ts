@@ -25,6 +25,13 @@ export class Edge {
     return this._length;
   }
 
+  set length(value: number) {
+    if (value <= 0) {
+      throw new Error('Edge length must be positive.');
+    }
+    this._length = value;
+  }
+
   get endpoints(): [Node, Node] {
     return this._nodes;
   }

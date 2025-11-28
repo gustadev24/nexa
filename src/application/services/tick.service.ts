@@ -2,7 +2,7 @@ import type { GameState } from '@/application/services/game-state.interface';
 import type { TickResult } from '@/application/services/tick-result.interface';
 import { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Node } from '@/core/entities/node/node';
-import type { Player } from '@/core/entities/player';
+
 import { CollisionService } from '@/application/services/collision.service';
 import { CaptureService } from '@/application/services/capture-service';
 import { ArrivalOutcome } from '@/application/services/arrival-result.interface'; // Re-import for type safety
@@ -11,7 +11,7 @@ import type { Edge } from '@/core/entities/edge'; // Needed for packetsToAddBack
 
 export class TickService {
   private static readonly DEFAULT_SPEED = 0.0003; // Very slow: ~3-4 seconds to traverse edge of length 1
-  
+
   private collisionService: CollisionService;
   private captureService: CaptureService;
 
@@ -60,6 +60,8 @@ export class TickService {
       const timeSinceLastUpdate = currentTime - lastUpdate;
 
       if (timeSinceLastUpdate >= node.defenseInterval) {
+        // Regenerar defensa basándose en el pool actual
+        node.regenerateDefense();
         this.lastDefenseUpdate.set(node, currentTime);
       }
     }
@@ -82,20 +84,19 @@ export class TickService {
 
           if (assignedEnergy > 0) {
             const attackEnergy = node.getAttackEnergy(edge);
-            
-            if (assignedEnergy <= node.energyPool) {
-              if (attackEnergy > 0) {
-                const target = edge.flipSide(node);
 
-                const packet = new EnergyPacket(
-                  node.owner,
-                  attackEnergy,
-                  node,
-                  target,
-                );
+            // El pool es un generador infinito, siempre emitir si hay asignación
+            if (attackEnergy > 0) {
+              const target = edge.flipSide(node);
 
-                edge.addEnergyPacket(packet);
-              }
+              const packet = new EnergyPacket(
+                node.owner,
+                attackEnergy,
+                node,
+                target,
+              );
+
+              edge.addEnergyPacket(packet);
             }
           }
         }
@@ -166,7 +167,7 @@ export class TickService {
             break;
 
           case ArrivalOutcome.CAPTURED:
-            captureCount++;
+          { captureCount++;
             // Use CaptureService to perform the capture and articulation check
             const captureResult = this.captureService.captureNodeWithArticulationCheck(
               intent.node,
@@ -176,46 +177,87 @@ export class TickService {
 
             // If node was successfully captured, handle post-capture effects
             if (captureResult.captured) {
-              if (intent.energyIntegrated) {
-                // Clear existing energy and add remaining energy from capture
-                intent.node.removeEnergy(intent.node.energyPool); // Clear existing pool
-                intent.node.addEnergy(intent.energyIntegrated);
+              // Transferir la energía asignada por la arista de captura al nodo capturado
+              const sourceNode = packet.origin;
+              const capturedNode = intent.node;
+              const attacker = intent.attacker;
+
+              // Encontrar la arista que conecta el origen con el nodo capturado
+              for (const edge of sourceNode.edges) {
+                if (edge.hasNode(capturedNode)) {
+                  const assignedEnergy = sourceNode.getAssignedEnergy(edge);
+
+                  if (assignedEnergy > 0) {
+                    // Transferir toda la energía asignada al nodo capturado
+                    capturedNode.addEnergy(assignedEnergy);
+
+                    // Detener la emisión de paquetes (limpiar asignación)
+                    sourceNode.removeEnergyFromEdge(edge, assignedEnergy);
+
+                    // Limpiar paquetes en tránsito de esta arista
+                    edge.clearEnergyPackets();
+                  }
+                  break;
+                }
               }
-              // Transfer assigned energy from attacker's other nodes to the newly captured node
-              this.transferAssignmentsToNode(intent.node, intent.attacker);
+
+              // CRITICAL: Limpiar asignaciones de TODOS los nodos aliados hacia el nodo recién capturado
+              // Esto evita que sigan enviando energía a un nodo que ahora es del mismo dueño
+              for (const edge of capturedNode.edges) {
+                const neighborNode = edge.flipSide(capturedNode);
+
+                // Si el vecino es del mismo dueño que el atacante (aliado)
+                if (neighborNode.owner?.equals(attacker)) {
+                  const assignedToCapture = neighborNode.getAssignedEnergy(edge);
+
+                  if (assignedToCapture > 0) {
+                    console.log(
+                      `[Tick] Limpiando asignación de nodo aliado ${neighborNode.id} hacia nodo recién capturado ${capturedNode.id}: ${assignedToCapture} energía`,
+                    );
+
+                    // Devolver la energía asignada al pool del nodo aliado
+                    neighborNode.removeEnergyFromEdge(edge, assignedToCapture);
+
+                    // Limpiar paquetes en tránsito de este aliado hacia el nodo capturado
+                    const packetsToRemove = edge.energyPackets.filter(
+                      p => p.owner.equals(attacker) && p.target.equals(capturedNode),
+                    );
+
+                    for (const packetToRemove of packetsToRemove) {
+                      edge.removeEnergyPacket(packetToRemove);
+                    }
+                  }
+                }
+              }
             }
             // captureResult.playerEliminated is handled by CaptureService internally
-            break;
+            break; }
 
           case ArrivalOutcome.NEUTRALIZED:
             // Attack equals defense, node becomes neutral
             if (intent.previousOwner) {
-                // Neutralize node through CaptureService
-                this.captureService.neutralizeNode(intent.node, intent.previousOwner);
-            } else {
-                // If it was already neutral and effectively neutralized, just ensure assignments are clear
-                intent.node.clearAssignments();
+              // Neutralize node through CaptureService
+              this.captureService.neutralizeNode(intent.node, intent.previousOwner);
+            }
+            else {
+              // If it was already neutral and effectively neutralized, just ensure assignments are clear
+              intent.node.clearAssignments();
             }
             break;
 
           case ArrivalOutcome.DEFEATED:
-            // Attack failed, defense held
-            // Reduce target node's energy (defense)
-            // The prompt states: "Si la energía de ataque supera la defensa, el nodo es capturado; si es igual, el nodo queda neutral."
-            // "Energías enemigas que llegan a un nodo amigo se suman a la defensa del nodo."
-            // "La energía enemiga derrotada se pierde si proviene de un nodo que fue capturado; de lo contrario, regresa al nodo de origen."
-            // This implies if attack < defense, the *defense* takes damage.
-            // And if defense is strong, attack packet is defeated and can return.
+            // Ataque falló, defensa resistió
+            // Según las reglas: el pool es un generador infinito y NUNCA se reduce por ataques
+            // PERO la defensa SÍ se reduce por el daño recibido (se regenerará en el próximo intervalo)
 
-            if (intent.node.owner && intent.energyAmount) {
-                 // Reduce the node's energy pool based on the attack.
-                 // CollisionService determined the actual reduction needed.
-                 // We can simply remove energy from the node here.
-                 intent.node.removeEnergy(intent.energyAmount); // Assuming intent.energyAmount is the reduction
+            // Reducir la defensa del nodo atacado
+            if (intent.energyAmount > 0) {
+              intent.node.reduceDefense(intent.energyAmount);
             }
-            
+
+            // Si el ataque proviene de un nodo que aún existe, podría retornar (feature futura)
             if (intent.returnPacket) {
-                packetsToAddBack.push({ edge, packet: intent.returnPacket });
+              packetsToAddBack.push({ edge, packet: intent.returnPacket });
             }
             break;
         }
@@ -228,41 +270,6 @@ export class TickService {
     }
 
     return { arrivals: arrivalCount, captures: captureCount };
-  }
-
-  /**
-   * Transfer assigned energy from attacker's nodes to the captured node
-   * When you capture a node, the energy you had assigned to attack it
-   * should be transferred to the captured node's pool
-   */
-  private transferAssignmentsToNode(capturedNode: Node, attacker: Player): void {
-    // Find all nodes owned by attacker
-    const attackerNodes = Array.from(attacker.controlledNodes);
-
-    // For each attacker node, check if it has assignments to the captured node
-    for (const attackerNode of attackerNodes) {
-      if (attackerNode === capturedNode) continue;
-
-      // Check all edges of this attacker node
-      for (const edge of attackerNode.edges) {
-        // If this edge connects to the captured node
-        if (edge.hasNode(capturedNode)) {
-          const assignedEnergy = attackerNode.getAssignedEnergy(edge);
-
-          if (assignedEnergy > 0) {
-            // Transfer the assigned energy to the captured node
-            capturedNode.addEnergy(assignedEnergy);
-
-            // Clear the assignment since they're now friendly
-            attackerNode.removeEnergyFromEdge(edge, assignedEnergy);
-            // We should also remove any energy packets in transit on this edge
-            // that were targeting the now-captured node, as they are now friendly.
-            // This is a subtle point, current packets might still be for the old owner.
-            // Simplification: assume packets are handled at arrival.
-          }
-        }
-      }
-    }
   }
 
   reset(): void {

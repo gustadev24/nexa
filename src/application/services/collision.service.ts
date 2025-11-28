@@ -118,14 +118,29 @@ export class CollisionService {
     packet: EnergyPacket,
     node: Node,
   ): ArrivalIntent {
+    // Solo los paquetes de TRANSFERENCIA incrementan la energía del nodo aliado
+    // Los paquetes de ataque normales que llegan después de conquistar NO tienen efecto
+    if (packet.isTransfer) {
+      return {
+        outcome: ArrivalOutcome.INTEGRATED,
+        node,
+        packet,
+        attacker: packet.owner,
+        previousOwner: node.owner,
+        energyAmount: packet.amount,
+        energyIntegrated: packet.amount,
+      };
+    }
+
+    // Paquete de ataque que llegó a nodo amigo: no tiene efecto
     return {
-      outcome: ArrivalOutcome.INTEGRATED,
+      outcome: ArrivalOutcome.DEFEATED,
       node,
       packet,
       attacker: packet.owner,
       previousOwner: node.owner,
-      energyAmount: packet.amount,
-      energyIntegrated: packet.amount,
+      energyAmount: 0,
+      energyIntegrated: 0,
     };
   }
 
@@ -134,10 +149,10 @@ export class CollisionService {
     node: Node,
     attacker: Player,
   ): ArrivalIntent {
-    const defenseEnergy = node.defenseEnergy();
     const attackEnergy = packet.amount;
 
-    if (attackEnergy > defenseEnergy) {
+    // Los nodos neutrales se capturan con cualquier cantidad de energía >= 1
+    if (attackEnergy >= 1) {
       return {
         outcome: ArrivalOutcome.CAPTURED,
         node,
@@ -145,21 +160,11 @@ export class CollisionService {
         attacker,
         previousOwner: null,
         energyAmount: attackEnergy,
-        energyIntegrated: attackEnergy - defenseEnergy, // Restante después de superar defensa neutral
+        energyIntegrated: attackEnergy, // Toda la energía va al nodo capturado
       };
     }
 
-    if (attackEnergy === defenseEnergy) {
-      return {
-        outcome: ArrivalOutcome.NEUTRALIZED,
-        node,
-        packet,
-        attacker,
-        previousOwner: null,
-        energyAmount: attackEnergy,
-      };
-    }
-
+    // Si por alguna razón llega energía < 1, no pasa nada
     return {
       outcome: ArrivalOutcome.DEFEATED,
       node,

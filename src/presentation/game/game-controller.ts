@@ -25,6 +25,7 @@ export class GameController {
   private gameRenderer: GameRenderer;
 
   private gameState: InfraGameState | null = null;
+  private onVictoryCallback: ((result: VictoryResult) => void) | null = null;
 
   constructor(
     gameService: GameService,
@@ -41,6 +42,20 @@ export class GameController {
   }
 
   /**
+   * Establece el callback que se llamará cuando el juego termine
+   */
+  setOnVictory(callback: (result: VictoryResult) => void): void {
+    this.onVictoryCallback = callback;
+  }
+
+  /**
+   * Obtiene el VictoryService para consultar timers de dominancia
+   */
+  getVictoryService(): VictoryService {
+    return this.victoryService;
+  }
+
+  /**
    * Inicia el juego
    */
   startGame(gameState: InfraGameState): void {
@@ -48,8 +63,8 @@ export class GameController {
     this.gameStateManager.setGameStatus(gameState, 'playing');
     console.log('[GameController] Iniciando juego...');
 
-    // Render inicial
-    if (this.gameRenderer) {
+    // Render inicial - solo si el renderer está inicializado
+    if (this.gameRenderer && this.gameRenderer.getContext()) {
       this.gameRenderer.renderGraph(this.gameStateManager.getGameSnapshot(gameState));
       this.gameRenderer.renderUI(this.gameStateManager.getGameSnapshot(gameState));
     }
@@ -78,6 +93,13 @@ export class GameController {
     // 3. Actualizar trackers de dominancia
     this.gameStateManager.updateAllDominanceTrackers(this.gameState, deltaTime);
 
+    // 3.5. Actualizar trackers de dominancia en VictoryService
+    this.victoryService.trackDominanceDirect(
+      this.gameState.players,
+      this.gameState.graph,
+      deltaTime,
+    );
+
     // 4. Verificar condiciones de victoria
     const snapshot = this.gameStateManager.getGameSnapshot(this.gameState);
     const victoryResult = this.victoryService.checkVictory(
@@ -91,7 +113,7 @@ export class GameController {
     }
 
     // 5. Renderizar (opcional, si se usa el renderer de canvas)
-    if (this.gameRenderer) {
+    if (this.gameRenderer && this.gameRenderer.getContext()) {
       // Nota: GameScene de Phaser ya renderiza por su cuenta,
       // pero mantenemos esto por si se usa un canvas overlay o debug.
       // Si gameRenderer requiere snapshot:
@@ -110,15 +132,27 @@ export class GameController {
     this.gameStateManager.setGameStatus(this.gameState, 'finished');
 
     // Renderizar estado final
-    if (this.gameRenderer) {
+    if (this.gameRenderer && this.gameRenderer.getContext()) {
       const snapshot = this.gameStateManager.getGameSnapshot(this.gameState);
       this.gameRenderer.renderGraph(snapshot);
       this.gameRenderer.renderUI(snapshot);
     }
 
-    // Finalizar el juego a través del servicio
-    const gameResult = this.gameService.endGame();
-    console.log('[GameController] Resultado final:', gameResult);
+    // Notificar a la escena sobre la victoria
+    // NO llamamos a endGame() aquí - GameScene lo manejará cuando esté listo
+    if (this.onVictoryCallback) {
+      this.onVictoryCallback(victoryResult);
+    }
+  }
+
+  /**
+   * Finaliza y limpia el juego (debe llamarse cuando ya no se necesita el estado)
+   */
+  finalizeGame(): void {
+    if (this.gameState) {
+      const gameResult = this.gameService.endGame();
+      console.log('[GameController] Juego finalizado y limpiado:', gameResult);
+    }
   }
 
   /**
