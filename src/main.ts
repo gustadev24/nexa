@@ -1,4 +1,4 @@
-import StartGame from '@/presentation/game/main';
+import StartGame from '@/game';
 
 document.addEventListener('DOMContentLoaded', () => {
   StartGame('game-container');

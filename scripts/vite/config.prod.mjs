@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import path from 'path';
+import Terminal from 'vite-plugin-terminal';
 
 const phasermsg = () => {
   return {
@@ -22,12 +23,12 @@ export default defineConfig({
   logLevel: 'warning',
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '../src'),
-      '@/scenes': path.resolve(__dirname, '../src/scenes'),
-      '@/entities': path.resolve(__dirname, '../src/entities'),
-      '@/core': path.resolve(__dirname, '../src/core'),
-      '@/ui': path.resolve(__dirname, '../src/ui'),
-      '@/assets': path.resolve(__dirname, '../src/assets'),
+      '@': path.resolve(__dirname, '../../src'),
+      '@/scenes': path.resolve(__dirname, '../../src/scenes'),
+      '@/entities': path.resolve(__dirname, '../../src/entities'),
+      '@/core': path.resolve(__dirname, '../../src/core'),
+      '@/ui': path.resolve(__dirname, '../../src/ui'),
+      '@/assets': path.resolve(__dirname, '../../src/assets'),
     },
   },
   build: {
@@ -52,5 +53,5 @@ export default defineConfig({
   server: {
     port: 8080,
   },
-  plugins: [phasermsg()],
+  plugins: [phasermsg(), Terminal()],
 });

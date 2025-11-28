@@ -1,6 +1,6 @@
 import type { Node } from '@/core/entities/node/node';
-import type { Color, ID } from '@/core/types/common';
-import { type PlayerConfig } from '@/core/types/player';
+import type { Color } from '@/core/types/color';
+import type { ID } from '@/core/types/id';
 
 export class Player {
   // Identificación
@@ -10,26 +10,23 @@ export class Player {
   private _color: Color;
   private _username: string;
 
-  // Posibles subtipos
-  // private readonly _type: PlayerType;
-
   // Estado del jugador en la aplicación
-  private _isInGame: boolean;
-  private _isEliminated: boolean;
+  private _isInGame = false;
+  private _isEliminated = false;
 
   // Atributo del jugador en una partida
-  private _totalEnergy: number;
+  private _totalEnergy = 0;
   private _initialNode: Node | null;
-  private _controlledNodes: Set<Node>;
+  private _controlledNodes = new Set<Node>();
 
-  constructor(config: PlayerConfig) {
-    this._id = config.id;
-    this._username = config.username;
-    this._color = config.color;
-    this._isInGame = false;
-    this._isEliminated = false;
-    this._totalEnergy = 0;
-    this._controlledNodes = new Set();
+  constructor(
+    id: ID,
+    username: string,
+    color: Color,
+  ) {
+    this._id = id;
+    this._username = username;
+    this._color = color;
   }
 
   get id(): ID {
@@ -44,12 +41,12 @@ export class Player {
     return this._color;
   }
 
-  // get type(): PlayerType {
-  //   return this._type;
-  // }
-
   get isInGame(): boolean {
     return this._isInGame;
+  }
+
+  set isInGame(value: boolean) {
+    this._isInGame = value;
   }
 
   get isEliminated(): boolean {
@@ -64,6 +61,17 @@ export class Player {
     return this._initialNode;
   }
 
+  set initialNode(node: Node) {
+    if (!this.isInGame) {
+      throw new Error('Player is not in a game.');
+    }
+    if (this._controlledNodes.size > 0) {
+      throw new Error('Initial node can only be set at the start of the game.');
+    }
+    this._initialNode = node;
+    this._controlledNodes.add(node);
+  }
+
   get controlledNodes(): ReadonlySet<Node> {
     return this._controlledNodes;
   }
@@ -72,12 +80,12 @@ export class Player {
     return this._controlledNodes.size;
   }
 
-  setInitialNode(node: Node): void {
-    this._initialNode = node;
-  }
-
-  setInGame(value: boolean): void {
-    this._isInGame = value;
+  prepareForGame(): void {
+    this._initialNode = null;
+    this._controlledNodes.clear();
+    this._totalEnergy = 0;
+    this._isInGame = true;
+    this._isEliminated = false;
   }
 
   reset(): void {
@@ -96,6 +104,9 @@ export class Player {
     if (!this.isInGame) {
       throw new Error('Player is not in a game.');
     }
+    if (!this.initialNode) {
+      throw new Error('Initial node must be set before capturing nodes.');
+    }
     if (this.ownsNode(node)) {
       throw new Error('Player already controls this node.');
     }
@@ -103,6 +114,10 @@ export class Player {
   }
 
   loseNode(node: Node) {
+    this.releaseNode(node);
+  }
+
+  releaseNode(node: Node) {
     if (!this.isInGame) {
       throw new Error('Player is not in a game.');
     }
@@ -136,6 +151,7 @@ export class Player {
 
   eliminate() {
     this._isEliminated = true;
+    this._controlledNodes.clear();
   }
 
   equals(other: Player): boolean {

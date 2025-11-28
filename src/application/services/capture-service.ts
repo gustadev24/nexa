@@ -1,7 +1,5 @@
 import type { Player } from '@/core/entities/player';
 import type { Node } from '@/core/entities/node/node';
-import type { Graph } from '@/core/entities/graph';
-import type { Edge } from '@/core/entities/edge';
 
 /**
  * Resultado de un intento de captura de nodo
@@ -28,28 +26,28 @@ export interface CaptureResult {
  */
 /**
  * Servicio que gestiona la lógica de captura de nodos
- * 
+ *
  * Responsabilidades:
  * - Ejecutar capturas de nodos con todas las validaciones
  * - Aplicar bonificaciones de energía según tipo de nodo
  * - Manejar neutralización de nodos
  * - Detectar y procesar capturas de nodos de articulación
  * - Gestionar eliminación de jugadores
- * 
+ *
  * @example
  * ```ts
  * const captureService = new CaptureService();
- * 
+ *
  * const result = captureService.captureNode(
  *   targetNode,
  *   attackerPlayer,
  *   defenderPlayer,
  * );
- * 
+ *
  * if (result.playerEliminated) {
  *   console.log('¡Jugador eliminado!');
  * }
- * 
+ *
  * if (result.nodesLost.length > 0) {
  *   console.log(`Nodos desconectados: ${result.nodesLost.length}`);
  * }
@@ -58,7 +56,7 @@ export interface CaptureResult {
 export class CaptureService {
   /**
    * Captura un nodo para el jugador atacante
-   * 
+   *
    * Proceso:
    * 1. Si hay dueño previo, llamar previousOwner.loseNode(node)
    * 2. Llamar attacker.captureNode(node)
@@ -66,7 +64,7 @@ export class CaptureService {
    * 4. Aplicar bonificación de energía: attacker.increaseEnergy(node.energyAddition)
    * 5. Verificar si previousOwner perdió su nodo inicial
    * 6. Si perdió nodo inicial, eliminar jugador
-   * 
+   *
    * @param node - Nodo a capturar
    * @param attacker - Jugador que captura el nodo
    * @param previousOwner - Dueño anterior del nodo (null si era neutral)
@@ -103,7 +101,7 @@ export class CaptureService {
     attacker.captureNode(node);
 
     // Paso 3: Asignar nuevo dueño al nodo
-    node.setOwner(attacker);
+    node.owner = attacker;
 
     // Paso 4: Aplicar bonificación de energía
     attacker.increaseEnergy(energyBonus);
@@ -141,16 +139,16 @@ export class CaptureService {
 
   /**
    * Neutraliza un nodo, dejándolo sin dueño
-   * 
+   *
    * Esto ocurre cuando:
    * - Un ataque iguala exactamente la defensa
    * - Se necesita liberar un nodo manualmente
-   * 
+   *
    * Proceso:
    * 1. Llamar previousOwner.loseNode(node)
    * 2. Llamar node.setOwner(null)
    * 3. Llamar node.clearAssignments()
-   * 
+   *
    * @param node - Nodo a neutralizar
    * @param previousOwner - Dueño actual del nodo
    */
@@ -166,7 +164,7 @@ export class CaptureService {
     previousOwner.loseNode(node);
 
     // Paso 2: Nodo queda sin dueño
-    node.setOwner(null);
+    node.owner = null;
 
     // Paso 3: Limpiar asignaciones de energía
     node.clearAssignments();
@@ -178,17 +176,17 @@ export class CaptureService {
 
   /**
    * Maneja la captura de un nodo de articulación
-   * 
+   *
    * Un nodo de articulación es aquel cuya captura puede dividir el grafo
    * del jugador afectado, desconectando nodos de su nodo inicial.
-   * 
+   *
    * Algoritmo:
    * 1. Identificar el nodo inicial del jugador afectado
    * 2. Realizar BFS/DFS desde el nodo inicial
    * 3. Identificar nodos del jugador que quedaron desconectados
    * 4. Hacer que el jugador pierda esos nodos
    * 5. Neutralizar los nodos desconectados
-   * 
+   *
    * @param capturedNode - Nodo que fue capturado (posible articulación)
    * @param affectedPlayer - Jugador que puede perder nodos
    * @param graph - Grafo completo del juego
@@ -197,7 +195,6 @@ export class CaptureService {
   public handleArticulationCapture(
     capturedNode: Node,
     affectedPlayer: Player,
-    graph: Graph,
   ): Node[] {
     // Si el jugador no tiene nodo inicial, no puede perder más nodos
     if (!affectedPlayer.initialNode) {
@@ -219,7 +216,6 @@ export class CaptureService {
     const connectedNodes = this.findConnectedNodes(
       affectedPlayer.initialNode,
       affectedPlayer,
-      graph,
     );
 
     // Identificar nodos desconectados
@@ -241,7 +237,7 @@ export class CaptureService {
     // para mantener la entidad Player simple y la lógica en el servicio
     disconnectedNodes.forEach((node) => {
       affectedPlayer.loseNode(node);
-      node.setOwner(null);
+      node.owner = null;
       node.clearAssignments();
     });
 
@@ -254,11 +250,11 @@ export class CaptureService {
 
   /**
    * Encuentra todos los nodos conectados a un nodo inicial mediante BFS
-   * 
+   *
    * Solo considera:
    * - Nodos del jugador especificado
    * - Conexiones a través de aristas del grafo
-   * 
+   *
    * @param startNode - Nodo inicial desde donde buscar
    * @param player - Jugador cuyos nodos se buscan
    * @param graph - Grafo completo
@@ -267,7 +263,6 @@ export class CaptureService {
   private findConnectedNodes(
     startNode: Node,
     player: Player,
-    graph: Graph,
   ): Set<Node> {
     const connected = new Set<Node>();
     const queue: Node[] = [startNode];
@@ -277,6 +272,7 @@ export class CaptureService {
     connected.add(startNode);
 
     while (queue.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const currentNode = queue.shift()!;
 
       // Examinar todas las aristas del nodo actual
@@ -302,9 +298,9 @@ export class CaptureService {
 
   /**
    * Captura un nodo con verificación de articulación
-   * 
+   *
    * Este es el método principal que combina captura y detección de articulación.
-   * 
+   *
    * @param node - Nodo a capturar
    * @param attacker - Jugador atacante
    * @param previousOwner - Dueño anterior
@@ -315,7 +311,6 @@ export class CaptureService {
     node: Node,
     attacker: Player,
     previousOwner: Player | null,
-    graph: Graph,
   ): CaptureResult {
     // Realizar captura normal
     const result = this.captureNode(node, attacker, previousOwner);
@@ -325,7 +320,6 @@ export class CaptureService {
       const disconnectedNodes = this.handleArticulationCapture(
         node,
         previousOwner,
-        graph,
       );
 
       result.nodesLost = disconnectedNodes;
@@ -346,10 +340,10 @@ export class CaptureService {
 
   /**
    * Verifica si un nodo es de articulación para un jugador
-   * 
+   *
    * Un nodo es de articulación si su remoción desconecta el grafo.
    * Útil para análisis estratégico.
-   * 
+   *
    * @param node - Nodo a verificar
    * @param player - Jugador dueño del nodo
    * @param graph - Grafo completo
@@ -358,7 +352,6 @@ export class CaptureService {
   public isArticulationPoint(
     node: Node,
     player: Player,
-    graph: Graph,
   ): boolean {
     if (!player.ownsNode(node)) {
       return false;
@@ -376,15 +369,15 @@ export class CaptureService {
 
     // Simular remoción temporal del nodo
     const originalOwner = node.owner;
-    node.setOwner(null);
+    node.owner = null;
 
     // Encontrar nodos conectados sin este nodo
     const connectedNodes = player.initialNode
-      ? this.findConnectedNodes(player.initialNode, player, graph)
+      ? this.findConnectedNodes(player.initialNode, player)
       : new Set<Node>();
 
     // Restaurar propietario
-    node.setOwner(originalOwner);
+    node.owner = originalOwner;
 
     // Si hay nodos controlados que no están conectados, es articulación
     const allNodesConnected = Array.from(player.controlledNodes).every(
@@ -398,9 +391,9 @@ export class CaptureService {
 
   /**
    * Obtiene todos los nodos que se perderían si un nodo es capturado
-   * 
+   *
    * Útil para previsualización y decisiones estratégicas de IA.
-   * 
+   *
    * @param node - Nodo hipotéticamente capturado
    * @param player - Jugador que perdería el nodo
    * @param graph - Grafo completo
@@ -409,7 +402,6 @@ export class CaptureService {
   public getNodesAtRisk(
     node: Node,
     player: Player,
-    graph: Graph,
   ): Node[] {
     if (!player.ownsNode(node)) {
       return [];
@@ -422,11 +414,11 @@ export class CaptureService {
 
     // Simular captura
     const originalOwner = node.owner;
-    node.setOwner(null);
+    node.owner = null;
 
     // Encontrar nodos desconectados
     const connectedNodes = player.initialNode
-      ? this.findConnectedNodes(player.initialNode, player, graph)
+      ? this.findConnectedNodes(player.initialNode, player)
       : new Set<Node>();
 
     const nodesAtRisk: Node[] = [];
@@ -438,7 +430,7 @@ export class CaptureService {
     }
 
     // Restaurar propietario
-    node.setOwner(originalOwner);
+    node.owner = originalOwner;
 
     return nodesAtRisk;
   }
