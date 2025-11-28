@@ -1,158 +1,279 @@
-# Phaser Vite TypeScript Template
+# 🎮 Nexa - Juego de Estrategia en Tiempo Real
 
-This is a Phaser 3 project template that uses Vite for bundling. It supports hot-reloading for quick development workflow, includes TypeScript support and scripts to generate production-ready builds.
+<div align="center">
 
-**[This Template is also available as a JavaScript version.](https://github.com/phaserjs/template-vite)**
+![Nexa](screenshot.png)
 
-### Versions
+**Un juego de estrategia en tiempo real basado en grafos donde la gestión de energía y la planificación táctica son clave para la victoria.**
 
-This template has been updated for:
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Phaser](https://img.shields.io/badge/Phaser-3.90-orange?logo=phaser)](https://phaser.io/)
+[![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?logo=vite)](https://vitejs.dev/)
+[![pnpm](https://img.shields.io/badge/pnpm-8.x-yellow?logo=pnpm)](https://pnpm.io/)
 
-- [Phaser 3.90.0](https://github.com/phaserjs/phaser)
-- [Vite 6.3.1](https://github.com/vitejs/vite)
-- [TypeScript 5.7.2](https://github.com/microsoft/TypeScript)
+[Características](#-características) • [Instalación](#-instalación) • [Cómo Jugar](#-cómo-jugar) • [Mecánicas](#-mecánicas-del-juego) • [Desarrollo](#-desarrollo)
 
-![screenshot](screenshot.png)
+</div>
 
-## Requirements
+---
 
-[Node.js](https://nodejs.org) is required to install dependencies and run scripts via `npm`.
+## 📖 Descripción General
 
-## Available Commands
+**Nexa** es un título de estrategia en tiempo real donde los jugadores compiten por controlar la mayor cantidad de **nodos** dentro de un campo representado como un **grafo**. Cada jugador comienza con un nodo inicial desde el cual administra la distribución de **energía** hacia nodos vecinos a través de aristas conectadas.
 
-| Command | Description |
-|---------|-------------|
-| `npm install` | Install project dependencies |
-| `npm run dev` | Launch a development web server |
-| `npm run build` | Create a production build in the `dist` folder |
-| `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
-| `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
+### 🎯 Objetivo del Juego
 
-## Writing Code
+- **Victoria primaria:** Controlar el **70% de los nodos** durante **10 segundos continuos**
+- **Victoria alternativa:** Mantener la **mayor cantidad de nodos** al finalizar el límite de tiempo de **3 minutos**
+- **Derrota automática:** Perder el nodo inicial (base central)
 
-After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
+---
 
-The local development server runs on `http://localhost:8080` by default. Please see the Vite documentation if you wish to change this, or add SSL support.
+## ✨ Características
 
-Once the server is running you can edit any of the files in the `src` folder. Vite will automatically recompile your code and then reload the browser.
+- 🕹️ **Estrategia en tiempo real** con mecánicas de gestión de recursos
+- 🔋 **Sistema de energía dinámico** con ataque y defensa
+- 🎨 **6 tipos de nodos especiales** con habilidades únicas
+- ⚔️ **Sistema de conflictos** con resolución en tiempo real
+- 🏆 **Múltiples condiciones de victoria**
+- 🎮 **Interfaz intuitiva** construida con Phaser 3
+- ⚡ **Rendimiento optimizado** con Vite y TypeScript
 
-## Template Project Structure
+---
 
-We have provided a default project structure to get you started. This is as follows:
+## 🚀 Instalación
 
-## Template Project Structure
+### Requisitos Previos
 
-We have provided a default project structure to get you started:
+- **Node.js** 18.x o superior
+- **pnpm** 8.x o superior (gestor de paquetes recomendado)
 
-| Path                         | Description                                                |
-|------------------------------|------------------------------------------------------------|
-| `index.html`                 | A basic HTML page to contain the game.                     |
-| `public/assets`              | Game sprites, audio, etc. Served directly at runtime.      |
-| `public/style.css`           | Global layout styles.                                      |
-| `src/main.ts`                | Application bootstrap.                                     |
-| `src/game`                   | Folder containing the game code.                           |
-| `src/game/main.ts`           | Game entry point: configures and starts the game.          |
-| `src/game/scenes`            | Folder with all Phaser game scenes.                        | 
-
-
-## Handling Assets
-
-Vite supports loading assets via JavaScript module `import` statements.
-
-This template provides support for both embedding assets and also loading them from a static folder. To embed an asset, you can import it at the top of the JavaScript file you are using it in:
-
-```js
-import logoImg from './assets/logo.png'
-```
-
-To load static files such as audio files, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
-
-```js
-preload ()
-{
-    //  This is an example of an imported bundled image.
-    //  Remember to import it at the top of this file
-    this.load.image('logo', logoImg);
-
-    //  This is an example of loading a static image
-    //  from the public/assets folder:
-    this.load.image('background', 'assets/bg.png');
-}
-```
-
-When you issue the `npm run build` command, all static assets are automatically copied to the `dist/assets` folder.
-
-## Deploying to Production
-
-After you run the `npm run build` command, your code will be built into a single bundle and saved to the `dist` folder, along with any other assets your project imported, or stored in the public assets folder.
-
-In order to deploy your game, you will need to upload *all* of the contents of the `dist` folder to a public facing web server.
-
-## Customizing the Template
-
-### Vite
-
-If you want to customize your build, such as adding plugin (i.e. for loading CSS or fonts), you can modify the `vite/config.*.mjs` file for cross-project changes, or you can modify and/or create new configuration files and target them in specific npm tasks inside of `package.json`. Please see the [Vite documentation](https://vitejs.dev/) for more information.
-
-## About log.js
-
-If you inspect our node scripts you will see there is a file called `log.js`. This file makes a single silent API call to a domain called `gryzor.co`. This domain is owned by Phaser Studio Inc. The domain name is a homage to one of our favorite retro games.
-
-We send the following 3 pieces of data to this API: The name of the template being used (vue, react, etc). If the build was 'dev' or 'prod' and finally the version of Phaser being used.
-
-At no point is any personal data collected or sent. We don't know about your project files, device, browser or anything else. Feel free to inspect the `log.js` file to confirm this.
-
-Why do we do this? Because being open source means we have no visible metrics about which of our templates are being used. We work hard to maintain a large and diverse set of templates for Phaser developers and this is our small anonymous way to determine if that work is actually paying off, or not. In short, it helps us ensure we're building the tools for you.
-
-However, if you don't want to send any data, you can use these commands instead:
-
-Dev:
+### Pasos de Instalación
 
 ```bash
-npm run dev-nolog
+# 1. Clonar el repositorio
+git clone https://github.com/gustadev24/nexa.git
+cd nexa
+
+# 2. Instalar dependencias
+pnpm install
+
+# 3. Iniciar servidor de desarrollo
+pnpm run dev
+
+# 4. Abrir en el navegador
+# El juego estará disponible en http://localhost:8080
 ```
 
-Build:
+### Scripts Disponibles
 
 ```bash
-npm run build-nolog
+# Desarrollo (con auto-reload)
+pnpm run dev
+
+# Desarrollo sin logs
+pnpm run dev-nolog
+
+# Build de producción
+pnpm run build
+
+# Build sin logs
+pnpm run build-nolog
 ```
 
-Or, to disable the log entirely, simply delete the file `log.js` and remove the call to it in the `scripts` section of `package.json`:
+---
 
-Before:
+## 🎮 Cómo Jugar
 
-```json
-"scripts": {
-    "dev": "node log.js dev & dev-template-script",
-    "build": "node log.js build & build-template-script"
-},
+### Controles Básicos
+
+1. **Seleccionar nodo:** Click en un nodo de tu propiedad
+2. **Asignar energía de ataque:** Arrastra desde tu nodo hacia un nodo vecino
+3. **Ajustar defensa:** La energía no asignada permanece como defensa
+4. **Capturar nodos:** Envía suficiente energía de ataque para superar la defensa enemiga
+
+### Conceptos Clave
+
+- **Energía Total:** Recurso conservativo que se distribuye entre nodos y aristas
+- **Energía de Ataque:** Se asigna a aristas y viaja hacia nodos enemigos (intervalos de 20ms)
+- **Energía de Defensa:** Permanece en nodos para protegerlos (actualización cada 30ms)
+- **Captura:** Ocurre cuando la energía de ataque supera la defensa del nodo enemigo
+
+---
+
+## ⚙️ Mecánicas del Juego
+
+### 🔋 Sistema de Energía
+
+#### Energía Total
+- Recurso **conservativo** compartido entre todos tus nodos
+- Se **incrementa** al capturar **Nodos de Energía**
+- No tiene límite máximo de concentración en un solo nodo
+
+#### Distribución de Energía
+
+| Tipo | Ubicación | Intervalo | Función |
+|------|-----------|-----------|---------|
+| **Ataque** | Aristas | 20ms | Capturar nodos enemigos |
+| **Defensa** | Nodos | 30ms | Proteger nodos propios |
+
+**Regla de Oro:** La defensa siempre se actualiza **antes** que los ataques en cada tick.
+
+---
+
+### 🎯 Tipos de Nodos
+
+| Icono | Tipo | Efecto |
+|-------|------|--------|
+| ⚪ | **Básico** | Funcionalidad estándar de ataque/defensa |
+| 🔵 | **Energía** | Aumenta energía total al capturarlo |
+| 🔴 | **Ataque** | Duplica energía de aristas salientes |
+| 🟢 | **Defensa** | Duplica defensa contra ataques |
+| 🟣 | **Super Energía** | Gran aumento de energía + efectos especiales |
+| ⚫ | **Neutral** | Sin dueño inicial, capturable por cualquiera |
+
+**Importante:** Los efectos de nodos especiales solo se aplican **mientras los controlas**.
+
+---
+
+### ⚔️ Resolución de Conflictos
+
+#### Orden de Resolución (cada tick)
+1. **Actualización de defensa** en todos los nodos
+2. **Envío de energía** por aristas
+3. **Resolución de conflictos** en aristas
+4. **Resolución de ataques** en nodos
+5. **Captura de nodos** y aplicación de efectos
+
+#### Reglas de Conflicto
+
+```
+Energías enemigas en arista:
+├─ Valores iguales → Ambas destruidas
+└─ Valores diferentes → La mayor continúa con diferencia
+
+Ataque vs Defensa:
+├─ Ataque > Defensa → Nodo capturado
+├─ Ataque = Defensa → Nodo queda neutral
+└─ Ataque < Defensa → Ataque destruido
+
+Energía enemiga en nodo aliado:
+└─ Se suma a la defensa del nodo
+
+Energías aliadas opuestas:
+└─ Se anulan (genera advertencia de desperdicio)
 ```
 
-After:
+---
 
-```json
-"scripts": {
-    "dev": "dev-template-script",
-    "build": "build-template-script"
-},
+### 🏆 Condiciones de Victoria
+
+1. **Victoria por Dominación:** Controlar ≥70% de nodos durante 10 segundos continuos
+2. **Victoria por Tiempo:** Mayor cantidad de nodos al acabar los 3 minutos
+3. **Derrota Automática:** Pérdida del nodo inicial (base)
+4. **Empate:** Cantidad igual de nodos al finalizar el tiempo
+
+---
+
+### 🎲 Casos Especiales
+
+- **Sin límites:** Puedes concentrar toda tu energía en un solo nodo
+- **Capturas en cascada:** Un nodo capturado puede generar efectos en nodos vecinos
+- **Energía en tránsito:** Continúa su curso aunque el nodo cambie de dueño
+- **Nodos de articulación:** Su captura puede dividir tu grafo (solo conservas el subgrafo conectado a tu base)
+
+---
+
+## 🛠️ Desarrollo
+
+### Estructura del Proyecto
+
+```
+nexa/
+├── src/
+│   ├── core/           # Lógica del juego (GameManager, AIController)
+│   │   ├── managers/   # Gestores del juego
+│   │   └── types/      # Definiciones TypeScript
+│   ├── scenes/         # Escenas de Phaser (Boot, Game, MainMenu, etc.)
+│   ├── entities/       # Entidades del juego (Nodos, Aristas, Jugadores)
+│   ├── ui/             # Componentes de interfaz
+│   └── game/           # Punto de entrada del juego
+├── public/             # Assets estáticos
+├── vite/               # Configuración de Vite (dev/prod)
+└── docs/               # Documentación adicional
 ```
 
-Either of these will stop `log.js` from running. If you do decide to do this, please could you at least join our Discord and tell us which template you're using! Or send us a quick email. Either will be super-helpful, thank you.
+### Tecnologías Utilizadas
 
-## Join the Phaser Community!
+- **[Phaser 3](https://phaser.io/)** - Framework de juegos HTML5
+- **[TypeScript](https://www.typescriptlang.org/)** - Tipado estático
+- **[Vite](https://vitejs.dev/)** - Build tool y servidor de desarrollo
+- **[pnpm](https://pnpm.io/)** - Gestor de paquetes eficiente
 
-We love to see what developers like you create with Phaser! It really motivates us to keep improving. So please join our community and show-off your work 😄
+### Configuración de Alias de Imports
 
-**Visit:** The [Phaser website](https://phaser.io) and follow on [Phaser Twitter](https://twitter.com/phaser_)<br />
-**Play:** Some of the amazing games [#madewithphaser](https://twitter.com/search?q=%23madewithphaser&src=typed_query&f=live)<br />
-**Learn:** [API Docs](https://newdocs.phaser.io), [Support Forum](https://phaser.discourse.group/) and [StackOverflow](https://stackoverflow.com/questions/tagged/phaser-framework)<br />
-**Discord:** Join us on [Discord](https://discord.gg/phaser)<br />
-**Code:** 2000+ [Examples](https://labs.phaser.io)<br />
-**Read:** The [Phaser World](https://phaser.io/community/newsletter) Newsletter<br />
+El proyecto usa alias para imports más limpios:
 
-Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, pixels and love.
+```typescript
+// ❌ Antes
+import { Game } from '../../../game/scenes/Game';
 
-The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
+// ✅ Ahora
+import { Game } from '@/game/scenes/Game';
+import { Utils } from '@/core/utils';
+```
 
-All rights reserved.
+**Alias disponibles:**
+- `@/` → `src/`
+- `@/core` → `src/core/`
+
+---
+
+## 📚 Documentación Adicional
+
+- [**Guía de Inicio**](docs/GETTING_STARTED.md) - Primeros pasos y configuración
+- [**Game Manager**](docs/GAME_MANAGER.md) - Arquitectura del gestor del juego
+- [**Sistema de Tipos**](docs/TYPE_SYSTEM.md) - Definiciones TypeScript
+- [**Escenas**](docs/SCENES.md) - Estructura de escenas de Phaser
+- [**Configuración Vite**](vite/README.md) - Detalles de configuración
+
+---
+
+## 🤝 Contribuir
+
+¡Las contribuciones son bienvenidas! Por favor lee [CONTRIBUTING.md](CONTRIBUTING.md) para conocer las normas de colaboración.
+
+### Flujo de Trabajo Rápido
+
+```bash
+# 1. Crear rama de feature
+git checkout -b feature/nueva-funcionalidad
+
+# 2. Hacer cambios y commits
+git add .
+git commit -m "feat: agregar nueva funcionalidad"
+
+# 3. Push y crear Pull Request
+git push origin feature/nueva-funcionalidad
+```
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la licencia [MIT](LICENSE).
+
+---
+
+## 👥 Equipo
+
+**Desarrollado por:** Equipo Nexa  
+**Repositorio:** [github.com/gustadev24/nexa](https://github.com/gustadev24/nexa)
+
+---
+
+<div align="center">
+
+**¿Te gusta Nexa? ¡Dale una ⭐ al repositorio!**
+
+</div>
