@@ -11,6 +11,8 @@ import { GraphService } from '@/application/services/graph/graph-service';
 import { UuidGenerator } from '@/application/services/helpers/uuid-generator';
 import { LoggerFactory } from '@/application/logging/logger-factory';
 import type { Player } from '@/core/entities/player';
+import type { GameState } from '@/application/interfaces/game/game-state';
+import type { VictoryResult } from '@/application/services/victory-service';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -569,7 +571,7 @@ export class GameScene extends Scene {
     return clickedNodeId;
   }
 
-  private findClickedEdge(x: number, y: number, gameState: any): Edge | null {
+  private findClickedEdge(x: number, y: number, gameState: GameState): Edge | null {
     let clickedEdge: Edge | null = null;
     let minDist = 15;
 
@@ -806,7 +808,7 @@ export class GameScene extends Scene {
     }
   }
 
-  private handleVictoryFromController(victoryResult: any): void {
+  private handleVictoryFromController(victoryResult: VictoryResult): void {
     if (this.victoryHandled) return;
     this.victoryHandled = true;
 
