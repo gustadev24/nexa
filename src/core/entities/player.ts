@@ -80,7 +80,7 @@ export class Player {
     return this._controlledNodes.size;
   }
 
-  prepareForGame(): void {
+  prepareForNewGame(): void {
     this._initialNode = null;
     this._controlledNodes.clear();
     this._totalEnergy = 0;
@@ -111,10 +111,6 @@ export class Player {
       throw new Error('Player already controls this node.');
     }
     this._controlledNodes.add(node);
-  }
-
-  loseNode(node: Node) {
-    this.releaseNode(node);
   }
 
   releaseNode(node: Node) {
