@@ -4,11 +4,9 @@ import type { GameController } from '@/infrastructure/game/game-controller';
 import { NodeType } from '@/core/types/node-type';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
-import type { Graph } from '@/core/entities/graph';
-import { EnergyCommandService } from '@/application/services/energy-command-service';
 import type { Player } from '@/core/entities/player';
-import type { GameState } from '@/application/interfaces/game/game-state';
-import { AIControllerService } from '@/application/services/ai-controller-service';
+import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
+import { EnergyCommandService } from '@/application/services/energy-command-service';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -18,16 +16,10 @@ enum GamePhase {
 }
 
 export class GameScene extends Scene {
-  // Factor de escala: reduce las distancias en píxeles a valores lógicos más pequeños
-  private DISTANCE_SCALE = 0.01;
-
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private gameController: GameController;
   private energyCommandService: EnergyCommandService | null = null;
-  private aiControllerService: AIControllerService | null = null;
   private currentPlayer: Player | null = null;
-  private allPlayers: Player[] = [];
-  private gameGraph: Graph | null = null;
 
   // Game state
   private gamePhase: GamePhase = GamePhase.WAITING_PLAYER_SELECTION;
@@ -71,11 +63,8 @@ export class GameScene extends Scene {
     this.redistributionSourceNode = null;
     this.selectedNode = null;
     this.currentPlayer = null;
-    this.allPlayers = [];
-    this.gameGraph = null;
-    this.gameController = null;
+    this.gameController = GameFactory.createGame([], this.scale);
     this.energyCommandService = null;
-    this.aiControllerService = null;
 
     // Clear visual maps
     this.nodeGraphics.clear();
@@ -257,7 +246,7 @@ export class GameScene extends Scene {
   private generateRandomGraph(): void {
     // Generate 8-12 nodes
     const nodeCount = Phaser.Math.Between(8, 12);
-    this.gameGraph = this.gameController.generateRandomGraph(nodeCount);
+    this.gameController.generateGraph(nodeCount);
 
     // Map positions for rendering
     const { width, height } = this.scale;
@@ -265,7 +254,7 @@ export class GameScene extends Scene {
     const centerY = height / 2;
     const radius = Math.min(width, height) * 0.3;
 
-    const nodes = Array.from(this.gameGraph.nodes);
+    const nodes = Array.from(this.gameController.getGraph().nodes);
     nodes.forEach((node, i) => {
       const angle = (i / nodeCount) * Math.PI * 2;
       const radiusVariation = Phaser.Math.FloatBetween(0.8, 1.2);
@@ -275,17 +264,12 @@ export class GameScene extends Scene {
       this.nodePositions.set(String(node.id), { x, y });
     });
 
-    // Sincronizar lengths de aristas con distancias visuales reales
-    this.synchronizeEdgeLengths();
-
     this.renderInitialGraph();
   }
 
   private renderInitialGraph(): void {
-    if (!this.gameGraph) return;
-
     // Render edges
-    this.gameGraph.edges.forEach((edge) => {
+    this.gameController.getGraph().edges.forEach((edge) => {
       const [nodeA, nodeB] = edge.endpoints;
       const posA = this.nodePositions.get(String(nodeA.id));
       const posB = this.nodePositions.get(String(nodeB.id));
@@ -299,7 +283,7 @@ export class GameScene extends Scene {
     });
 
     // Render nodes
-    this.gameGraph.nodes.forEach((node) => {
+    this.gameController.getGraph().nodes.forEach((node) => {
       this.renderInitialNode(node);
     });
   }
@@ -382,10 +366,8 @@ export class GameScene extends Scene {
   }
 
   private aiSelectNode(): void {
-    if (!this.gameGraph) return;
-
     // AI picks random node different from player
-    const availableNodes = Array.from(this.gameGraph.nodes).filter(
+    const availableNodes = Array.from(this.gameController.getGraph().nodes).filter(
       n => String(n.id) !== this.playerSelectedNodeId,
     );
 
@@ -399,7 +381,7 @@ export class GameScene extends Scene {
     this.phaseText?.setText('STARTING GAME...');
 
     // Start the game
-    setTimeout(() => this.setSelections(), 1000);
+    setTimeout(() => this.intializeGame(), 1000);
   }
 
   private highlightSelectedNode(nodeId: string, color: number): void {
@@ -413,12 +395,9 @@ export class GameScene extends Scene {
   }
 
   private intializeGame(): void {
-    if (!this.gameGraph || !this.playerSelectedNodeId || !this.aiSelectedNodeId) return;
+    if (!this.playerSelectedNodeId || !this.aiSelectedNodeId) return;
 
     console.log('[Game] Inicializando juego con selecciones...');
-
-    // No need to manually update graph nodes here, GameFactory.assignInitialNodes will do it
-    // based on playerConfigs.
 
     const playersConfig = [
       {
@@ -436,34 +415,41 @@ export class GameScene extends Scene {
     ];
 
     try {
-      const result = GameFactory.createGame(playersConfig);
+      // GameFactory ahora retorna solo el GameController
+      this.gameController = GameFactory.createGame(playersConfig, this.scale);
 
-      this.gameController = result.gameController;
-      this.currentPlayer = result.players[0];
-      this.allPlayers = result.players;
-      this.gameGraph = result.graph;
-      this.energyCommandService = new EnergyCommandService();
-      this.aiControllerService = new AIControllerService();
+      // Obtener referencias a través del GameController
+      const players = this.gameController.getPlayers();
+      const graph = this.gameController.getGraph();
 
-      // Sincronizar edge lengths con distancias visuales antes de empezar
-      this.synchronizeEdgeLengths();
+      this.currentPlayer = players[0];
 
-      if (this.gameController) {
-        // Setup victory callback before starting
-        this.gameController.setOnVictory((victoryResult) => {
-          this.handleVictoryFromController(victoryResult);
-        });
-        this.gameController.startGame(result.gameState);
-      }
-      console.log('[Game] Game started with', result.graph.nodes.size, 'nodes');
+      // Asignar nodos iniciales
+      const assignments = new Map<Player, Node>();
+      playersConfig.forEach((config, index) => {
+        const player = players[index];
+        const node = Array.from(graph.nodes).find(n => n.id === config.initialNodeId);
+        if (node) {
+          assignments.set(player, node);
+        }
+      });
+      this.gameController.assignInitialNodes(assignments);
+
+      // Setup victory callback before starting
+      this.gameController.setOnVictory((victoryResult) => {
+        this.handleVictoryFromController(victoryResult);
+      });
+
+      this.gameController.startGame();
+      console.log('[Game] Game started with', graph.nodes.size, 'nodes');
 
       this.gamePhase = GamePhase.PLAYING;
       this.phaseText?.setText('JUEGO EN PROGRESO');
       this.selectionText?.setText('Selecciona tus nodos y asigna energía a las aristas');
 
       // Render initial state
-      result.graph.nodes.forEach((node: Node) => this.renderNode(node));
-      result.graph.edges.forEach((edge: Edge) => this.renderConnection(edge));
+      graph.nodes.forEach((node: Node) => this.renderNode(node));
+      graph.edges.forEach((edge: Edge) => this.renderConnection(edge));
     }
     catch (error) {
       console.error('[Game] Failed to initialize:', error);
@@ -472,13 +458,13 @@ export class GameScene extends Scene {
   }
 
   private handleGameplayInput(pointer: Phaser.Input.Pointer): void {
-    const gameState = this.gameController?.getGameState();
-    if (!gameState) return;
+    if (!this.gameController) return;
 
     const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
     if (clickedNodeId) {
       // Explicitly cast/type to avoid 'unknown' error
-      const nodes: Node[] = Array.from(gameState.graph.nodes);
+      const graph = this.gameController.getGraph();
+      const nodes: Node[] = Array.from(graph.nodes);
       const node = nodes.find(n => String(n.id) === clickedNodeId);
       if (node) {
         // SHIFT + Click = redistribution mode
@@ -493,7 +479,7 @@ export class GameScene extends Scene {
     }
 
     // Buscar clic en arista (con o sin nodo seleccionado)
-    const clickedEdge = this.findClickedEdge(pointer.x, pointer.y, gameState);
+    const clickedEdge = this.findClickedEdge(pointer.x, pointer.y);
     if (clickedEdge) {
       // CTRL + Clic = quitar energía (equivalente a clic derecho)
       const isRemoveAction = pointer.event.ctrlKey;
@@ -516,11 +502,11 @@ export class GameScene extends Scene {
     return clickedNodeId;
   }
 
-  private findClickedEdge(x: number, y: number, gameState: GameState): Edge | null {
+  private findClickedEdge(x: number, y: number): Edge | null {
     let clickedEdge: Edge | null = null;
     let minDist = 15;
 
-    gameState.graph.edges.forEach((edge: Edge) => {
+    this.gameController.getGraph().edges.forEach((edge: Edge) => {
       const [nodeA, nodeB] = edge.endpoints;
       const posA = this.nodePositions.get(String(nodeA.id));
       const posB = this.nodePositions.get(String(nodeB.id));
@@ -760,12 +746,12 @@ export class GameScene extends Scene {
     console.log('[Game] Victory detected by controller:', victoryResult);
 
     // CRITICAL: Capture stats IMMEDIATELY before anything else changes state
-    const gameState = this.gameController?.getGameState();
     let p1Nodes = 0;
     let p2Nodes = 0;
-    if (gameState) {
-      console.log('[Game] Total nodes in graph:', gameState.graph.nodes.size);
-      const allNodes = Array.from(gameState.graph.nodes);
+    if (this.gameController) {
+      const graph = this.gameController.getGraph();
+      console.log('[Game] Total nodes in graph:', graph.nodes.size);
+      const allNodes = Array.from(graph.nodes);
       allNodes.forEach((n) => {
         console.log(`[Game] Node ${n.id}: owner=${n.owner?.id || 'neutral'}`);
       });
@@ -775,7 +761,7 @@ export class GameScene extends Scene {
       console.log('[Game] Final stats captured - P1:', p1Nodes, 'nodes, P2:', p2Nodes, 'nodes');
     }
     else {
-      console.error('[Game] ERROR: gameState is null when trying to capture stats!');
+      console.error('[Game] ERROR: gameController is null when trying to capture stats!');
     }
 
     // Determine winner name
@@ -811,19 +797,15 @@ export class GameScene extends Scene {
   }
 
   private updateAI(): void {
-    if (!this.aiControllerService || !this.gameGraph) {
-      return;
-    }
-
     // Only run AI during playing phase, not after game over
     if (this.gamePhase !== GamePhase.PLAYING) {
       return;
     }
 
-    const aiPlayer = this.allPlayers.find(p => p.id === 'player-2');
+    const aiPlayer = this.gameController.getPlayers().find(p => p.id === 'player-2');
     if (aiPlayer && !aiPlayer.isEliminated) {
       try {
-        this.aiControllerService.executeAITurn(aiPlayer, Date.now());
+        this.gameController.getAIController().executeAITurn(aiPlayer, Date.now());
       }
       catch (error) {
         console.error('[Game] AI error:', error);
@@ -833,7 +815,7 @@ export class GameScene extends Scene {
 
   private updateHUD(): void {
     if (!this.gameController) return;
-    const snapshot = this.gameController.getSnapshot();
+    const snapshot = this.gameController.getGameSnapshot();
     if (!snapshot) return;
 
     // Only update timer if game is playing
@@ -844,58 +826,53 @@ export class GameScene extends Scene {
       this.timerText?.setText(`TIEMPO: ${minutes}:${seconds.toString().padStart(2, '0')}`);
     }
 
-    const gameState = this.gameController.getGameState();
-    if (gameState) {
-      const totalNodes = gameState.graph.nodes.size;
-      const p1Nodes = Array.from(gameState.graph.nodes).filter(
-        n => n.owner?.id === 'player-1',
-      ).length;
-      const p2Nodes = Array.from(gameState.graph.nodes).filter(
-        n => n.owner?.id === 'player-2',
-      ).length;
+    // Usar playerStats del snapshot en lugar de acceder al gameState directamente
+    const p1Stats = snapshot.playerStats.find(p => p.playerId === 'player-1');
+    const p2Stats = snapshot.playerStats.find(p => p.playerId === 'player-2');
 
-      const p1Percent = totalNodes > 0 ? Math.floor((p1Nodes / totalNodes) * 100) : 0;
-      const p2Percent = totalNodes > 0 ? Math.floor((p2Nodes / totalNodes) * 100) : 0;
+    if (p1Stats && p2Stats) {
+      const p1Percent = Math.floor(p1Stats.dominancePercentage);
+      const p2Percent = Math.floor(p2Stats.dominancePercentage);
+      const p1Nodes = p1Stats.controlledNodes;
+      const p2Nodes = p2Stats.controlledNodes;
 
       let statsText = `P1: ${p1Percent}% (${p1Nodes}) | P2: ${p2Percent}% (${p2Nodes})`;
 
       // Mostrar contador de dominancia si algún jugador supera el 70%
-      if (this.gameController && (p1Percent >= 70 || p2Percent >= 70)) {
-        const victoryService = this.gameController.getVictoryService();
+      if (p1Percent >= 70) {
+        const dominanceTime = this.gameController.getDominanceTime('player-1');
+        const remainingTime = Math.max(0, 10 - dominanceTime / 1000);
+        statsText += `\n⚠️  P1 DOMINANDO: ${remainingTime.toFixed(1)}s`;
+      }
 
-        if (p1Percent >= 70) {
-          const dominanceTime = victoryService.getDominanceTime('player-1');
-          const remainingTime = Math.max(0, 10 - dominanceTime / 1000);
-          statsText += `\n⚠️  P1 DOMINANDO: ${remainingTime.toFixed(1)}s`;
-        }
-
-        if (p2Percent >= 70) {
-          const dominanceTime = victoryService.getDominanceTime('player-2');
-          const remainingTime = Math.max(0, 10 - dominanceTime / 1000);
-          statsText += `\n⚠️  P2 DOMINANDO: ${remainingTime.toFixed(1)}s`;
-        }
+      if (p2Percent >= 70) {
+        const dominanceTime = this.gameController.getDominanceTime('player-2');
+        const remainingTime = Math.max(0, 10 - dominanceTime / 1000);
+        statsText += `\n⚠️  P2 DOMINANDO: ${remainingTime.toFixed(1)}s`;
       }
 
       this.statsText?.setText(statsText);
 
+      // Mostrar energía del jugador actual
       if (this.currentPlayer) {
-        const totalEnergy = Array.from(gameState.graph.nodes)
-          .filter(n => n.owner?.id === this.currentPlayer?.id)
-          .reduce((sum, n) => sum + n.energyPool, 0);
-
-        this.energyText?.setText(`ENERGÍA TOTAL: ${Math.floor(totalEnergy)}`);
+        const currentPlayerStats = snapshot.playerStats.find(
+          p => p.playerId === this.currentPlayer?.id,
+        );
+        if (currentPlayerStats) {
+          this.energyText?.setText(`ENERGÍA TOTAL: ${Math.floor(currentPlayerStats.totalEnergy)}`);
+        }
       }
     }
   }
 
   private updateVisuals(): void {
-    const gameState = this.gameController?.getGameState();
-    if (!gameState) return;
+    if (!this.gameController) return;
 
     try {
+      const graph = this.gameController.getGraph();
       // Always render all nodes, even after game over
-      gameState.graph.nodes.forEach(node => this.renderNode(node));
-      gameState.graph.edges.forEach((edge) => {
+      graph.nodes.forEach(node => this.renderNode(node));
+      graph.edges.forEach((edge) => {
         this.renderConnection(edge);
         this.renderEnergyPackets(edge);
       });
@@ -1154,7 +1131,6 @@ export class GameScene extends Scene {
       catch (error) {
         console.warn('[Game] Error stopping game:', error);
       }
-      this.gameController = null;
     }
 
     // Clear state
@@ -1163,10 +1139,7 @@ export class GameScene extends Scene {
     this.aiSelectedNodeId = null;
     this.selectedNode = null;
     this.currentPlayer = null;
-    this.allPlayers = [];
-    this.gameGraph = null;
     this.energyCommandService = null;
-    this.aiControllerService = null;
     this.victoryHandled = false;
     this.redistributionMode = false;
     this.redistributionSourceNode = null;
@@ -1208,12 +1181,9 @@ export class GameScene extends Scene {
     }
 
     // Clear all state
-    this.gameController = null;
+    // GameController será recreado en el próximo init()
     this.energyCommandService = null;
-    this.aiControllerService = null;
     this.currentPlayer = null;
-    this.allPlayers = [];
-    this.gameGraph = null;
     this.selectedNode = null;
     this.victoryHandled = false;
 

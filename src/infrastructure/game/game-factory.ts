@@ -13,6 +13,7 @@ import { GameController } from '@/infrastructure/game/game-controller';
 import { PhaserRadialLayoutStrategy } from '@/infrastructure/implementations/layout/phaser-radial-layout';
 import type { Scale } from 'phaser';
 import { PlayerService } from '@/application/services/player-service';
+import { AIControllerService } from '@/application/services/ai-controller-service';
 
 /**
  * GameFactory - Factoría para crear instancias completas del juego NEXA
@@ -56,6 +57,7 @@ class GameFactory {
     const tickService = new TickService(collisionService, captureService);
     const victoryService = new VictoryService();
     const playerService = new PlayerService(idGenerator);
+    const aiController = new AIControllerService(logger);
     playerService.createPlayers(playerConfigs);
     console.log('[GameFactory] Servicios de aplicación creados');
 
@@ -84,6 +86,7 @@ class GameFactory {
       captureService,
       graphService,
       playerService,
+      aiController,
     );
     console.log('[GameFactory] GameController creado');
 

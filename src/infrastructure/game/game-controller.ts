@@ -7,20 +7,23 @@ import { GameStatus } from '@/application/interfaces/game/game-status';
 import type { CaptureService } from '@/application/services/capture-service';
 import type { Player } from '@/core/entities/player';
 import type { Node } from '@/core/entities/node/node';
+import type { Graph } from '@/core/entities/graph';
 import type { GraphService } from '@/application/services/graph-service';
 import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
 import type { PlayerService } from '@/application/services/player-service';
+import type { AIControllerService } from '@/application/services/ai-controller-service';
 
 /**
  * GameController - Coordinador principal del ciclo de juego
  *
  * Responsabilidades:
  * - Orquestar el game loop principal (driven by external update)
- * - Coordinar servicios (tick, victory)
+ * - Coordinar servicios (tick, victory, state)
  * - Manejar eventos de input
  * - Controlar inicio/pausa/fin del juego
+ * - Servir como ÚNICA interfaz entre la capa de presentación y la lógica
  *
- * Patrón: Controller/Orchestrator
+ * Patrón: Controller/Orchestrator/Facade
  */
 export class GameController {
   private onVictoryCallback: ((result: VictoryResult) => void) | null = null;
@@ -33,6 +36,7 @@ export class GameController {
     private captureService: CaptureService,
     private graphService: GraphService,
     private playerService: PlayerService,
+    private aiControllerService: AIControllerService,
   ) {
   }
 
@@ -66,43 +70,46 @@ export class GameController {
    * @param deltaTime Tiempo transcurrido en milisegundos
    */
   update(deltaTime: number): void {
-    if (!this.gameStateManager.gameState || this.gameStateManager.gameState.status !== 'playing') {
+    const state = this.gameStateManager.gameState;
+
+    if (!state || state.status !== 'playing') {
       return;
     }
 
-    // 1. Ejecutar tick del juego
-    this.tickService.executeTick(this.gameStateManager.gameState, deltaTime);
+    // 1. Ejecutar tick del juego (movimiento de energía, combates, etc.)
+    this.tickService.executeTick(state, deltaTime);
 
     // 2. Actualizar tiempo transcurrido
     this.gameStateManager.updateElapsedTime(deltaTime);
 
-    // 3. Actualizar trackers de dominancia
-    this.gameStateManager.updateAllDominanceTrackers(this.gameStateManager.gameState, deltaTime);
+    // 3. Actualizar trackers de dominancia en ambos servicios
+    // GameStateManagerService: para UI/snapshot
+    this.gameStateManager.updateAllDominanceTrackers(state, deltaTime);
 
-    // 3.5. Actualizar trackers de dominancia en VictoryService
-    this.victoryService.trackDominanceDirect(
-      this.gameStateManager.gameState.players,
-      this.gameStateManager.gameState.graph,
+    // VictoryService: para verificación de victoria
+    this.victoryService.trackDominance(
+      state.players,
+      state.graph,
       deltaTime,
     );
 
     // 4. Verificar condiciones de victoria
     const snapshot = this.gameStateManager.getGameSnapshot();
     const victoryResult = this.victoryService.checkVictory(
-      this.gameStateManager.gameState.players,
-      this.gameStateManager.gameState.graph,
+      state.players,
+      state.graph,
       snapshot.elapsedTime,
     );
 
     if (victoryResult.gameEnded) {
       this.handleGameEnd(victoryResult);
+      return;
     }
 
     // 5. Renderizar (opcional, si se usa el renderer de canvas)
     if (this.gameRenderer && this.gameRenderer.getContext()) {
       // Nota: GameScene de Phaser ya renderiza por su cuenta,
       // pero mantenemos esto por si se usa un canvas overlay o debug.
-      // Si gameRenderer requiere snapshot:
       this.gameRenderer.renderGraph(snapshot);
       this.gameRenderer.renderUI(snapshot);
     }
@@ -116,7 +123,7 @@ export class GameController {
   ): void {
     assignments.forEach((node, player) => {
       this.captureService.captureInitialNode(player, node);
-      console.log(`[GameFactory] Jugador ${player.username} capturó nodo inicial ${node.id}`);
+      console.log(`[GameController] Jugador ${player.username} capturó nodo inicial ${node.id}`);
     });
   }
 
@@ -135,7 +142,6 @@ export class GameController {
     }
 
     // Notificar a la escena sobre la victoria
-    // NO llamamos a endGame() aquí - GameScene lo manejará cuando esté listo
     if (this.onVictoryCallback) {
       this.onVictoryCallback(victoryResult);
     }
@@ -161,7 +167,7 @@ export class GameController {
    * Pausa el juego
    */
   pauseGame(): void {
-    this.gameStateManager.setGameStatus(GameStatus.WAITING); // Or 'paused' if added to enum
+    this.gameStateManager.setGameStatus(GameStatus.WAITING);
     console.log('[GameController] Juego pausado');
   }
 
@@ -185,8 +191,35 @@ export class GameController {
   /**
    * Obtiene un snapshot del estado actual
    */
-  snapshot() {
+  getGameSnapshot() {
     return this.gameStateManager.getGameSnapshot();
+  }
+
+  /**
+   * Obtiene el grafo del juego para renderizado
+   * Método específico para la capa de presentación
+   */
+  getGraph(): Graph {
+    return this.graphService.graph;
+  }
+
+  /**
+   * Obtiene los jugadores del juego
+   */
+  getPlayers(): Player[] {
+    return this.playerService.players;
+  }
+
+  /**
+   * Obtiene el GameState directamente (para compatibilidad con código existente)
+   * @deprecated Usar getGraph(), getPlayers() o getGameSnapshot() según necesidad
+   */
+  getGameState(): Readonly<GameState> {
+    return this.gameState;
+  }
+
+  getAIController(): AIControllerService {
+    return this.aiControllerService;
   }
 
   /**
@@ -196,7 +229,24 @@ export class GameController {
     return this.gameState !== null && this.gameState.status === 'playing';
   }
 
+  /**
+   * Genera un grafo aleatorio
+   */
   generateGraph(nodeCount: number) {
     return this.graphService.generateRandomGraph(nodeCount);
+  }
+
+  /**
+   * Obtiene tiempo de dominancia de un jugador (para UI)
+   */
+  getDominanceTime(playerId: string | number): number {
+    return this.victoryService.getDominanceTime(playerId);
+  }
+
+  /**
+   * Obtiene progreso de dominancia de un jugador (0-100)
+   */
+  getDominanceProgress(playerId: string | number): number {
+    return this.victoryService.getDominanceProgress(playerId);
   }
 }

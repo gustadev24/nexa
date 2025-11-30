@@ -39,12 +39,6 @@ export interface GameSnapshot {
   /** Estadísticas de cada jugador */
   playerStats: PlayerSnapshot[];
 
-  /** ID del jugador ganador (si hay) */
-  winnerId?: string | number;
-
-  /** Razón de victoria/derrota */
-  victoryReason?: 'dominance' | 'time_limit' | 'elimination';
-
   /** Si algún jugador está cerca de ganar por dominancia */
   dominanceWarning?: {
     playerId: string | number;

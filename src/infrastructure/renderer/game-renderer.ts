@@ -323,8 +323,11 @@ export class GameRenderer {
     }
 
     // 4. Renderizar mensaje de victoria/derrota (centro)
-    if (snapshot.status === 'finished' && snapshot.winnerId !== undefined) {
-      this.renderVictoryMessage(snapshot);
+    // Nota: La victoria ahora se maneja en VictoryService y GameController,
+    // no en el snapshot. El renderizado de victoria debe manejarse en GameScene.
+    if (snapshot.status === 'finished') {
+      // El mensaje de victoria ahora lo maneja GameScene directamente
+      // ya que tiene acceso a VictoryResult a través del callback
     }
   }
 
@@ -441,48 +444,6 @@ export class GameRenderer {
     this.ctx.font = 'bold 24px Arial';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(message, centerX, y);
-  }
-
-  /**
-   * Renderiza mensaje de victoria/derrota
-   */
-  private renderVictoryMessage(snapshot: GameSnapshot): void {
-    if (!this.ctx || !this.canvas) return;
-
-    const centerX = this.canvas.width / 2;
-    const centerY = this.canvas.height / 2;
-
-    const winner = snapshot.playerStats.find(p => p.playerId === snapshot.winnerId);
-    if (!winner) return;
-
-    const reasonText = {
-      dominance: 'Victoria por Dominancia',
-      time_limit: 'Victoria por Tiempo',
-      elimination: 'Victoria por Eliminación',
-    };
-
-    // Fondo oscuro semitransparente
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Título
-    this.ctx.fillStyle = '#FFD700';
-    this.ctx.font = 'bold 48px Arial';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText('¡VICTORIA!', centerX, centerY - 50);
-
-    // Ganador
-    this.ctx.fillStyle = '#FFFFFF';
-    this.ctx.font = 'bold 32px Arial';
-    this.ctx.fillText(winner.username, centerX, centerY + 10);
-
-    // Razón
-    this.ctx.font = '24px Arial';
-    this.ctx.fillText(
-      reasonText[snapshot.victoryReason || 'time_limit'],
-      centerX,
-      centerY + 50,
-    );
   }
 
   /**

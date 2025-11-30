@@ -1,10 +1,10 @@
-import type { Logger } from '@/core/logging/logger';
-import { ComposeLogger } from '@/application/logging/compose-logger';
-import { ConsoleLogger } from '@/application/logging/console-logger';
-import { ViteLogger } from '@/application/logging/vite-logger';
+import type { Logger } from '@/application/interfaces/logging/logger';
+import { ComposeLogger } from '@/infrastructure/logging/compose-logger';
+import { ConsoleLogger } from '@/infrastructure/logging/console-logger';
+import { ViteLogger } from '@/infrastructure/logging/vite-logger';
 
-export class LoggerFactory {
-  static create(): Logger {
+class LoggerFactory {
+  create(): Logger {
     const loggers = [];
     const env = process.env.NODE_ENV || 'development';
 
@@ -18,3 +18,7 @@ export class LoggerFactory {
     return new ComposeLogger(loggers);
   }
 }
+
+const loggerFactory = new LoggerFactory();
+
+export { loggerFactory as LoggerFactory };

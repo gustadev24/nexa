@@ -1,5 +1,5 @@
-import type { Loggeable } from '@/core/logging/loggeable';
-import type { Logger } from '@/core/logging/logger';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import type { Logger } from '@/application/interfaces/logging/logger';
 
 export class ConsoleLogger implements Logger {
   info(context: Loggeable, message: string, ...args: unknown[]): void {

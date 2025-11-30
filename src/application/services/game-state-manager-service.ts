@@ -12,16 +12,19 @@ import type { PlayerService } from '@/application/services/player-service';
  *
  * Responsable de:
  * - Mantener el estado completo del juego
- * - Trackear tiempo de dominancia para condición de victoria
  * - Calcular estadísticas de jugadores
  * - Generar snapshots inmutables para la UI
+ * - Gestionar tiempo transcurrido y ticks
+ *
+ * NO responsable de:
+ * - Verificar condiciones de victoria (VictoryService)
+ * - Ejecutar lógica del juego (TickService)
  *
  * Patrón: Manager/Service
  */
 export class GameStateManagerService {
   private static readonly GAME_DURATION_MS = 180000; // 3 minutos
   private static readonly DOMINANCE_THRESHOLD = 0.7; // 70%
-  private static readonly DOMINANCE_DURATION_MS = 10000; // 10 segundos
 
   private _gameProgressState: GameProgressState;
 
@@ -64,7 +67,6 @@ export class GameStateManagerService {
    * Este snapshot no contiene referencias a entidades mutables,
    * solo datos primitivos y estructuras serializables
    *
-   * @param state Estado actual del juego
    * @returns Snapshot del juego para consumo de la UI
    */
   getGameSnapshot(): GameSnapshot {
@@ -83,18 +85,6 @@ export class GameStateManagerService {
       this.playerSnapshot(player),
     );
 
-    // Determinar ganador y razón si el juego terminó
-    let winnerId: string | number | undefined;
-    let victoryReason: 'dominance' | 'time_limit' | 'elimination' | undefined;
-
-    if (status === 'finished') {
-      const winner = this.determineWinner(playerStats);
-      if (winner) {
-        winnerId = winner.playerId;
-        victoryReason = winner.reason;
-      }
-    }
-
     // Verificar si hay advertencia de dominancia
     const dominanceWarning = this.checkDominanceWarning(playerStats);
 
@@ -109,8 +99,6 @@ export class GameStateManagerService {
       totalNodes: this.graphService.graph.nodes.size,
       totalPlayers: this.playerService.playerCount,
       playerStats,
-      winnerId,
-      victoryReason,
       dominanceWarning,
     };
   }
@@ -118,52 +106,10 @@ export class GameStateManagerService {
   /**
    * Cambia el estado del juego
    *
-   * @param state Estado actual del juego
    * @param newStatus Nuevo estado
    */
   setGameStatus(newStatus: GameStatus): void {
     this._gameProgressState.status = newStatus;
-  }
-
-  /**
-   * Determina el ganador según las condiciones del juego
-   *
-   * @param state Estado del juego
-   * @param playerStats Estadísticas de los jugadores
-   * @returns Información del ganador o undefined si hay empate
-   */
-  private determineWinner(
-    playerStats: PlayerSnapshot[],
-  ): { playerId: string | number; reason: 'dominance' | 'time_limit' | 'elimination' } | undefined {
-    // 1. Victoria por dominancia (70% durante 10 segundos)
-    for (const stats of playerStats) {
-      if (stats.dominanceTime >= GameStateManagerService.DOMINANCE_DURATION_MS) {
-        return { playerId: stats.playerId, reason: 'dominance' };
-      }
-    }
-
-    // 2. Victoria por eliminación (único jugador restante)
-    const activePlayers = playerStats.filter(p => !p.isEliminated);
-    if (activePlayers.length === 1) {
-      return { playerId: activePlayers[0].playerId, reason: 'elimination' };
-    }
-
-    // 3. Victoria por tiempo límite (más nodos al finalizar)
-    if (this._gameProgressState.elapsedTime >= GameStateManagerService.GAME_DURATION_MS) {
-      const sorted = [...activePlayers].sort(
-        (a, b) => b.controlledNodes - a.controlledNodes,
-      );
-
-      if (sorted.length > 0) {
-        // Verificar empate
-        if (sorted.length > 1 && sorted[0].controlledNodes === sorted[1].controlledNodes) {
-          return undefined; // Empate
-        }
-        return { playerId: sorted[0].playerId, reason: 'time_limit' };
-      }
-    }
-
-    return undefined;
   }
 
   /**
@@ -177,13 +123,12 @@ export class GameStateManagerService {
   ): { playerId: string | number; timeRemaining: number } | undefined {
     for (const stats of playerStats) {
       if (stats.dominancePercentage >= GameStateManagerService.DOMINANCE_THRESHOLD * 100) {
-        const timeRemaining = GameStateManagerService.DOMINANCE_DURATION_MS - stats.dominanceTime;
-        if (timeRemaining > 0 && timeRemaining < GameStateManagerService.DOMINANCE_DURATION_MS) {
-          return {
-            playerId: stats.playerId,
-            timeRemaining,
-          };
-        }
+        // El jugador tiene >= 70% pero aún no ha ganado
+        // (la verificación de victoria se hace en VictoryService)
+        return {
+          playerId: stats.playerId,
+          timeRemaining: stats.dominanceTime,
+        };
       }
     }
     return undefined;
@@ -194,6 +139,9 @@ export class GameStateManagerService {
    *
    * Verifica qué jugadores cumplen el threshold de 70% y actualiza
    * o resetea sus trackers según corresponda
+   *
+   * NOTA: Este método solo actualiza el estado interno para el snapshot.
+   * VictoryService mantiene sus propios trackers para verificar victoria.
    *
    * @param state Estado del juego
    * @param deltaTime Tiempo transcurrido desde última actualización
@@ -221,7 +169,7 @@ export class GameStateManagerService {
    * Actualiza el tracker de dominancia de un jugador
    *
    * Se llama cuando un jugador mantiene >= 70% de los nodos
-   * Acumula el tiempo de dominancia para verificar condición de victoria
+   * Acumula el tiempo de dominancia para mostrar en UI
    *
    * @param player Jugador que mantiene dominancia
    * @param deltaTime Tiempo a acumular en milisegundos
@@ -248,7 +196,7 @@ export class GameStateManagerService {
    * @param player Jugador del cual obtener estadísticas
    * @returns Estadísticas calculadas del jugador
    */
-  private playerSnapshot(player: Player) {
+  private playerSnapshot(player: Player): PlayerSnapshot {
     const totalNodes = this.graphService.graph.nodes.size;
     const controlledNodes = player.controlledNodes.size;
 
@@ -263,7 +211,7 @@ export class GameStateManagerService {
     for (const edge of this.graphService.graph.edges) {
       for (const packet of edge.energyPackets) {
         if (packet.owner === player) {
-          transitEnergy += packet.amount; // Usar 'amount' en lugar de 'energy'
+          transitEnergy += packet.amount;
         }
       }
     }
