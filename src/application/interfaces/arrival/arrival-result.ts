@@ -1,13 +1,7 @@
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
 import type { EnergyPacket } from '@/core/entities/energy-packet';
-
-export enum ArrivalOutcome {
-  INTEGRATED = 'INTEGRATED',
-  CAPTURED = 'CAPTURED',
-  NEUTRALIZED = 'NEUTRALIZED',
-  DEFEATED = 'DEFEATED',
-}
+import type { ArrivalOutcome } from '@/application/interfaces/arrival/arrival-outcome';
 
 export interface ArrivalResult {
   outcome: ArrivalOutcome;

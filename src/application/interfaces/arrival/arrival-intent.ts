@@ -1,7 +1,7 @@
+import type { ArrivalOutcome } from '@/application/interfaces/arrival/arrival-outcome';
 import type { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
-import { ArrivalOutcome } from '@/application/services/arrival-result.interface';
 
 /**
  * Representa la intención de lo que debe ocurrir tras la llegada de un paquete de energía a un nodo,

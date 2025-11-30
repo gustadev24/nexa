@@ -1,28 +1,25 @@
-import type { GameState } from '@/application/services/game-state.interface';
-import type { TickResult } from '@/application/services/tick-result.interface';
 import { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Node } from '@/core/entities/node/node';
 
-import { CollisionService } from '@/application/services/collision.service';
+import { CollisionService } from '@/application/services/collision-service';
 import { CaptureService } from '@/application/services/capture-service';
-import { ArrivalOutcome } from '@/application/services/arrival-result.interface'; // Re-import for type safety
-import type { ArrivalIntent } from '@/application/services/arrival-intent.interface'; // Import new intent
 import type { Edge } from '@/core/entities/edge'; // Needed for packetsToAddBack
+import type { GameState } from '@/application/interfaces/game/game-state';
+import type { TickResult } from '@/application/interfaces/tick/tick-result';
+import type { ArrivalIntent } from '@/application/interfaces/arrival/arrival-intent';
+import { ArrivalOutcome } from '@/application/interfaces/arrival/arrival-outcome';
 
 export class TickService {
   private static readonly DEFAULT_SPEED = 0.0003; // Very slow: ~3-4 seconds to traverse edge of length 1
-
-  private collisionService: CollisionService;
-  private captureService: CaptureService;
 
   private lastDefenseUpdate = new Map<Node, number>();
   private lastAttackEmission = new Map<Node, number>();
   private accumulatedTime = 0;
 
-  constructor() {
-    this.collisionService = new CollisionService();
-    this.captureService = new CaptureService();
-  }
+  constructor(
+    private collisionService: CollisionService,
+    private captureService: CaptureService,
+  ) { }
 
   executeTick(game: GameState, deltaTime: number): TickResult {
     this.accumulatedTime += deltaTime;
@@ -51,7 +48,7 @@ export class TickService {
   updateDefenses(game: GameState): void {
     const currentTime = this.accumulatedTime;
 
-    for (const node of game.nodes) {
+    for (const node of game.graph.nodes) {
       if (node.isNeutral()) {
         continue;
       }
@@ -70,7 +67,7 @@ export class TickService {
   emitEnergyPackets(game: GameState): void {
     const currentTime = this.accumulatedTime;
 
-    for (const node of game.nodes) {
+    for (const node of game.graph.nodes) {
       if (node.isNeutral() || !node.owner) {
         continue;
       }
@@ -107,7 +104,7 @@ export class TickService {
   }
 
   advancePackets(game: GameState, deltaTime: number): void {
-    for (const edge of game.edges) {
+    for (const edge of game.graph.edges) {
       const packets = edge.energyPackets;
 
       for (const packet of packets) {
@@ -123,7 +120,7 @@ export class TickService {
   resolveCollisions(game: GameState): number {
     let collisionCount = 0;
 
-    for (const edge of game.edges) {
+    for (const edge of game.graph.edges) {
       const results = this.collisionService.resolveEdgeCollisions(edge);
       for (const res of results) {
         collisionCount += res.packetsDestroyed.length;
@@ -140,7 +137,7 @@ export class TickService {
     // Use a temporary array to store packets to add back to edges
     const packetsToAddBack: { edge: Edge; packet: EnergyPacket }[] = [];
 
-    for (const edge of game.edges) {
+    for (const edge of game.graph.edges) {
       const packets = edge.energyPackets;
       const arrivedPackets: EnergyPacket[] = [];
 

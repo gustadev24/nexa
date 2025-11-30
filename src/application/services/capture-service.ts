@@ -1,25 +1,8 @@
 import type { Player } from '@/core/entities/player';
 import type { Node } from '@/core/entities/node/node';
-
-/**
- * Resultado de un intento de captura de nodo
- */
-export interface CaptureResult {
-  /** Indica si la captura fue exitosa */
-  captured: boolean;
-  /** Lista de nodos perdidos por el jugador afectado (por articulación) */
-  nodesLost: Node[];
-  /** Indica si el jugador fue eliminado */
-  playerEliminated: boolean;
-  /** Nodo que fue capturado */
-  node: Node;
-  /** Jugador atacante */
-  attacker: Player;
-  /** Jugador previo (null si era neutral) */
-  previousOwner: Player | null;
-  /** Bonificación de energía aplicada */
-  energyBonus: number;
-}
+import type { Logger } from '@/application/interfaces/logging/logger';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import type { CaptureResult } from '@/application/interfaces/capture/capture-result';
 
 /**
  * Representa el estado del grafo para análisis de conectividad
@@ -45,20 +28,26 @@ export interface CaptureResult {
  * );
  *
  * if (result.playerEliminated) {
- *   console.log('¡Jugador eliminado!');
+ *   this.log.info(this,'¡Jugador eliminado!');
  * }
  *
  * if (result.nodesLost.length > 0) {
- *   console.log(`Nodos desconectados: ${result.nodesLost.length}`);
+ *   this.log.info(this,`Nodos desconectados: ${result.nodesLost.length}`);
  * }
  * ```
  */
-export class CaptureService {
+export class CaptureService implements Loggeable {
+  _logContext = 'CaptureService';
+
+  constructor(
+    private log: Logger,
+  ) { }
+
   /**
    * Captura un nodo para el jugador atacante
    *
    * Proceso:
-   * 1. Si hay dueño previo, llamar previousOwner.loseNode(node)
+   * 1. Si hay dueño previo, llamar previousOwner.releaseNode(node)
    * 2. Llamar attacker.captureNode(node)
    * 3. Llamar node.setOwner(attacker)
    * 4. Aplicar bonificación de energía: attacker.increaseEnergy(node.energyAddition)
@@ -94,7 +83,7 @@ export class CaptureService {
 
     // Paso 1: Si hay dueño previo, hacer que pierda el nodo
     if (previousOwner) {
-      previousOwner.loseNode(node);
+      previousOwner.releaseNode(node);
     }
 
     // Paso 2: Atacante captura el nodo
@@ -114,7 +103,7 @@ export class CaptureService {
         previousOwner.eliminate();
         playerEliminated = true;
 
-        console.log(
+        this.log.info(this,
           `[CaptureService] ⚠️  Jugador ${previousOwner.username} ELIMINADO por perder nodo inicial ${String(node.id)}`,
         );
       }
@@ -130,7 +119,7 @@ export class CaptureService {
       energyBonus,
     };
 
-    console.log(
+    this.log.info(this,
       `[CaptureService] ✅ Nodo ${String(node.id)} capturado por ${attacker.username}. Energía +${energyBonus}`,
     );
 
@@ -145,7 +134,7 @@ export class CaptureService {
    * - Se necesita liberar un nodo manualmente
    *
    * Proceso:
-   * 1. Llamar previousOwner.loseNode(node)
+   * 1. Llamar previousOwner.releaseNode(node)
    * 2. Llamar node.setOwner(null)
    * 3. Llamar node.clearAssignments()
    *
@@ -161,7 +150,7 @@ export class CaptureService {
     }
 
     // Paso 1: Jugador pierde el nodo
-    previousOwner.loseNode(node);
+    previousOwner.releaseNode(node);
 
     // Paso 2: Nodo queda sin dueño
     node.owner = null;
@@ -169,9 +158,28 @@ export class CaptureService {
     // Paso 3: Limpiar asignaciones de energía
     node.clearAssignments();
 
-    console.log(
+    this.log.info(this,
       `[CaptureService] ⚪ Nodo ${String(node.id)} neutralizado (antes de ${previousOwner.username})`,
     );
+  }
+
+  /**
+   * Captura un nodo inicial para un jugador
+   */
+  captureInitialNode(player: Player, node: Node): void {
+    // Validar que el nodo no esté asignado
+    if (node.owner) {
+      throw new Error(`El nodo ${node.id} ya está asignado al jugador ${node.owner.username}.`);
+    }
+
+    // Asignar el nodo inicial (el setter ya agrega a controlledNodes automáticamente)
+    player.initialNode = node;
+    // Asignar ownership del nodo
+    node.owner = player;
+    // Aumentar la energía del jugador por el nodo capturado
+    player.increaseEnergy(node.energyAddition);
+
+    this.log.info(this, `Jugador ${player.username} capturó nodo inicial ${node.id}.`);
   }
 
   /**
@@ -198,7 +206,7 @@ export class CaptureService {
   ): Node[] {
     // Si el jugador no tiene nodo inicial, no puede perder más nodos
     if (!affectedPlayer.initialNode) {
-      console.log(
+      this.log.info(this,
         `[CaptureService] Jugador ${affectedPlayer.username} no tiene nodo inicial`,
       );
       return [];
@@ -206,7 +214,7 @@ export class CaptureService {
 
     // Si el nodo capturado era el inicial, el jugador ya fue eliminado
     if (affectedPlayer.initialNode.equals(capturedNode)) {
-      console.log(
+      this.log.info(this,
         `[CaptureService] Nodo capturado era el inicial, jugador ya eliminado`,
       );
       return [];
@@ -233,15 +241,15 @@ export class CaptureService {
     }
 
     // Hacer que el jugador pierda los nodos desconectados
-    // Nota: Iteramos usando loseNode() en lugar de loseMultipleNodes()
+    // Nota: Iteramos usando releaseNode() en lugar de loseMultipleNodes()
     // para mantener la entidad Player simple y la lógica en el servicio
     disconnectedNodes.forEach((node) => {
-      affectedPlayer.loseNode(node);
+      affectedPlayer.releaseNode(node);
       node.owner = null;
       node.clearAssignments();
     });
 
-    console.log(
+    this.log.info(this,
       `[CaptureService] ⚠️  Nodo de articulación detectado! ${disconnectedNodes.length} nodos desconectados de ${affectedPlayer.username}`,
     );
 
@@ -329,7 +337,7 @@ export class CaptureService {
         previousOwner.eliminate();
         result.playerEliminated = true;
 
-        console.log(
+        this.log.info(this,
           `[CaptureService] ⚠️  Jugador ${previousOwner.username} ELIMINADO por perder todos los nodos`,
         );
       }

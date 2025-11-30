@@ -1,5 +1,5 @@
 import type { ID } from '@/core/types/id';
 
-export interface IdGenerator {
+export interface IdGeneratorStrategy {
   generate(): ID;
 }

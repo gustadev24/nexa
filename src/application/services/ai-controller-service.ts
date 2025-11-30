@@ -2,6 +2,8 @@ import type { Player } from '@/core/entities/player';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import EnergyCommandService from '@/application/services/energy-command-service';
+import type { Logger } from '@/application/interfaces/logging/logger';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 
 /**
  * AIControllerService - Controla el comportamiento de jugadores IA
@@ -11,12 +13,15 @@ import EnergyCommandService from '@/application/services/energy-command-service'
  * 2. Atacar nodos neutrales cercanos
  * 3. Atacar nodos enemigos débiles cuando sea posible
  */
-export class AIControllerService {
+export class AIControllerService implements Loggeable {
+  _logContext = 'AIControllerService';
   private energyCommandService: EnergyCommandService;
   private lastActionTime = 0;
   private readonly ACTION_INTERVAL = 1000; // ms entre decisiones - más activo para ser competitivo
 
-  constructor() {
+  constructor(
+    private log: Logger,
+  ) {
     this.energyCommandService = new EnergyCommandService();
   }
 
@@ -69,7 +74,7 @@ export class AIControllerService {
           edge,
           amountToAdd,
         );
-        console.log(`[AI] Asignando ${amountToAdd} de energía desde nodo ${sourceNode.id} hacia ${target.targetNode.id}`);
+        this.log.info(this, `[AI] Asignando ${amountToAdd} de energía desde nodo ${sourceNode.id} hacia ${target.targetNode.id}`);
       }
     }
     else {

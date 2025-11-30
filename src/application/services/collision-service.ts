@@ -1,15 +1,11 @@
+import type { ArrivalIntent } from '@/application/interfaces/arrival/arrival-intent';
+import { ArrivalOutcome } from '@/application/interfaces/arrival/arrival-outcome';
+import type { CollisionResult } from '@/application/interfaces/collision/collision-result';
+import type { WasteWarning } from '@/application/interfaces/collision/waste-warning';
 import type { Edge } from '@/core/entities/edge';
 import { EnergyPacket } from '@/core/entities/energy-packet';
 import type { Node } from '@/core/entities/node/node';
 import type { Player } from '@/core/entities/player';
-import {
-  ArrivalOutcome,
-} from '@/application/services/arrival-result.interface';
-import { type ArrivalIntent } from '@/application/services/arrival-intent.interface';
-import {
-  type CollisionResult,
-  type WasteWarning,
-} from '@/application/services/collision-result.interface';
 
 export class CollisionService {
   private static readonly COLLISION_THRESHOLD = 0.01;

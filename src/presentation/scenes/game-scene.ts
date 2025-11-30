@@ -1,18 +1,14 @@
-import { GameFactory } from '@/presentation/game/game-factory';
+import { GameFactory } from '@/infrastructure/game/game-factory';
 import { Scene } from 'phaser';
-import type { GameController } from '@/presentation/game/game-controller';
+import type { GameController } from '@/infrastructure/game/game-controller';
 import { NodeType } from '@/core/types/node-type';
 import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import type { Graph } from '@/core/entities/graph';
 import { EnergyCommandService } from '@/application/services/energy-command-service';
-import { AIControllerService } from '@/application/services/ai-controller.service';
-import { GraphService } from '@/application/services/graph/graph-service';
-import { UuidGenerator } from '@/application/services/helpers/uuid-generator';
-import { LoggerFactory } from '@/application/logging/logger-factory';
 import type { Player } from '@/core/entities/player';
 import type { GameState } from '@/application/interfaces/game/game-state';
-import type { VictoryResult } from '@/application/services/victory-service';
+import { AIControllerService } from '@/application/services/ai-controller-service';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -22,8 +18,11 @@ enum GamePhase {
 }
 
 export class GameScene extends Scene {
+  // Factor de escala: reduce las distancias en píxeles a valores lógicos más pequeños
+  private DISTANCE_SCALE = 0.01;
+
   private camera?: Phaser.Cameras.Scene2D.Camera;
-  private gameController: GameController | null = null;
+  private gameController: GameController;
   private energyCommandService: EnergyCommandService | null = null;
   private aiControllerService: AIControllerService | null = null;
   private currentPlayer: Player | null = null;
@@ -226,17 +225,6 @@ export class GameScene extends Scene {
       },
     ).setOrigin(0.5);
 
-    // this.add.text(
-    //   centerX,
-    //   height - 50,
-    //   'GENERADORES (infinitos) | Capturar → Energía asignada se transfiere | Defensa = Pool - Asignado',
-    //   {
-    //     fontFamily: 'Orbitron, monospace',
-    //     fontSize: '11px',
-    //     color: '#888888',
-    //   },
-    // ).setOrigin(0.5);
-
     this.selectionText = this.add.text(centerX, height - 50, '', {
       fontFamily: 'Orbitron, monospace',
       fontSize: '14px',
@@ -267,13 +255,9 @@ export class GameScene extends Scene {
   }
 
   private generateRandomGraph(): void {
-    const idGenerator = new UuidGenerator();
-    const logger = LoggerFactory.create();
-    const graphService = new GraphService(idGenerator, logger);
-
     // Generate 8-12 nodes
     const nodeCount = Phaser.Math.Between(8, 12);
-    this.gameGraph = graphService.generateRandomGraph(nodeCount);
+    this.gameGraph = this.gameController.generateRandomGraph(nodeCount);
 
     // Map positions for rendering
     const { width, height } = this.scale;
@@ -295,44 +279,6 @@ export class GameScene extends Scene {
     this.synchronizeEdgeLengths();
 
     this.renderInitialGraph();
-  }
-
-  /**
-   * Sincroniza el length lógico de cada arista con la distancia visual real
-   * entre los nodos en el canvas. Esto asegura que los paquetes de energía
-   * viajen a velocidad visual constante.
-   *
-   * Aplica una escala para que las distancias lógicas sean más pequeñas
-   * y los paquetes viajen más rápido (visualmente ~2-3 segundos).
-   */
-  private synchronizeEdgeLengths(): void {
-    if (!this.gameGraph) return;
-
-    // Factor de escala: reduce las distancias en píxeles a valores lógicos más pequeños
-    // Un factor de 0.3 hace que distancias de ~300px se conviertan en ~90 lógicos
-    // Con velocidad de 0.0003, esto resulta en ~2-3 segundos de viaje
-    const DISTANCE_SCALE = 0.01;
-
-    this.gameGraph.edges.forEach((edge) => {
-      const [nodeA, nodeB] = edge.endpoints;
-      const posA = this.nodePositions.get(String(nodeA.id));
-      const posB = this.nodePositions.get(String(nodeB.id));
-
-      if (posA && posB) {
-        // Calcular distancia euclidiana real
-        const dx = posB.x - posA.x;
-        const dy = posB.y - posA.y;
-        const visualDistance = Math.sqrt(dx * dx + dy * dy);
-
-        // Aplicar escala para reducir la distancia lógica
-        const scaledDistance = visualDistance * DISTANCE_SCALE;
-
-        // Actualizar el length de la arista con la distancia escalada
-        edge.length = scaledDistance;
-      }
-    });
-
-    console.log('[Game] Edge lengths synchronized with visual distances (scaled)');
   }
 
   private renderInitialGraph(): void {
@@ -453,7 +399,7 @@ export class GameScene extends Scene {
     this.phaseText?.setText('STARTING GAME...');
 
     // Start the game
-    setTimeout(() => this.initializeGameWithSelections(), 1000);
+    setTimeout(() => this.setSelections(), 1000);
   }
 
   private highlightSelectedNode(nodeId: string, color: number): void {
@@ -466,7 +412,7 @@ export class GameScene extends Scene {
     container.add([border]);
   }
 
-  private initializeGameWithSelections(): void {
+  private intializeGame(): void {
     if (!this.gameGraph || !this.playerSelectedNodeId || !this.aiSelectedNodeId) return;
 
     console.log('[Game] Inicializando juego con selecciones...');
@@ -490,8 +436,7 @@ export class GameScene extends Scene {
     ];
 
     try {
-      const factory = GameFactory.getInstance();
-      const result = factory.createGame(playersConfig, this.gameGraph);
+      const result = GameFactory.createGame(playersConfig);
 
       this.gameController = result.gameController;
       this.currentPlayer = result.players[0];

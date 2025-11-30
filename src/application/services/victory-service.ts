@@ -1,30 +1,7 @@
-import type { Game } from '@/core/entities/game';
+import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
 import type { Graph } from '@/core/entities/graph';
 import type { Player } from '@/core/entities/player';
 import type { ID } from '@/core/types/id';
-
-export interface PlayerNodeStat {
-  playerId: ID;
-  username?: string;
-  nodes: number;
-  percent: number;
-}
-
-export interface GameStats {
-  totalNodes: number;
-  elapsedTime: number; // ms
-  players: PlayerNodeStat[];
-  dominanceTimers: Record<string, number>;
-}
-
-export type VictoryReason = 'dominance' | 'timeout' | 'elimination' | 'draw';
-
-export interface VictoryResult {
-  gameEnded: boolean;
-  winner: Player | null;
-  reason: VictoryReason;
-  stats: GameStats;
-}
 
 export class VictoryService {
   private readonly DOMINANCE_PERCENT = 70;

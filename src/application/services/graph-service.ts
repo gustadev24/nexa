@@ -5,40 +5,73 @@ import { BasicNode } from '@/core/entities/node/basic';
 import { DefenseNode } from '@/core/entities/node/defense';
 import { EnergyNode } from '@/core/entities/node/energy';
 import type { Node } from '@/core/entities/node/node';
-import type { IdGenerator } from '@/core/helpers/id-generator';
-import type { Loggeable } from '@/core/logging/loggeable';
-import type { Logger } from '@/core/logging/logger';
+
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import type { Logger } from '@/application/interfaces/logging/logger';
 import { NodeType } from '@/core/types/node-type';
+import type { LayoutStrategy } from '@/application/strategies/layout/layout-strategy';
+import type { Position } from '@/application/interfaces/types/position';
+import type { IdGeneratorStrategy } from '@/application/strategies/id-generator/id-generator-strategy';
 
 export class GraphService implements Loggeable {
   _logContext = 'GraphService';
 
+  private _graph: Graph;
+  private _nodesPositionMap = new Map<Node, Position>();
+
   constructor(
-    private idGenerator: IdGenerator,
+    private idGenerator: IdGeneratorStrategy,
+    private layoutStrategy: LayoutStrategy,
     private log: Logger,
   ) { }
 
+  get graph(): Graph {
+    // Warning: Puede ser null si no se ha generado aún
+    return this._graph;
+  }
+
+  get nodesPositionMap(): Map<Node, Position> {
+    return this._nodesPositionMap;
+  }
+
   // Este método genera un grafo con el número de nodos deseado. 2/3 de los nodos deben ser básicos, y el resto de tipos especiales distribuidos aleatoriamente. El número de aristas es el doble del número de nodos, las conexiones son aleatorias, la única condición es que el grafo debe ser conexo.
-  generateRandomGraph(nodeCount: number): Graph {
-    const graph = new Graph(this.idGenerator.generate(), nodeCount);
-    // 1. Añadir nodos básicos
+  generateRandomGraph(nodeCount: number): void {
+    this._graph = new Graph(this.idGenerator.generate(), nodeCount);
+    this._nodesPositionMap.clear();
+    // 1. Obtener posiciones
+    const positions = this.layoutStrategy.generatePositions(nodeCount);
+    // 2. Crear nodos básicos y especiales
     const basicNodeCount = this.computeBasicNodeCount(nodeCount);
-    this.addBasicNodes(graph, basicNodeCount);
-    // 2. Añadir nodos especiales
     const specialNodeCount = nodeCount - basicNodeCount;
-    this.addSpecialNodes(graph, specialNodeCount);
-    // 3. Añadir aristas aleatorias asegurando conectividad
+    const nodes = this.createNodes(basicNodeCount, specialNodeCount);
+
+    // 3. Asignar posiciones a nodos
+    nodes.forEach((node, index) => {
+      this._nodesPositionMap.set(node, positions[index]);
+    });
+
+    // 5. Añadir aristas aleatorias asegurando conectividad
     const edgeCount = nodeCount * 2;
-    this.addRandomEdges(graph, edgeCount);
-    // 4. Devolver el grafo
-    return graph;
+    this.createRandomEdges(edgeCount);
   }
 
   private computeBasicNodeCount(totalCount: number): number {
     return Math.floor((2 * totalCount) / 3);
   }
 
-  private addBasicNodes(graph: Graph, count: number): void {
+  private createNodes(basicNodeCount: number, specialNodeCount: number): Node[] {
+    const nodes: Node[] = [
+      ...this.createBasicNodes(basicNodeCount),
+      ...this.createSpecialNodes(specialNodeCount),
+    ];
+    return nodes;
+  }
+
+  private createBasicNodes(count: number): Node[] {
+    if (!this.graph) {
+      throw new Error('Graph is not initialized.');
+    }
+    const nodes: Node[] = [];
     for (let i = 0; i < count; i++) {
       const nodeId = this.idGenerator.generate();
       const nodeName = `N${i + 1}`; // N1, N2, N3, etc.
@@ -46,22 +79,32 @@ export class GraphService implements Loggeable {
       const basicNode = new BasicNode(nodeId, undefined, nodeName);
       // Inicializar energyPool con energyAddition (debe hacerse después del constructor)
       basicNode.addEnergy(basicNode.energyAddition);
-      graph.registerNode(basicNode);
+      this.graph.registerNode(basicNode);
+      nodes.push(basicNode);
     }
+    return nodes;
   }
 
-  private addSpecialNodes(graph: Graph, count: number): void {
+  private createSpecialNodes(count: number): Node[] {
+    if (!this.graph) {
+      throw new Error('Graph is not initialized.');
+    }
     const counters = { attack: 0, defense: 0, energy: 0 };
-
+    const nodes: Node[] = [];
     for (let i = 0; i < count; i++) {
       // Crear nodo especial aleatorio y registrarlo en el grafo
       const specialNode = this.generateRandomSpecialNode(counters);
-      graph.registerNode(specialNode);
+      this.graph.registerNode(specialNode);
+      nodes.push(specialNode);
     }
+    return nodes;
   }
 
-  private addRandomEdges(graph: Graph, edgeCount: number): void {
-    const nodesArray = Array.from(graph.nodes);
+  private createRandomEdges(edgeCount: number): void {
+    if (!this.graph) {
+      throw new Error('Graph is not initialized.');
+    }
+    const nodesArray = Array.from(this.graph.nodes);
     const nodeCount = nodesArray.length;
 
     const minEdgesForConnectivity = nodeCount - 1;
@@ -76,20 +119,34 @@ export class GraphService implements Loggeable {
       const toNode = nodesArray[Math.floor(Math.random() * i)];
       const edgeId = this.idGenerator.generate();
       const edge = new Edge(edgeId, [fromNode, toNode], Math.floor(Math.random() * 10) + 1);
-      graph.registerEdge(edge, fromNode, toNode);
+      this.graph.registerEdge(edge, fromNode, toNode);
     }
     // Añadir aristas adicionales aleatorias hasta alcanzar edgeCount
-    while (graph.edges.size < edgeCount) {
+    while (this.graph.edges.size < edgeCount) {
       const fromNode = nodesArray[Math.floor(Math.random() * nodeCount)];
       const toNode = nodesArray[Math.floor(Math.random() * nodeCount)];
       // Evitar bucles y aristas duplicadas
-      if (fromNode.id !== toNode.id && !graph.hasEdgeBetween(fromNode, toNode)) {
-        const edgeId = this.idGenerator.generate();
-        const edge = new Edge(edgeId, [fromNode, toNode], Math.floor(Math.random() * 10) + 1);
-        graph.registerEdge(edge, fromNode, toNode);
+      if (fromNode.id !== toNode.id && !this.graph.hasEdgeBetween(fromNode, toNode)) {
+        const edge = this.createEdge(fromNode, toNode);
+        this.graph.registerEdge(edge, fromNode, toNode);
       }
     }
   }
+
+  private createEdge(from: Node, to: Node): Edge {
+    const posA = this._nodesPositionMap.get(from);
+    const posB = this._nodesPositionMap.get(to);
+
+    // CÁLCULO INMEDIATO: Si tenemos posiciones, calculamos la distancia real
+    let distance = 1; // Valor default
+    if (posA && posB) {
+      distance = this.layoutStrategy.calculateDistance(posA, posB);
+    }
+
+    const edgeId = this.idGenerator.generate();
+    // ¡La arista nace con la distancia correcta!
+    return new Edge(edgeId, [from, to], distance);
+  };
 
   private generateRandomSpecialNode(counters: { attack: number; defense: number; energy: number }): Node {
     const nodeId = this.idGenerator.generate();

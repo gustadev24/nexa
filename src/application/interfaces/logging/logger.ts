@@ -1,4 +1,4 @@
-import type { Loggeable } from '@/core/logging/loggeable';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 
 export interface Logger {
   info(context: Loggeable, message: string, ...args: unknown[]): void;
