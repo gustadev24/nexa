@@ -6,7 +6,6 @@ import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import type { Player } from '@/core/entities/player';
 import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
-import { EnergyCommandService } from '@/application/services/energy-command-service';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -18,7 +17,6 @@ enum GamePhase {
 export class GameScene extends Scene {
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private gameController: GameController;
-  private energyCommandService: EnergyCommandService | null = null;
   private currentPlayer: Player | null = null;
 
   // Game state
@@ -64,7 +62,6 @@ export class GameScene extends Scene {
     this.selectedNode = null;
     this.currentPlayer = null;
     this.gameController = GameFactory.createGame([], this.scale);
-    this.energyCommandService = null;
 
     // Clear visual maps
     this.nodeGraphics.clear();
@@ -555,7 +552,7 @@ export class GameScene extends Scene {
   }
 
   private handleRedistributionClick(node: Node): void {
-    if (!this.currentPlayer || !this.energyCommandService) return;
+    if (!this.currentPlayer) return;
 
     if (!this.redistributionMode) {
       // First click: select source node
@@ -581,7 +578,7 @@ export class GameScene extends Scene {
       }
 
       // Usar transferencia especial entre aliados (un solo paquete de 10)
-      const result = this.energyCommandService.transferEnergyBetweenAllies(
+      const result = this.gameController.getEnergyCommander().transferEnergyBetweenAllies(
         this.currentPlayer,
         this.redistributionSourceNode,
         node,
@@ -605,7 +602,7 @@ export class GameScene extends Scene {
   }
 
   private handleEdgeClick(edge: Edge, isRemoveAction: boolean): void {
-    if (!this.currentPlayer || !this.energyCommandService) return;
+    if (!this.currentPlayer) return;
 
     const amount = 10;
     const [nodeA, nodeB] = edge.endpoints;
@@ -620,7 +617,7 @@ export class GameScene extends Scene {
 
       if (assignmentA > 0) {
         // Quitar energía del nodo A
-        const result = this.energyCommandService.removeEnergyFromEdge(
+        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
           this.currentPlayer,
           nodeA,
           edge,
@@ -641,7 +638,7 @@ export class GameScene extends Scene {
 
       if (assignmentB > 0) {
         // Quitar energía del nodo B
-        const result = this.energyCommandService.removeEnergyFromEdge(
+        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
           this.currentPlayer,
           nodeB,
           edge,
@@ -673,7 +670,7 @@ export class GameScene extends Scene {
 
     if (isAllyTransfer) {
       // Usar transferencia especial entre aliados (un solo paquete)
-      const result = this.energyCommandService.transferEnergyBetweenAllies(
+      const result = this.gameController.getEnergyCommander().transferEnergyBetweenAllies(
         this.currentPlayer,
         this.selectedNode,
         targetNode,
@@ -693,13 +690,13 @@ export class GameScene extends Scene {
     else {
       // Asignación normal de ataque o remoción
       const result = isRemoveAction
-        ? this.energyCommandService.removeEnergyFromEdge(
+        ? this.gameController.getEnergyCommander().removeEnergyFromEdge(
             this.currentPlayer,
             this.selectedNode,
             edge,
             amount,
           )
-        : this.energyCommandService.assignEnergyToEdge(
+        : this.gameController.getEnergyCommander().assignEnergyToEdge(
             this.currentPlayer,
             this.selectedNode,
             edge,
@@ -1139,7 +1136,6 @@ export class GameScene extends Scene {
     this.aiSelectedNodeId = null;
     this.selectedNode = null;
     this.currentPlayer = null;
-    this.energyCommandService = null;
     this.victoryHandled = false;
     this.redistributionMode = false;
     this.redistributionSourceNode = null;
@@ -1182,7 +1178,6 @@ export class GameScene extends Scene {
 
     // Clear all state
     // GameController será recreado en el próximo init()
-    this.energyCommandService = null;
     this.currentPlayer = null;
     this.selectedNode = null;
     this.victoryHandled = false;

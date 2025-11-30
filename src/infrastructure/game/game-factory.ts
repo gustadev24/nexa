@@ -14,6 +14,7 @@ import { PhaserRadialLayoutStrategy } from '@/infrastructure/implementations/lay
 import type { Scale } from 'phaser';
 import { PlayerService } from '@/application/services/player-service';
 import { AIControllerService } from '@/application/services/ai-controller-service';
+import EnergyCommandService from '@/application/services/energy-command-service';
 
 /**
  * GameFactory - Factoría para crear instancias completas del juego NEXA
@@ -58,6 +59,7 @@ class GameFactory {
     const victoryService = new VictoryService();
     const playerService = new PlayerService(idGenerator);
     const aiController = new AIControllerService(logger);
+    const energyCommandService = new EnergyCommandService();
     playerService.createPlayers(playerConfigs);
     console.log('[GameFactory] Servicios de aplicación creados');
 
@@ -87,6 +89,7 @@ class GameFactory {
       graphService,
       playerService,
       aiController,
+      energyCommandService,
     );
     console.log('[GameFactory] GameController creado');
 

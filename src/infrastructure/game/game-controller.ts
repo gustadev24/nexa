@@ -12,6 +12,7 @@ import type { GraphService } from '@/application/services/graph-service';
 import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
 import type { PlayerService } from '@/application/services/player-service';
 import type { AIControllerService } from '@/application/services/ai-controller-service';
+import type EnergyCommandService from '@/application/services/energy-command-service';
 
 /**
  * GameController - Coordinador principal del ciclo de juego
@@ -37,6 +38,7 @@ export class GameController {
     private graphService: GraphService,
     private playerService: PlayerService,
     private aiControllerService: AIControllerService,
+    private energyCommandService: EnergyCommandService,
   ) {
   }
 
@@ -220,6 +222,10 @@ export class GameController {
 
   getAIController(): AIControllerService {
     return this.aiControllerService;
+  }
+
+  getEnergyCommander(): EnergyCommandService {
+    return this.energyCommandService;
   }
 
   /**
