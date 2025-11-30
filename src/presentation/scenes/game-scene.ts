@@ -52,8 +52,6 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   init() {
-    this.gameController.logger.info(this, 'Scene init - resetting state...');
-
     // Reset all state variables to initial values
     this.gamePhase = GamePhase.WAITING_PLAYER_SELECTION;
     this.playerSelectedNodeId = null;
@@ -64,6 +62,7 @@ export class GameScene extends Scene implements Loggeable {
     this.selectedNode = null;
     this.currentPlayer = null;
     this.gameController = GameFactory.createGame([], this.scale);
+    this.gameController.logger.info(this, 'Scene init - resetting state...');
 
     // Clear visual maps
     this.nodeGraphics.clear();
