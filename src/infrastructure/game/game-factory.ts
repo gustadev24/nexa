@@ -15,6 +15,7 @@ import type { Scale } from 'phaser';
 import { PlayerService } from '@/application/services/player-service';
 import { AIControllerService } from '@/application/services/ai-controller-service';
 import EnergyCommandService from '@/application/services/energy-command-service';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 
 /**
  * GameFactory - Factoría para crear instancias completas del juego NEXA
@@ -26,17 +27,18 @@ import EnergyCommandService from '@/application/services/energy-command-service'
  *
  * Patrón: Factory
  */
-class GameFactory {
+class GameFactory implements Loggeable {
+  _logContext = 'GameFactory';
   NODE_COUNT_RANGE = { min: 8, max: 10 };
 
   /**
    * Crea un juego completo con todos sus componentes
    */
   createGame(playerConfigs: PlayerConfig[], scale: Scale.ScaleManager): GameController {
-    console.log('[GameFactory] Iniciando creación del juego...');
-
     const idGenerator = new UuidGenerator();
     const logger = LoggerFactory.create();
+
+    logger.info(this, 'Iniciando creación del juego...');
 
     const { width, height } = scale;
     const centerX = width / 2;
@@ -45,41 +47,30 @@ class GameFactory {
 
     const phaserRadialLayoutStrategy = new PhaserRadialLayoutStrategy(centerX, centerY, radius);
 
-    // 2. Crear el grafo
     const graphService = new GraphService(idGenerator, phaserRadialLayoutStrategy, logger);
     const nodeCount = Math.floor(Math.random() * (this.NODE_COUNT_RANGE.max - this.NODE_COUNT_RANGE.min + 1)) + this.NODE_COUNT_RANGE.min;
     graphService.generateRandomGraph(nodeCount);
-    console.log('[GameFactory] Grafo creado con GraphService');
+    logger.info(this, 'Grafo creado con GraphService');
 
-    // 3. Crear servicios de aplicación
     const timeService = new TimeService();
     const collisionService = new CollisionService();
     const captureService = new CaptureService(logger);
-    const tickService = new TickService(collisionService, captureService);
+    const tickService = new TickService(collisionService, captureService, logger);
     const victoryService = new VictoryService();
     const playerService = new PlayerService(idGenerator);
     const aiController = new AIControllerService(logger);
     const energyCommandService = new EnergyCommandService();
     playerService.createPlayers(playerConfigs);
-    console.log('[GameFactory] Servicios de aplicación creados');
+    logger.info(this, 'Servicios de aplicación creados');
 
-    // 5. Crear GameStateManager
     const gameStateManager = new GameStateManagerService(timeService, playerService, graphService);
-    console.log('[GameFactory] GameStateManager creado');
+    logger.info(this, 'GameStateManager creado');
 
-    // 6. Inicializar el juego con GameService (esto llama prepareForGame internamente)
-    console.log('[GameFactory] Game inicializado con GameService');
+    logger.info(this, 'Game inicializado con GameService');
 
-    // 6. Asignar y capturar nodos iniciales (después de prepareForGame)
-    // this.assignInitialNodes(graph, players, playerConfigs, gameService);
-    // console.log('[GameFactory] Nodos iniciales asignados y capturados');
-
-    // 7. Crear renderer
     const gameRenderer = new GameRenderer();
-    // Nota: El canvas debe ser inicializado externamente si se usa
-    console.log('[GameFactory] GameRenderer creado');
+    logger.info(this, 'GameRenderer creado');
 
-    // 8. Crear y configurar el GameController
     const gameController = new GameController(
       tickService,
       victoryService,
@@ -90,8 +81,9 @@ class GameFactory {
       playerService,
       aiController,
       energyCommandService,
+      logger,
     );
-    console.log('[GameFactory] GameController creado');
+    logger.info(this, 'GameController creado');
 
     return gameController;
   }

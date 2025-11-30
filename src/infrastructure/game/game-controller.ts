@@ -13,6 +13,8 @@ import type { VictoryResult } from '@/application/interfaces/victory/victory-res
 import type { PlayerService } from '@/application/services/player-service';
 import type { AIControllerService } from '@/application/services/ai-controller-service';
 import type EnergyCommandService from '@/application/services/energy-command-service';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import type { Logger } from '@/application/interfaces/logging/logger';
 
 /**
  * GameController - Coordinador principal del ciclo de juego
@@ -26,7 +28,8 @@ import type EnergyCommandService from '@/application/services/energy-command-ser
  *
  * Patrón: Controller/Orchestrator/Facade
  */
-export class GameController {
+export class GameController implements Loggeable {
+  _logContext = 'GameController';
   private onVictoryCallback: ((result: VictoryResult) => void) | null = null;
 
   constructor(
@@ -39,6 +42,7 @@ export class GameController {
     private playerService: PlayerService,
     private aiControllerService: AIControllerService,
     private energyCommandService: EnergyCommandService,
+    private log: Logger,
   ) {
   }
 
@@ -57,7 +61,7 @@ export class GameController {
       throw new Error('No se puede iniciar el juego: el estado del juego no está inicializado.');
     }
     this.gameStateManager.setGameStatus(GameStatus.PLAYING);
-    console.log('[GameController] Iniciando juego...');
+    this.log.info(this, 'Iniciando juego...');
 
     // Render inicial - solo si el renderer está inicializado
     if (this.gameRenderer && this.gameRenderer.getContext()) {
@@ -117,6 +121,10 @@ export class GameController {
     }
   }
 
+  get logger(): Logger {
+    return this.log;
+  }
+
   /**
    * Asigna nodos iniciales a los jugadores
    */
@@ -125,7 +133,7 @@ export class GameController {
   ): void {
     assignments.forEach((node, player) => {
       this.captureService.captureInitialNode(player, node);
-      console.log(`[GameController] Jugador ${player.username} capturó nodo inicial ${node.id}`);
+      this.log.info(this, `Jugador ${player.username} capturó nodo inicial ${node.id}`);
     });
   }
 
@@ -133,7 +141,7 @@ export class GameController {
    * Maneja el fin del juego
    */
   private handleGameEnd(victoryResult: VictoryResult): void {
-    console.log('[GameController] Juego terminado:', victoryResult);
+    this.log.info(this, 'Juego terminado:', victoryResult);
     this.gameStateManager.setGameStatus(GameStatus.FINISHED);
 
     // Renderizar estado final
@@ -154,7 +162,7 @@ export class GameController {
    */
   finalizeGame(): void {
     const gameResult = this.playerService.resetPlayers();
-    console.log('[GameController] Juego finalizado y limpiado:', gameResult);
+    this.log.info(this, ' Juego finalizado y limpiado:', gameResult);
   }
 
   /**
@@ -162,7 +170,7 @@ export class GameController {
    */
   stopGame(): void {
     this.gameStateManager.setGameStatus(GameStatus.FINISHED);
-    console.log('[GameController] Juego detenido');
+    this.log.info(this, 'Juego detenido');
   }
 
   /**
@@ -170,7 +178,7 @@ export class GameController {
    */
   pauseGame(): void {
     this.gameStateManager.setGameStatus(GameStatus.WAITING);
-    console.log('[GameController] Juego pausado');
+    this.log.info(this, 'Juego pausado');
   }
 
   /**
@@ -179,7 +187,7 @@ export class GameController {
   resumeGame(): void {
     if (this.gameStateManager.gameState.status === GameStatus.WAITING) {
       this.gameStateManager.setGameStatus(GameStatus.PLAYING);
-      console.log('[GameController] Juego reanudado');
+      this.log.info(this, ' Juego reanudado');
     }
   }
 

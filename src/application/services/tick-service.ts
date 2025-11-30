@@ -8,8 +8,11 @@ import type { GameState } from '@/application/interfaces/game/game-state';
 import type { TickResult } from '@/application/interfaces/tick/tick-result';
 import type { ArrivalIntent } from '@/application/interfaces/arrival/arrival-intent';
 import { ArrivalOutcome } from '@/application/interfaces/arrival/arrival-outcome';
+import type { Logger } from '@/application/interfaces/logging/logger';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 
-export class TickService {
+export class TickService implements Loggeable {
+  _logContext = 'TickService';
   private static readonly DEFAULT_SPEED = 0.0003; // Very slow: ~3-4 seconds to traverse edge of length 1
 
   private lastDefenseUpdate = new Map<Node, number>();
@@ -19,6 +22,7 @@ export class TickService {
   constructor(
     private collisionService: CollisionService,
     private captureService: CaptureService,
+    private log: Logger,
   ) { }
 
   executeTick(game: GameState, deltaTime: number): TickResult {
@@ -208,8 +212,8 @@ export class TickService {
                   const assignedToCapture = neighborNode.getAssignedEnergy(edge);
 
                   if (assignedToCapture > 0) {
-                    console.log(
-                      `[Tick] Limpiando asignación de nodo aliado ${neighborNode.id} hacia nodo recién capturado ${capturedNode.id}: ${assignedToCapture} energía`,
+                    this.log.info(this,
+                      `Limpiando asignación de nodo aliado ${neighborNode.id} hacia nodo recién capturado ${capturedNode.id}: ${assignedToCapture} energía`,
                     );
 
                     // Devolver la energía asignada al pool del nodo aliado

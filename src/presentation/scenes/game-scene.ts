@@ -6,6 +6,7 @@ import type { Node } from '@/core/entities/node/node';
 import type { Edge } from '@/core/entities/edge';
 import type { Player } from '@/core/entities/player';
 import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
+import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -14,7 +15,8 @@ enum GamePhase {
   GAME_OVER = 'GAME_OVER',
 }
 
-export class GameScene extends Scene {
+export class GameScene extends Scene implements Loggeable {
+  _logContext = 'GameScene';
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private gameController: GameController;
   private currentPlayer: Player | null = null;
@@ -50,7 +52,7 @@ export class GameScene extends Scene {
   }
 
   init() {
-    console.log('[Game] Scene init - resetting state...');
+    this.gameController.logger.info(this, 'Scene init - resetting state...');
 
     // Reset all state variables to initial values
     this.gamePhase = GamePhase.WAITING_PLAYER_SELECTION;
@@ -394,7 +396,7 @@ export class GameScene extends Scene {
   private intializeGame(): void {
     if (!this.playerSelectedNodeId || !this.aiSelectedNodeId) return;
 
-    console.log('[Game] Inicializando juego con selecciones...');
+    this.gameController.logger.info(this, 'Inicializando juego con selecciones...');
 
     const playersConfig = [
       {
@@ -438,7 +440,7 @@ export class GameScene extends Scene {
       });
 
       this.gameController.startGame();
-      console.log('[Game] Game started with', graph.nodes.size, 'nodes');
+      this.gameController.logger.info(this, 'Game started with', graph.nodes.size, 'nodes');
 
       this.gamePhase = GamePhase.PLAYING;
       this.phaseText?.setText('JUEGO EN PROGRESO');
@@ -449,7 +451,7 @@ export class GameScene extends Scene {
       graph.edges.forEach((edge: Edge) => this.renderConnection(edge));
     }
     catch (error) {
-      console.error('[Game] Failed to initialize:', error);
+      this.gameController.logger.error(this, 'Failed to initialize:', error);
       this.selectionText?.setText(`Error: ${error}`);
     }
   }
@@ -740,26 +742,21 @@ export class GameScene extends Scene {
     if (this.victoryHandled) return;
     this.victoryHandled = true;
 
-    console.log('[Game] Victory detected by controller:', victoryResult);
+    this.gameController.logger.info(this, 'Victory detected by controller:', victoryResult);
 
     // CRITICAL: Capture stats IMMEDIATELY before anything else changes state
     let p1Nodes = 0;
     let p2Nodes = 0;
-    if (this.gameController) {
-      const graph = this.gameController.getGraph();
-      console.log('[Game] Total nodes in graph:', graph.nodes.size);
-      const allNodes = Array.from(graph.nodes);
-      allNodes.forEach((n) => {
-        console.log(`[Game] Node ${n.id}: owner=${n.owner?.id || 'neutral'}`);
-      });
+    const graph = this.gameController.getGraph();
+    this.gameController.logger.info(this, 'Total nodes in graph:', graph.nodes.size);
+    const allNodes = Array.from(graph.nodes);
+    allNodes.forEach((n) => {
+      this.gameController.logger.info(this, `Node ${n.id}: owner=${n.owner?.id || 'neutral'}`);
+    });
 
-      p1Nodes = allNodes.filter(n => n.owner?.id === 'player-1').length;
-      p2Nodes = allNodes.filter(n => n.owner?.id === 'player-2').length;
-      console.log('[Game] Final stats captured - P1:', p1Nodes, 'nodes, P2:', p2Nodes, 'nodes');
-    }
-    else {
-      console.error('[Game] ERROR: gameController is null when trying to capture stats!');
-    }
+    p1Nodes = allNodes.filter(n => n.owner?.id === 'player-1').length;
+    p2Nodes = allNodes.filter(n => n.owner?.id === 'player-2').length;
+    this.gameController.logger.info(this, 'Final stats captured - P1:', p1Nodes, 'nodes, P2:', p2Nodes, 'nodes');
 
     // Determine winner name
     const winnerName = victoryResult.winner
@@ -775,11 +772,11 @@ export class GameScene extends Scene {
 
     // Transition to GameOverScene after delay with captured stats
     this.time.delayedCall(2000, () => {
-      console.log('[Game] Transitioning to GameOverScene with stats - P1:', p1Nodes, 'P2:', p2Nodes);
+      this.gameController.logger.info(this, 'Transitioning to GameOverScene with stats - P1:', p1Nodes, 'P2:', p2Nodes);
 
       // Finalize and cleanup game state now that we're transitioning
       if (this.gameController) {
-        console.log('[Game] Calling finalizeGame to cleanup...');
+        this.gameController.logger.info(this, 'Calling finalizeGame to cleanup...');
         this.gameController.finalizeGame();
       }
 
@@ -805,7 +802,7 @@ export class GameScene extends Scene {
         this.gameController.getAIController().executeAITurn(aiPlayer, Date.now());
       }
       catch (error) {
-        console.error('[Game] AI error:', error);
+        this.gameController.logger.error(this, 'AI error:', error);
       }
     }
   }
@@ -875,7 +872,7 @@ export class GameScene extends Scene {
       });
     }
     catch (error) {
-      console.error('[Game] Visual update error:', error);
+      this.gameController.logger.error(this, 'Visual update error:', error);
     }
   }
 
@@ -1116,7 +1113,7 @@ export class GameScene extends Scene {
   }
 
   private resetGame(): void {
-    console.log('[Game] Resetting game...');
+    this.gameController.logger.info(this, 'Resetting game...');
 
     // Stop current game properly
     if (this.gameController) {
@@ -1126,7 +1123,7 @@ export class GameScene extends Scene {
         this.gameController.finalizeGame();
       }
       catch (error) {
-        console.warn('[Game] Error stopping game:', error);
+        this.gameController.logger.warn(this, 'Error stopping game:', error);
       }
     }
 
@@ -1163,7 +1160,7 @@ export class GameScene extends Scene {
   }
 
   shutdown(): void {
-    console.log('[Game] Scene shutting down, cleaning up...');
+    this.gameController.logger.info(this, 'Scene shutting down, cleaning up...');
 
     // Stop and finalize game if still active
     if (this.gameController) {
@@ -1172,7 +1169,7 @@ export class GameScene extends Scene {
         this.gameController.finalizeGame();
       }
       catch (error) {
-        console.warn('[Game] Error during shutdown cleanup:', error);
+        this.gameController.logger.warn(this, 'Error during shutdown cleanup:', error);
       }
     }
 
