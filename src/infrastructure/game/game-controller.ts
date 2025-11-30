@@ -15,6 +15,7 @@ import type { AIControllerService } from '@/application/services/ai-controller-s
 import type EnergyCommandService from '@/application/services/energy-command-service';
 import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 import type { Logger } from '@/application/interfaces/logging/logger';
+import type { Position } from '@/application/interfaces/types/position';
 
 /**
  * GameController - Coordinador principal del ciclo de juego
@@ -61,6 +62,7 @@ export class GameController implements Loggeable {
       throw new Error('No se puede iniciar el juego: el estado del juego no está inicializado.');
     }
     this.gameStateManager.setGameStatus(GameStatus.PLAYING);
+    this.playerService.preparePlayersForNewGame();
     this.log.info(this, 'Iniciando juego...');
 
     // Render inicial - solo si el renderer está inicializado
@@ -141,7 +143,10 @@ export class GameController implements Loggeable {
    * Maneja el fin del juego
    */
   private handleGameEnd(victoryResult: VictoryResult): void {
-    this.log.info(this, 'Juego terminado:', victoryResult);
+    // Loggear solo información relevante sin objetos complejos
+    const winnerName = victoryResult.winner?.username || 'Empate';
+    const reason = victoryResult.reason;
+    this.log.info(this, `Juego terminado: Ganador=${winnerName}, Razón=${reason}`);
     this.gameStateManager.setGameStatus(GameStatus.FINISHED);
 
     // Renderizar estado final
@@ -248,6 +253,10 @@ export class GameController implements Loggeable {
    */
   generateGraph(nodeCount: number) {
     return this.graphService.generateRandomGraph(nodeCount);
+  }
+
+  getNodePositions(): Map<Node, Position> {
+    return this.graphService.nodesPositionMap;
   }
 
   /**

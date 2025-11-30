@@ -3,6 +3,7 @@ import { Scene } from 'phaser';
 interface GameOverData {
   winner: string;
   winnerId: string;
+  winnerColor: string;
   p1Nodes: number;
   p2Nodes: number;
   reason: string;
@@ -20,13 +21,12 @@ export class GameOverScene extends Scene {
     this.camera.setBackgroundColor(0x001122);
 
     const { width, height } = this.scale;
-    const { winner, winnerId, p1Nodes, p2Nodes, reason } = data;
+    const { winner, winnerColor, p1Nodes, p2Nodes, reason } = data;
 
     // Background
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.9);
 
     // Title
-    const winnerColor = winnerId === 'player-1' ? '#00ffff' : '#ff00ff';
     const titleText = this.add.text(
       width / 2,
       height / 2 - 150,

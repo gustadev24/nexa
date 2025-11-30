@@ -20,6 +20,8 @@ export class GameScene extends Scene implements Loggeable {
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private gameController: GameController;
   private currentPlayer: Player | null = null;
+  private humanPlayer: Player | null = null;
+  private aiPlayer: Player | null = null;
 
   // Game state
   private gamePhase: GamePhase = GamePhase.WAITING_PLAYER_SELECTION;
@@ -40,7 +42,6 @@ export class GameScene extends Scene implements Loggeable {
   // Visual
   private nodeGraphics = new Map<string, Phaser.GameObjects.Container>();
   private connectionGraphics = new Map<string, Phaser.GameObjects.Graphics>();
-  private nodePositions = new Map<string, { x: number; y: number }>();
   private packetGraphics = new Map<string, Phaser.GameObjects.Graphics>();
   private edgeAssignmentTexts = new Map<string, Phaser.GameObjects.Text>();
 
@@ -61,7 +62,19 @@ export class GameScene extends Scene implements Loggeable {
     this.redistributionSourceNode = null;
     this.selectedNode = null;
     this.currentPlayer = null;
-    this.gameController = GameFactory.createGame([], this.scale);
+    this.humanPlayer = null;
+    this.aiPlayer = null;
+    const playersConfig = [
+      {
+        username: 'Jugador 1',
+        color: '#00ffff',
+      },
+      {
+        username: 'Jugador IA',
+        color: '#ff00ff',
+      },
+    ];
+    this.gameController = GameFactory.createGame(playersConfig, this.scale);
     this.gameController.logger.info(this, 'Scene init - resetting state...');
 
     // Clear visual maps
@@ -69,7 +82,6 @@ export class GameScene extends Scene implements Loggeable {
     this.connectionGraphics.clear();
     this.packetGraphics.clear();
     this.edgeAssignmentTexts.clear();
-    this.nodePositions.clear();
   }
 
   create() {
@@ -246,22 +258,6 @@ export class GameScene extends Scene implements Loggeable {
     const nodeCount = Phaser.Math.Between(8, 12);
     this.gameController.generateGraph(nodeCount);
 
-    // Map positions for rendering
-    const { width, height } = this.scale;
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const radius = Math.min(width, height) * 0.3;
-
-    const nodes = Array.from(this.gameController.getGraph().nodes);
-    nodes.forEach((node, i) => {
-      const angle = (i / nodeCount) * Math.PI * 2;
-      const radiusVariation = Phaser.Math.FloatBetween(0.8, 1.2);
-      const x = centerX + Math.cos(angle) * radius * radiusVariation;
-      const y = centerY + Math.sin(angle) * radius * radiusVariation;
-
-      this.nodePositions.set(String(node.id), { x, y });
-    });
-
     this.renderInitialGraph();
   }
 
@@ -269,8 +265,8 @@ export class GameScene extends Scene implements Loggeable {
     // Render edges
     this.gameController.getGraph().edges.forEach((edge) => {
       const [nodeA, nodeB] = edge.endpoints;
-      const posA = this.nodePositions.get(String(nodeA.id));
-      const posB = this.nodePositions.get(String(nodeB.id));
+      const posA = this.gameController.getNodePositions().get(nodeA);
+      const posB = this.gameController.getNodePositions().get(nodeB);
       if (!posA || !posB) return;
 
       const edgeId = String(edge.id);
@@ -287,7 +283,7 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private renderInitialNode(node: Node): void {
-    const pos = this.nodePositions.get(String(node.id));
+    const pos = this.gameController.getNodePositions().get(node);
     if (!pos) return;
 
     const container = this.add.container(pos.x, pos.y);
@@ -393,44 +389,30 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private intializeGame(): void {
-    if (!this.playerSelectedNodeId || !this.aiSelectedNodeId) return;
-
     this.gameController.logger.info(this, 'Inicializando juego con selecciones...');
 
-    const playersConfig = [
-      {
-        id: 'player-1',
-        username: 'Jugador 1',
-        color: '#00ffff',
-        initialNodeId: this.playerSelectedNodeId,
-      },
-      {
-        id: 'player-2',
-        username: 'Jugador IA',
-        color: '#ff00ff',
-        initialNodeId: this.aiSelectedNodeId,
-      },
-    ];
-
     try {
-      // GameFactory ahora retorna solo el GameController
-      this.gameController = GameFactory.createGame(playersConfig, this.scale);
+      this.gameController.startGame();
 
       // Obtener referencias a través del GameController
       const players = this.gameController.getPlayers();
       const graph = this.gameController.getGraph();
 
-      this.currentPlayer = players[0];
+      // Guardar referencias a los jugadores
+      this.humanPlayer = players[0];
+      this.aiPlayer = players[1];
+      this.currentPlayer = this.humanPlayer;
 
       // Asignar nodos iniciales
       const assignments = new Map<Player, Node>();
-      playersConfig.forEach((config, index) => {
-        const player = players[index];
-        const node = Array.from(graph.nodes).find(n => n.id === config.initialNodeId);
-        if (node) {
-          assignments.set(player, node);
-        }
-      });
+
+      const playerNode = Array.from(graph.nodes).find(n => String(n.id) === this.playerSelectedNodeId);
+      const aiNode = Array.from(graph.nodes).find(n => String(n.id) === this.aiSelectedNodeId);
+      if (!playerNode || !aiNode) {
+        throw new Error('Invalid node selection for players');
+      }
+      assignments.set(players[0], playerNode);
+      assignments.set(players[1], aiNode);
       this.gameController.assignInitialNodes(assignments);
 
       // Setup victory callback before starting
@@ -438,7 +420,6 @@ export class GameScene extends Scene implements Loggeable {
         this.handleVictoryFromController(victoryResult);
       });
 
-      this.gameController.startGame();
       this.gameController.logger.info(this, 'Game started with', graph.nodes.size, 'nodes');
 
       this.gamePhase = GamePhase.PLAYING;
@@ -456,8 +437,6 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private handleGameplayInput(pointer: Phaser.Input.Pointer): void {
-    if (!this.gameController) return;
-
     const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
     if (clickedNodeId) {
       // Explicitly cast/type to avoid 'unknown' error
@@ -489,11 +468,11 @@ export class GameScene extends Scene implements Loggeable {
     let clickedNodeId: string | null = null;
     let minDist = 35;
 
-    this.nodePositions.forEach((pos, nodeId) => {
+    this.gameController.getNodePositions().forEach((pos, node) => {
       const dist = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
       if (dist < minDist) {
         minDist = dist;
-        clickedNodeId = nodeId;
+        clickedNodeId = String(node.id);
       }
     });
 
@@ -506,8 +485,8 @@ export class GameScene extends Scene implements Loggeable {
 
     this.gameController.getGraph().edges.forEach((edge: Edge) => {
       const [nodeA, nodeB] = edge.endpoints;
-      const posA = this.nodePositions.get(String(nodeA.id));
-      const posB = this.nodePositions.get(String(nodeB.id));
+      const posA = this.gameController.getNodePositions().get(nodeA);
+      const posB = this.gameController.getNodePositions().get(nodeB);
       if (!posA || !posB) return;
 
       const dist = this.distanceToSegment({ x, y }, posA, posB);
@@ -741,7 +720,10 @@ export class GameScene extends Scene implements Loggeable {
     if (this.victoryHandled) return;
     this.victoryHandled = true;
 
-    this.gameController.logger.info(this, 'Victory detected by controller:', victoryResult);
+    // Loggear solo información relevante sin objetos complejos
+    const logWinnerName = victoryResult.winner?.username || 'Empate';
+    const logReason = victoryResult.reason;
+    this.gameController.logger.info(this, `Victory detected by controller: Ganador=${logWinnerName}, Razón=${logReason}`);
 
     // CRITICAL: Capture stats IMMEDIATELY before anything else changes state
     let p1Nodes = 0;
@@ -753,8 +735,8 @@ export class GameScene extends Scene implements Loggeable {
       this.gameController.logger.info(this, `Node ${n.id}: owner=${n.owner?.id || 'neutral'}`);
     });
 
-    p1Nodes = allNodes.filter(n => n.owner?.id === 'player-1').length;
-    p2Nodes = allNodes.filter(n => n.owner?.id === 'player-2').length;
+    p1Nodes = allNodes.filter(n => n.owner?.id === this.humanPlayer?.id).length;
+    p2Nodes = allNodes.filter(n => n.owner?.id === this.aiPlayer?.id).length;
     this.gameController.logger.info(this, 'Final stats captured - P1:', p1Nodes, 'nodes, P2:', p2Nodes, 'nodes');
 
     // Determine winner name
@@ -779,9 +761,16 @@ export class GameScene extends Scene implements Loggeable {
         this.gameController.finalizeGame();
       }
 
+      // Determinar el color del ganador
+      let winnerColor = '#ffffff';
+      if (victoryResult.winner) {
+        winnerColor = victoryResult.winner.id === this.humanPlayer?.id ? '#00ffff' : '#ff00ff';
+      }
+
       this.scene.start('GameOverScene', {
         winner: winnerName,
         winnerId: winnerId,
+        winnerColor: winnerColor,
         p1Nodes,
         p2Nodes,
         reason: victoryResult.reason,
@@ -795,10 +784,9 @@ export class GameScene extends Scene implements Loggeable {
       return;
     }
 
-    const aiPlayer = this.gameController.getPlayers().find(p => p.id === 'player-2');
-    if (aiPlayer && !aiPlayer.isEliminated) {
+    if (this.aiPlayer && !this.aiPlayer.isEliminated) {
       try {
-        this.gameController.getAIController().executeAITurn(aiPlayer, Date.now());
+        this.gameController.getAIController().executeAITurn(this.aiPlayer, Date.now());
       }
       catch (error) {
         this.gameController.logger.error(this, 'AI error:', error);
@@ -807,7 +795,6 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private updateHUD(): void {
-    if (!this.gameController) return;
     const snapshot = this.gameController.getGameSnapshot();
     if (!snapshot) return;
 
@@ -820,8 +807,8 @@ export class GameScene extends Scene implements Loggeable {
     }
 
     // Usar playerStats del snapshot en lugar de acceder al gameState directamente
-    const p1Stats = snapshot.playerStats.find(p => p.playerId === 'player-1');
-    const p2Stats = snapshot.playerStats.find(p => p.playerId === 'player-2');
+    const p1Stats = snapshot.playerStats.find(p => p.playerId === this.humanPlayer?.id);
+    const p2Stats = snapshot.playerStats.find(p => p.playerId === this.aiPlayer?.id);
 
     if (p1Stats && p2Stats) {
       const p1Percent = Math.floor(p1Stats.dominancePercentage);
@@ -832,14 +819,14 @@ export class GameScene extends Scene implements Loggeable {
       let statsText = `P1: ${p1Percent}% (${p1Nodes}) | P2: ${p2Percent}% (${p2Nodes})`;
 
       // Mostrar contador de dominancia si algún jugador supera el 70%
-      if (p1Percent >= 70) {
-        const dominanceTime = this.gameController.getDominanceTime('player-1');
+      if (p1Percent >= 70 && this.humanPlayer) {
+        const dominanceTime = this.gameController.getDominanceTime(this.humanPlayer.id);
         const remainingTime = Math.max(0, 10 - dominanceTime / 1000);
         statsText += `\n⚠️  P1 DOMINANDO: ${remainingTime.toFixed(1)}s`;
       }
 
-      if (p2Percent >= 70) {
-        const dominanceTime = this.gameController.getDominanceTime('player-2');
+      if (p2Percent >= 70 && this.aiPlayer) {
+        const dominanceTime = this.gameController.getDominanceTime(this.aiPlayer.id);
         const remainingTime = Math.max(0, 10 - dominanceTime / 1000);
         statsText += `\n⚠️  P2 DOMINANDO: ${remainingTime.toFixed(1)}s`;
       }
@@ -859,8 +846,6 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private updateVisuals(): void {
-    if (!this.gameController) return;
-
     try {
       const graph = this.gameController.getGraph();
       // Always render all nodes, even after game over
@@ -876,7 +861,7 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private renderNode(node: Node): void {
-    const pos = this.nodePositions.get(String(node.id));
+    const pos = this.gameController.getNodePositions().get(node);
     if (!pos) return;
 
     let container = this.nodeGraphics.get(String(node.id));
@@ -893,10 +878,10 @@ export class GameScene extends Scene implements Loggeable {
     if (node.isNeutral()) {
       color = 0x888888; // Gris para todos los neutrales
     }
-    else if (node.owner?.id === 'player-1') {
+    else if (node.owner?.id === this.humanPlayer?.id) {
       color = 0x00ffff;
     }
-    else if (node.owner?.id === 'player-2') {
+    else if (node.owner?.id === this.aiPlayer?.id) {
       color = 0xff00ff;
     }
 
@@ -961,8 +946,8 @@ export class GameScene extends Scene implements Loggeable {
 
   private renderConnection(edge: Edge): void {
     const [nodeA, nodeB] = edge.endpoints;
-    const posA = this.nodePositions.get(String(nodeA.id));
-    const posB = this.nodePositions.get(String(nodeB.id));
+    const posA = this.gameController.getNodePositions().get(nodeA);
+    const posB = this.gameController.getNodePositions().get(nodeB);
     if (!posA || !posB) return;
 
     const edgeId = `${nodeA.id}-${nodeB.id}`;
@@ -1018,7 +1003,7 @@ export class GameScene extends Scene implements Loggeable {
       const posY = posA.y + dy * 0.25 + perpY * offset;
 
       // Color según el dueño del nodo
-      const color = nodeA.owner?.id === 'player-1' ? '#00ffff' : '#ff00ff';
+      const color = nodeA.owner?.id === this.humanPlayer?.id ? '#00ffff' : '#ff00ff';
       textA.setColor(color);
       textA.setPosition(posX, posY);
       textA.setText(Math.floor(assignmentA).toString());
@@ -1052,7 +1037,7 @@ export class GameScene extends Scene implements Loggeable {
       const posY = posA.y + dy * 0.75 - perpY * offset;
 
       // Color según el dueño del nodo
-      const color = nodeB.owner?.id === 'player-1' ? '#00ffff' : '#ff00ff';
+      const color = nodeB.owner?.id === this.humanPlayer?.id ? '#00ffff' : '#ff00ff';
       textB.setColor(color);
       textB.setPosition(posX, posY);
       textB.setText(Math.floor(assignmentB).toString());
@@ -1067,8 +1052,8 @@ export class GameScene extends Scene implements Loggeable {
 
   private renderEnergyPackets(edge: Edge): void {
     const [nodeA, nodeB] = edge.endpoints;
-    const posA = this.nodePositions.get(String(nodeA.id));
-    const posB = this.nodePositions.get(String(nodeB.id));
+    const posA = this.gameController.getNodePositions().get(nodeA);
+    const posB = this.gameController.getNodePositions().get(nodeB);
     if (!posA || !posB) return;
 
     const edgeId = `${nodeA.id}-${nodeB.id}`;
@@ -1085,8 +1070,8 @@ export class GameScene extends Scene implements Loggeable {
       const progress = packet.progress;
 
       // Calculate position based on packet's origin and target
-      const originPos = this.nodePositions.get(String(packet.origin.id));
-      const targetPos = this.nodePositions.get(String(packet.target.id));
+      const originPos = this.gameController.getNodePositions().get(packet.origin);
+      const targetPos = this.gameController.getNodePositions().get(packet.target);
       if (!originPos || !targetPos) return;
 
       const x = originPos.x + (targetPos.x - originPos.x) * progress;
@@ -1094,10 +1079,10 @@ export class GameScene extends Scene implements Loggeable {
 
       // Color based on owner
       let color = 0xffffff;
-      if (packet.owner.id === 'player-1') {
+      if (packet.owner.id === this.humanPlayer?.id) {
         color = 0x00ffff;
       }
-      else if (packet.owner.id === 'player-2') {
+      else if (packet.owner.id === this.aiPlayer?.id) {
         color = 0xff00ff;
       }
 
@@ -1145,7 +1130,6 @@ export class GameScene extends Scene implements Loggeable {
     this.packetGraphics.clear();
     this.edgeAssignmentTexts.forEach(text => text.destroy());
     this.edgeAssignmentTexts.clear();
-    this.nodePositions.clear();
 
     // Reset UI
     this.phaseText?.setText('SELECCIONA TU NODO BASE');
@@ -1183,6 +1167,5 @@ export class GameScene extends Scene implements Loggeable {
     this.connectionGraphics.clear();
     this.packetGraphics.clear();
     this.edgeAssignmentTexts.clear();
-    this.nodePositions.clear();
   }
 }

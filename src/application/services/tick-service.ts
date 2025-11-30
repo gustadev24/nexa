@@ -13,7 +13,7 @@ import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 
 export class TickService implements Loggeable {
   _logContext = 'TickService';
-  private static readonly DEFAULT_SPEED = 0.0003; // Very slow: ~3-4 seconds to traverse edge of length 1
+  private static readonly DEFAULT_SPEED = 0.003; // Velocidad ajustada para distancias normalizadas (1-10): ~1-3 segundos por arista
 
   private lastDefenseUpdate = new Map<Node, number>();
   private lastAttackEmission = new Map<Node, number>();
