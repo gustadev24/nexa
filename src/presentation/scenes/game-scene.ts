@@ -892,8 +892,10 @@ export class GameScene extends Scene implements Loggeable {
       color = 0xff00ff;
     }
 
+    const colorString = `#${color.toString(16).padStart(6, '0')}`;
+
     const radius = VISUAL_CONSTANTS.NODE_RADIUS;
-    const circle = this.add.circle(0, 0, radius, color, 0.8);
+    const circle = this.add.circle(0, 0, radius, color, 0.9);
 
     const isInitialNode = (this.humanPlayer?.initialNode?.equals(node)) || (this.aiPlayer?.initialNode?.equals(node));
 
@@ -939,7 +941,9 @@ export class GameScene extends Scene implements Loggeable {
     const energyText = this.add.text(0, radius + 15, energyDisplayText, {
       fontFamily: 'Orbitron, monospace',
       fontSize: '12px',
-      color: '#00ff88',
+      // Use player color for energy text
+      backgroundColor: '#000000aa',
+      color: colorString,
     }).setOrigin(0.5);
 
     // Agregar símbolo especial para nodos especiales
@@ -992,11 +996,13 @@ export class GameScene extends Scene implements Loggeable {
       this.connectionGraphics.set(edgeId, graphics);
     }
 
-    graphics.clear();
-    graphics.lineStyle(2, 0x004466, 0.6);
+    // Color verde
+    graphics.lineStyle(2, 0x00cf66, 0.1);
     graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
 
-    graphics.setDepth(1);
+    // Core brillante verde
+    graphics.lineStyle(1, 0x00cf66, 0.3);
+    graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
 
     // Renderizar asignaciones de energía para ambos nodos
     this.renderEdgeAssignments(edge, nodeA, nodeB, posA, posB);
