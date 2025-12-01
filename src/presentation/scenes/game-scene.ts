@@ -959,7 +959,17 @@ export class GameScene extends Scene implements Loggeable {
 
       // Los paquetes de energía sí necesitan re-renderizarse porque se mueven
       graph.edges.forEach((edge) => {
-        this.renderEnergyPackets(edge);
+        const [nodeA, nodeB] = edge.endpoints;
+        const posA = this.gameController.getNodePositions().get(nodeA);
+        const posB = this.gameController.getNodePositions().get(nodeB);
+
+        if (posA && posB) {
+          // Actualizar asignaciones de energía (los números)
+          this.renderEdgeAssignments(edge, nodeA, nodeB, posA, posB);
+
+          // Actualizar paquetes de energía en movimiento
+          this.renderEnergyPackets(edge);
+        }
       });
     }
     catch (error) {
