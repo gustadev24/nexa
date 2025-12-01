@@ -6,6 +6,7 @@ import type { PlayerSnapshot } from '@/application/interfaces/player/player-snap
 import type { TimeService } from '@/application/services/time-service';
 import type { GraphService } from '@/application/services/graph-service';
 import type { PlayerService } from '@/application/services/player-service';
+import { GAME_CONSTANTS } from '@/application/constants/game-constants';
 
 /**
  * GameStateManagerService - Gestor del estado de la partida
@@ -23,9 +24,6 @@ import type { PlayerService } from '@/application/services/player-service';
  * Patrón: Manager/Service
  */
 export class GameStateManagerService {
-  private static readonly GAME_DURATION_MS = 180000; // 3 minutos
-  private static readonly DOMINANCE_THRESHOLD = 0.7; // 70%
-
   private _gameProgressState: GameProgressState;
 
   constructor(
@@ -74,7 +72,7 @@ export class GameStateManagerService {
     const { currentTick, elapsedTime, status } = this._gameProgressState;
 
     // Calcular tiempo restante
-    const remainingTime = Math.max(0, GameStateManagerService.GAME_DURATION_MS - elapsedTime);
+    const remainingTime = Math.max(0, GAME_CONSTANTS.TIME_LIMIT_MS - elapsedTime);
 
     // Formatear tiempos
     const elapsedTimeFormatted = this.timeService.formatTime(elapsedTime);
@@ -122,7 +120,7 @@ export class GameStateManagerService {
     playerStats: PlayerSnapshot[],
   ): { playerId: string | number; timeRemaining: number } | undefined {
     for (const stats of playerStats) {
-      if (stats.dominancePercentage >= GameStateManagerService.DOMINANCE_THRESHOLD * 100) {
+      if (stats.dominancePercentage >= GAME_CONSTANTS.DOMINANCE_PERCENT) {
         // El jugador tiene >= 70% pero aún no ha ganado
         // (la verificación de victoria se hace en VictoryService)
         return {
@@ -148,7 +146,7 @@ export class GameStateManagerService {
    */
   updateAllDominanceTrackers(state: GameState, deltaTime: number): void {
     const totalNodes = state.graph.nodes.size;
-    const threshold = GameStateManagerService.DOMINANCE_THRESHOLD;
+    const threshold = GAME_CONSTANTS.DOMINANCE_PERCENT / 100;
 
     for (const player of state.players) {
       const controlledNodes = player.controlledNodes.size;

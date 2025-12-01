@@ -4,6 +4,7 @@ import type { VictoryReason } from '@/application/interfaces/victory/victory-rea
 import type { Graph } from '@/core/entities/graph';
 import type { Player } from '@/core/entities/player';
 import type { ID } from '@/core/types/id';
+import { GAME_CONSTANTS } from '@/application/constants/game-constants';
 
 /**
  * VictoryService - Servicio responsable de verificar condiciones de victoria
@@ -19,10 +20,6 @@ import type { ID } from '@/core/types/id';
  * 3. Tiempo límite: Mayor cantidad de nodos al finalizar 3 minutos
  */
 export class VictoryService {
-  private readonly DOMINANCE_PERCENT = 70;
-  private readonly DOMINANCE_DURATION_MS = 10_000;
-  private readonly TIME_LIMIT_MS = 180_000; // 3 minutes
-
   // Trackers de tiempo de dominancia por jugador
   private dominanceTimers = new Map<ID, number>();
 
@@ -42,7 +39,7 @@ export class VictoryService {
    */
   getDominanceProgress(playerId: ID): number {
     const time = this.getDominanceTime(playerId);
-    return Math.min(100, (time / this.DOMINANCE_DURATION_MS) * 100);
+    return Math.min(100, (time / GAME_CONSTANTS.DOMINANCE_DURATION_MS) * 100);
   }
 
   /**
@@ -62,7 +59,7 @@ export class VictoryService {
       const percent = (nodes / total) * 100;
       const current = this.dominanceTimers.get(player.id) ?? 0;
 
-      if (percent >= this.DOMINANCE_PERCENT) {
+      if (percent >= GAME_CONSTANTS.DOMINANCE_PERCENT) {
         // Jugador mantiene dominancia, acumular tiempo
         this.dominanceTimers.set(player.id, current + deltaTime);
       }
@@ -98,7 +95,7 @@ export class VictoryService {
     // 2. Victoria por dominancia (verificar timers)
     for (const player of players) {
       const timer = this.dominanceTimers.get(player.id) ?? 0;
-      if (timer >= this.DOMINANCE_DURATION_MS) {
+      if (timer >= GAME_CONSTANTS.DOMINANCE_DURATION_MS) {
         return this.buildResult(player, 'dominance', players, totalNodes, elapsedTime);
       }
     }
@@ -155,7 +152,7 @@ export class VictoryService {
     totalNodes: number,
     elapsedTime: number,
   ): VictoryResult {
-    if (elapsedTime < this.TIME_LIMIT_MS) {
+    if (elapsedTime < GAME_CONSTANTS.TIME_LIMIT_MS) {
       return {
         gameEnded: false,
         winner: null,

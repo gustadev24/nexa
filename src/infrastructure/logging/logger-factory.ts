@@ -6,13 +6,12 @@ import { ViteLogger } from '@/infrastructure/logging/vite-logger';
 class LoggerFactory {
   create(): Logger {
     const loggers = [];
-    const env = process.env.NODE_ENV || 'development';
 
-    if (env === 'development') {
+    if (import.meta.env.DEV) {
       loggers.push(new ConsoleLogger(), new ViteLogger());
     }
-    else if (env === 'production') {
-      loggers.push(new ConsoleLogger());
+    else if (import.meta.env.PROD) {
+      loggers.push(new ViteLogger());
     }
 
     return new ComposeLogger(loggers);

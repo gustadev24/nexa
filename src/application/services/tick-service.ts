@@ -3,17 +3,16 @@ import type { Node } from '@/core/entities/node/node';
 
 import { CollisionService } from '@/application/services/collision-service';
 import { CaptureService } from '@/application/services/capture-service';
-import type { Edge } from '@/core/entities/edge'; // Needed for packetsToAddBack
 import type { GameState } from '@/application/interfaces/game/game-state';
 import type { TickResult } from '@/application/interfaces/tick/tick-result';
 import type { ArrivalIntent } from '@/application/interfaces/arrival/arrival-intent';
 import { ArrivalOutcome } from '@/application/interfaces/arrival/arrival-outcome';
 import type { Logger } from '@/application/interfaces/logging/logger';
 import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import { GAME_CONSTANTS } from '@/application/constants/game-constants';
 
 export class TickService implements Loggeable {
   _logContext = 'TickService';
-  private static readonly DEFAULT_SPEED = 0.003; // Velocidad ajustada para distancias normalizadas (1-10): ~1-3 segundos por arista
 
   private lastDefenseUpdate = new Map<Node, number>();
   private lastAttackEmission = new Map<Node, number>();
@@ -115,7 +114,7 @@ export class TickService implements Loggeable {
         packet.advance(
           deltaTime,
           edge.length,
-          TickService.DEFAULT_SPEED,
+          GAME_CONSTANTS.DEFAULT_SPEED,
         );
       }
     }
@@ -137,9 +136,6 @@ export class TickService implements Loggeable {
   resolveArrivals(game: GameState): { arrivals: number; captures: number } {
     let arrivalCount = 0;
     let captureCount = 0;
-
-    // Use a temporary array to store packets to add back to edges
-    const packetsToAddBack: { edge: Edge; packet: EnergyPacket }[] = [];
 
     for (const edge of game.graph.edges) {
       const packets = edge.energyPackets;
@@ -256,18 +252,9 @@ export class TickService implements Loggeable {
               intent.node.reduceDefense(intent.energyAmount);
             }
 
-            // Si el ataque proviene de un nodo que aún existe, podría retornar (feature futura)
-            if (intent.returnPacket) {
-              packetsToAddBack.push({ edge, packet: intent.returnPacket });
-            }
             break;
         }
       }
-    }
-
-    // Re-add any return packets to their respective edges
-    for (const { edge, packet } of packetsToAddBack) {
-      edge.addEnergyPacket(packet);
     }
 
     return { arrivals: arrivalCount, captures: captureCount };

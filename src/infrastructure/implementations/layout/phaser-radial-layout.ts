@@ -30,13 +30,6 @@ export class PhaserRadialLayoutStrategy implements LayoutStrategy {
   }
 
   calculateDistance(posA: Position, posB: Position): number {
-    const pixelDistance = Phaser.Math.Distance.Between(posA.x, posA.y, posB.x, posB.y);
-
-    // Normalizar distancia: dividir píxeles por 50 para obtener valores razonables
-    // Distancias típicas: 100-500px → 2-10 unidades normalizadas
-    // Esto mantiene proporciones relativas pero hace que los paquetes viajen más rápido
-    const normalizedDistance = Math.max(1, pixelDistance / 50);
-
-    return normalizedDistance;
+    return Phaser.Math.Distance.Between(posA.x, posA.y, posB.x, posB.y);
   }
 }

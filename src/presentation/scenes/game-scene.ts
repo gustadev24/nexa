@@ -7,6 +7,8 @@ import type { Edge } from '@/core/entities/edge';
 import type { Player } from '@/core/entities/player';
 import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
 import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import { VISUAL_CONSTANTS } from '@/application/constants/visual-constants';
+import { GAME_CONSTANTS } from '@/application/constants/game-constants';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -17,6 +19,7 @@ enum GamePhase {
 
 export class GameScene extends Scene implements Loggeable {
   _logContext = 'GameScene';
+  private readonly NODE_GRAPHICS_KEY = 'nodeGraphicsType';
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private gameController: GameController;
   private currentPlayer: Player | null = null;
@@ -25,11 +28,9 @@ export class GameScene extends Scene implements Loggeable {
 
   // Game state
   private gamePhase: GamePhase = GamePhase.WAITING_PLAYER_SELECTION;
-  private playerSelectedNodeId: string | null = null;
-  private aiSelectedNodeId: string | null = null;
+  private playerSelectedNode: Node | null = null;
+  private aiSelectedNode: Node | null = null;
   private victoryHandled = false;
-  private redistributionMode = false;
-  private redistributionSourceNode: Node | null = null;
 
   // UI
   private statsText?: Phaser.GameObjects.Text;
@@ -43,7 +44,10 @@ export class GameScene extends Scene implements Loggeable {
   private nodeGraphics = new Map<string, Phaser.GameObjects.Container>();
   private connectionGraphics = new Map<string, Phaser.GameObjects.Graphics>();
   private packetGraphics = new Map<string, Phaser.GameObjects.Graphics>();
-  private edgeAssignmentTexts = new Map<string, Phaser.GameObjects.Text>();
+  private edgeAssignmentTexts = new Map<string, {
+    nodeA: Phaser.GameObjects.Text;
+    nodeB: Phaser.GameObjects.Text;
+  }>();
 
   // Selection
   private selectedNode: Node | null = null;
@@ -55,11 +59,9 @@ export class GameScene extends Scene implements Loggeable {
   init() {
     // Reset all state variables to initial values
     this.gamePhase = GamePhase.WAITING_PLAYER_SELECTION;
-    this.playerSelectedNodeId = null;
-    this.aiSelectedNodeId = null;
+    this.playerSelectedNode = null;
+    this.aiSelectedNode = null;
     this.victoryHandled = false;
-    this.redistributionMode = false;
-    this.redistributionSourceNode = null;
     this.selectedNode = null;
     this.currentPlayer = null;
     this.humanPlayer = null;
@@ -85,8 +87,6 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   create() {
-    const { width, height } = this.scale;
-
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x001122);
 
@@ -100,38 +100,202 @@ export class GameScene extends Scene implements Loggeable {
     this.generateRandomGraph();
     this.setupInputHandlers();
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const startText = this.add.text(
-      centerX,
-      centerY,
-      'NEXA - Estrategia de Generadores de Energía\n\n'
-      + 'Cómo funciona:\n'
-      + '1. Selecciona nodo y CLIC en arista: +10 energía\n'
-      + '2. CTRL+CLIC en arista: -10 energía\n'
-      + '3. CLIC en arista SIN nodo: quita energía asignada\n'
-      + '4. Los nodos GENERAN paquetes cada 1 segundo\n'
-      + '5. ¡Capturar nodo → Energía asignada se transfiere!\n'
-      + '6. Defensa = Pool - Asignado (se regenera cada 1.5s)\n\n'
-      + '¡Los nodos son GENERADORES INFINITOS!\n\n'
-      + 'Haz clic en cualquier nodo neutral para empezar',
+    this.showWelcomeDialog();
+  }
+
+  private showWelcomeDialog(): void {
+    const { width, height } = this.scale;
+
+    // Overlay oscuro (fondo semitransparente)
+    const overlay = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      0x000000,
+      0.85,
+    );
+    overlay.setDepth(1000);
+    overlay.setInteractive();
+    overlay.setAlpha(0);
+
+    // Panel del diálogo - más alto para dar espacio
+    const panelWidth = Math.min(720, width - 40);
+    const panelHeight = Math.min(620, height - 40);
+
+    const dialogPanel = this.add.rectangle(
+      width / 2,
+      height / 2,
+      panelWidth,
+      panelHeight,
+      0x001122,
+      1,
+    );
+    dialogPanel.setStrokeStyle(3, 0x00ffff, 1);
+    dialogPanel.setDepth(1001);
+    dialogPanel.setAlpha(0);
+
+    // Brillo del panel (efecto neón)
+    const glow = this.add.rectangle(
+      width / 2,
+      height / 2,
+      panelWidth + 6,
+      panelHeight + 6,
+      0x00ffff,
+      0,
+    );
+    glow.setStrokeStyle(6, 0x00ffff, 0.3);
+    glow.setDepth(1000);
+    glow.setAlpha(0);
+
+    // Título
+    const title = this.add.text(
+      width / 2,
+      height / 2 - panelHeight / 2 + 45,
+      '⚡ NEXA ⚡',
       {
         fontFamily: 'Orbitron, monospace',
-        fontSize: '14px',
+        fontSize: '44px',
         color: '#00ffff',
         align: 'center',
-        backgroundColor: '#000000cc',
-        padding: { x: 20, y: 20 },
+        stroke: '#00ffff',
+        strokeThickness: 2,
       },
-    ).setOrigin(0.5).setAlpha(0);
+    ).setOrigin(0.5);
+    title.setDepth(1002);
+    title.setAlpha(0);
 
+    // Línea separadora
+    const separator = this.add.rectangle(
+      width / 2,
+      height / 2 - panelHeight / 2 + 95,
+      panelWidth - 80,
+      2,
+      0x00ffff,
+      0.5,
+    );
+    separator.setDepth(1002);
+    separator.setAlpha(0);
+
+    // Contenido - texto más grande
+    const content = this.add.text(
+      width / 2,
+      height / 2 - panelHeight / 2 + 95 + (panelHeight - 190) / 2,
+      '🎮 CONTROLES:\n'
+      + '• Click en nodo → Selecciona\n'
+      + '• Click en vecino → +10 energía\n'
+      + '• CTRL + Click → -10 energía\n'
+      + '• Tecla C → Deselecciona\n\n'
+      + '⚡ MECÁNICAS:\n'
+      + '• Nodos generan paquetes cada 1s\n'
+      + '• Al capturar: energía se transfiere\n'
+      + '• Defensa = Pool - Asignado\n\n'
+      + '🎯 OBJETIVO:\n'
+      + '• 70% nodos por 10 segundos\n'
+      + '• O mayor control en 3 minutos',
+      {
+        fontFamily: 'Orbitron, monospace',
+        fontSize: '15px', // ✅ Aumentado de 13px a 15px
+        color: '#ffffff',
+        align: 'left',
+        lineSpacing: 5, // ✅ Un poco más de espacio entre líneas
+      },
+    ).setOrigin(0.5);
+    content.setDepth(1002);
+    content.setAlpha(0);
+
+    // Botón de cerrar
+    const buttonText = this.add.text(
+      width / 2,
+      height / 2 + panelHeight / 2 - 45,
+      '[ CLICK PARA COMENZAR ]',
+      {
+        fontFamily: 'Orbitron, monospace',
+        fontSize: '16px', // ✅ Aumentado de 15px a 16px
+        color: '#00ff88',
+        align: 'center',
+        backgroundColor: '#00ffff22',
+        padding: { x: 20, y: 10 },
+      },
+    ).setOrigin(0.5);
+    buttonText.setDepth(1002);
+    buttonText.setAlpha(0);
+
+    // Efecto de pulso en el botón
     this.tweens.add({
-      targets: startText,
-      alpha: 1,
+      targets: buttonText,
+      alpha: { from: 0.6, to: 1 },
+      scale: { from: 0.98, to: 1.02 },
       duration: 1000,
       yoyo: true,
-      hold: 5000,
-      onComplete: () => startText.destroy(),
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Agrupar todos los elementos del diálogo
+    const dialogElements = [
+      overlay,
+      glow,
+      dialogPanel,
+      title,
+      separator,
+      content,
+      buttonText,
+    ];
+
+    // Animación de entrada
+    this.tweens.add({
+      targets: dialogElements,
+      alpha: 1,
+      duration: 500,
+      ease: 'Power2',
+    });
+
+    // Animación especial para el título
+    this.tweens.add({
+      targets: title,
+      scale: { from: 0.8, to: 1 },
+      duration: 600,
+      ease: 'Back.easeOut',
+    });
+
+    // Función para cerrar el diálogo
+    const closeDialog = () => {
+      // Animación de salida
+      this.tweens.add({
+        targets: dialogElements,
+        alpha: 0,
+        duration: 300,
+        ease: 'Power2',
+        onComplete: () => {
+          // Destruir todos los elementos
+          dialogElements.forEach(element => element.destroy());
+        },
+      });
+
+      // Animación especial para el panel (zoom out)
+      this.tweens.add({
+        targets: [dialogPanel, glow],
+        scale: 0.8,
+        duration: 300,
+        ease: 'Back.easeIn',
+      });
+    };
+
+    // Click en overlay o botón para cerrar
+    overlay.on('pointerdown', closeDialog);
+    buttonText.setInteractive();
+    buttonText.on('pointerdown', closeDialog);
+
+    // Efecto hover en el botón
+    buttonText.on('pointerover', () => {
+      buttonText.setColor('#00ffff');
+      buttonText.setScale(1.05);
+    });
+
+    buttonText.on('pointerout', () => {
+      buttonText.setColor('#00ff88');
+      buttonText.setScale(1);
     });
   }
 
@@ -264,55 +428,13 @@ export class GameScene extends Scene implements Loggeable {
   private renderInitialGraph(): void {
     // Render edges
     this.gameController.getGraph().edges.forEach((edge) => {
-      const [nodeA, nodeB] = edge.endpoints;
-      const posA = this.gameController.getNodePositions().get(nodeA);
-      const posB = this.gameController.getNodePositions().get(nodeB);
-      if (!posA || !posB) return;
-
-      const edgeId = String(edge.id);
-      const graphics = this.add.graphics();
-      graphics.lineStyle(2, 0x004466, 0.6);
-      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
-      this.connectionGraphics.set(edgeId, graphics);
+      this.renderConnection(edge);
     });
 
     // Render nodes
     this.gameController.getGraph().nodes.forEach((node) => {
-      this.renderInitialNode(node);
+      this.createNodeGraphics(node);
     });
-  }
-
-  private renderInitialNode(node: Node): void {
-    const pos = this.gameController.getNodePositions().get(node);
-    if (!pos) return;
-
-    const container = this.add.container(pos.x, pos.y);
-    this.nodeGraphics.set(String(node.id), container);
-
-    const color = 0x888888; // Gris para neutrales
-    const label = node.name; // Usar nombre del nodo
-
-    const radius = 30;
-    const circle = this.add.circle(0, 0, radius, color, 0.6);
-    const border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
-    const text = this.add.text(0, 0, label, {
-      fontFamily: 'Orbitron, monospace',
-      fontSize: '20px',
-      color: '#fff',
-    }).setOrigin(0.5);
-    const energyText = this.add.text(0, radius + 15, Math.floor(node.energyPool).toString(), {
-      fontFamily: 'Orbitron, monospace',
-      fontSize: '14px',
-      color: '#00ff88',
-    }).setOrigin(0.5);
-
-    // Agregar símbolo especial para nodos especiales
-    const symbol = this.getNodeSymbol(node.nodeType, color);
-    if (symbol) {
-      container.add(symbol);
-    }
-
-    container.add([circle, border, text, energyText]);
   }
 
   private setupInputHandlers(): void {
@@ -338,58 +460,68 @@ export class GameScene extends Scene implements Loggeable {
     this.input.keyboard?.on('keydown-C', () => {
       if (this.gamePhase === GamePhase.PLAYING) {
         this.selectedNode = null;
-        this.redistributionMode = false;
-        this.redistributionSourceNode = null;
         this.selectionText?.setText('');
       }
     });
   }
 
   private handlePlayerNodeSelection(pointer: Phaser.Input.Pointer): void {
-    const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
-    if (!clickedNodeId) return;
+    const clickedNode = this.findClickedNode(pointer.x, pointer.y);
+    if (!clickedNode) return;
 
     // Player selects their initial node
-    this.playerSelectedNodeId = clickedNodeId;
-    this.highlightSelectedNode(clickedNodeId, 0x00ffff);
-    this.selectionText?.setText(`You selected ${clickedNodeId} as your base!`);
-    this.phaseText?.setText('WAITING FOR AI...');
+    this.playerSelectedNode = clickedNode;
+    this.highlightSelectedNode(clickedNode, 0x00ffff);
+    this.selectionText?.setText(`Tu seleccionaste ${clickedNode.name} como tu base!`);
+    this.phaseText?.setText('Esperando a la IA...');
 
     // AI selects automatically
     setTimeout(() => this.aiSelectNode(), 500);
   }
 
   private aiSelectNode(): void {
+    if (!this.playerSelectedNode) {
+      this.gameController.logger.error(this, 'Selección de nodo de IA fallida: el jugador no ha seleccionado un nodo');
+      return;
+    }
+    const playerNode = this.playerSelectedNode;
     // AI picks random node different from player
     const availableNodes = Array.from(this.gameController.getGraph().nodes).filter(
-      n => String(n.id) !== this.playerSelectedNodeId,
+      n => !n.equals(playerNode),
     );
 
     if (availableNodes.length === 0) return;
 
-    const aiNode = Phaser.Utils.Array.GetRandom(availableNodes);
-    this.aiSelectedNodeId = String(aiNode.id);
-    this.highlightSelectedNode(this.aiSelectedNodeId, 0xff00ff);
+    this.aiSelectedNode = Phaser.Utils.Array.GetRandom(availableNodes);
+    this.highlightSelectedNode(this.aiSelectedNode, 0xff00ff);
 
     this.gamePhase = GamePhase.WAITING_AI_SELECTION;
-    this.phaseText?.setText('STARTING GAME...');
+    this.phaseText?.setText('Iniciando juego...');
 
     // Start the game
-    setTimeout(() => this.intializeGame(), 1000);
+    setTimeout(() => this.initializeGame(), 1000);
   }
 
-  private highlightSelectedNode(nodeId: string, color: number): void {
-    const container = this.nodeGraphics.get(nodeId);
+  private highlightSelectedNode(node: Node, color: number): void {
+    const container = this.nodeGraphics.get(String(node.id));
     if (!container) return;
 
-    const radius = 30;
+    const radius = VISUAL_CONSTANTS.NODE_RADIUS;
     const border = this.add.circle(0, 0, radius + 4, color, 0).setStrokeStyle(4, color, 1);
 
     container.add([border]);
   }
 
-  private intializeGame(): void {
+  private initializeGame(): void {
     this.gameController.logger.info(this, 'Inicializando juego con selecciones...');
+
+    if (!this.playerSelectedNode || !this.aiSelectedNode) {
+      this.gameController.logger.error(this, 'No se han seleccionado nodos iniciales para ambos jugadores');
+      return;
+    }
+
+    const playerNode = this.playerSelectedNode;
+    const aiNode = this.aiSelectedNode;
 
     try {
       this.gameController.startGame();
@@ -406,11 +538,6 @@ export class GameScene extends Scene implements Loggeable {
       // Asignar nodos iniciales
       const assignments = new Map<Player, Node>();
 
-      const playerNode = Array.from(graph.nodes).find(n => String(n.id) === this.playerSelectedNodeId);
-      const aiNode = Array.from(graph.nodes).find(n => String(n.id) === this.aiSelectedNodeId);
-      if (!playerNode || !aiNode) {
-        throw new Error('Invalid node selection for players');
-      }
       assignments.set(players[0], playerNode);
       assignments.set(players[1], aiNode);
       this.gameController.assignInitialNodes(assignments);
@@ -420,14 +547,14 @@ export class GameScene extends Scene implements Loggeable {
         this.handleVictoryFromController(victoryResult);
       });
 
-      this.gameController.logger.info(this, 'Game started with', graph.nodes.size, 'nodes');
+      this.gameController.logger.info(this, 'Jueog iniciado con', graph.nodes.size, 'nodos');
 
       this.gamePhase = GamePhase.PLAYING;
       this.phaseText?.setText('JUEGO EN PROGRESO');
       this.selectionText?.setText('Selecciona tus nodos y asigna energía a las aristas');
 
       // Render initial state
-      graph.nodes.forEach((node: Node) => this.renderNode(node));
+      graph.nodes.forEach((node: Node) => this.createNodeGraphics(node));
       graph.edges.forEach((edge: Edge) => this.renderConnection(edge));
     }
     catch (error) {
@@ -437,46 +564,34 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private handleGameplayInput(pointer: Phaser.Input.Pointer): void {
-    const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
-    if (clickedNodeId) {
-      // Explicitly cast/type to avoid 'unknown' error
-      const graph = this.gameController.getGraph();
-      const nodes: Node[] = Array.from(graph.nodes);
-      const node = nodes.find(n => String(n.id) === clickedNodeId);
-      if (node) {
-        // SHIFT + Click = redistribution mode
-        if (pointer.event.shiftKey && node.owner?.id === this.currentPlayer?.id) {
-          this.handleRedistributionClick(node);
-        }
-        else {
-          this.handleNodeClick(node);
-        }
-        return;
-      }
+    const clickedNode = this.findClickedNode(pointer.x, pointer.y);
+
+    if (clickedNode) {
+      this.handleNodeClick(clickedNode, pointer.event.ctrlKey);
+      return;
     }
 
-    // Buscar clic en arista (con o sin nodo seleccionado)
+    // Si no clickeó un nodo, intentar arista (mantener compatibilidad)
     const clickedEdge = this.findClickedEdge(pointer.x, pointer.y);
     if (clickedEdge) {
-      // CTRL + Clic = quitar energía (equivalente a clic derecho)
       const isRemoveAction = pointer.event.ctrlKey;
       this.handleEdgeClick(clickedEdge, isRemoveAction);
     }
   }
 
-  private findClickedNode(x: number, y: number): string | null {
-    let clickedNodeId: string | null = null;
+  private findClickedNode(x: number, y: number): Node | null {
+    let clickedNode: Node | null = null;
     let minDist = 35;
 
     this.gameController.getNodePositions().forEach((pos, node) => {
       const dist = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
       if (dist < minDist) {
         minDist = dist;
-        clickedNodeId = String(node.id);
+        clickedNode = node;
       }
     });
 
-    return clickedNodeId;
+    return clickedNode;
   }
 
   private findClickedEdge(x: number, y: number): Edge | null {
@@ -514,142 +629,67 @@ export class GameScene extends Scene implements Loggeable {
     return Math.sqrt((p.x - projX) ** 2 + (p.y - projY) ** 2);
   }
 
-  private handleNodeClick(node: Node): void {
-    if (!this.currentPlayer) return;
-    if (node.owner?.id === this.currentPlayer.id) {
-      this.selectedNode = node;
-      this.redistributionMode = false;
-      this.redistributionSourceNode = null;
-      const defense = node.defenseEnergy();
-      this.selectionText?.setText(
-        `Generador: ${node.name} | Capacidad: ${Math.floor(node.energyPool)} | Defensa: ${Math.floor(defense)}`,
-      );
-    }
-    else {
-      this.selectedNode = null;
-      this.selectionText?.setText('Cannot select enemy/neutral node');
-    }
-  }
-
-  private handleRedistributionClick(node: Node): void {
+  private handleNodeClick(node: Node, isRemoveAction = false): void {
     if (!this.currentPlayer) return;
 
-    if (!this.redistributionMode) {
-      // First click: select source node
-      this.redistributionMode = true;
-      this.redistributionSourceNode = node;
-      this.selectedNode = null;
-      this.selectionText?.setText(
-        `GENERADOR: ${node.name} (${Math.floor(node.energyPool)} capacidad) - SHIFT+Clic en destino para flujo continuo`,
-      );
-    }
-    else {
-      // Second click: assign energy to edge leading to target
-      if (!this.redistributionSourceNode) return;
+    const isOwnNode = node.owner?.id === this.currentPlayer.id;
 
-      // Find edge connecting the two nodes
-      const edge = Array.from(this.redistributionSourceNode.edges).find(e => e.hasNode(node));
-
-      if (!edge) {
-        this.selectionText?.setText('Nodes are not connected!');
-        this.redistributionMode = false;
-        this.redistributionSourceNode = null;
-        return;
-      }
-
-      // Usar transferencia especial entre aliados (un solo paquete de 10)
-      const result = this.gameController.getEnergyCommander().transferEnergyBetweenAllies(
-        this.currentPlayer,
-        this.redistributionSourceNode,
-        node,
-        edge,
-        10, // Un paquete único de 10 energía
-      );
-
-      if (result.success) {
+    // CASO 1: No hay nodo seleccionado
+    if (!this.selectedNode) {
+      // Solo puedes seleccionar tus propios nodos
+      if (isOwnNode) {
+        this.selectedNode = node;
+        const defense = node.defenseEnergy();
         this.selectionText?.setText(
-          `Energy transfer: ${this.redistributionSourceNode.id} → ${node.id} (10 energy sent)`,
+          `Generador seleccionado: ${node.name} | Pool: ${Math.floor(node.energyPool)} | Defensa: ${Math.floor(defense)}`,
         );
       }
       else {
-        this.selectionText?.setText(`Error: ${result.error}`);
+        this.selectionText?.setText('⚠️ Debes seleccionar tu propio generador primero');
       }
-
-      // Reset redistribution mode
-      this.redistributionMode = false;
-      this.redistributionSourceNode = null;
-    }
-  }
-
-  private handleEdgeClick(edge: Edge, isRemoveAction: boolean): void {
-    if (!this.currentPlayer) return;
-
-    const amount = 10;
-    const [nodeA, nodeB] = edge.endpoints;
-
-    // CASO 1: Sin nodo seleccionado - quitar energía asignada de cualquier extremo
-    if (!this.selectedNode) {
-      // Buscar cuál extremo tiene energía asignada del jugador actual
-      const nodeAOwned = nodeA.owner?.id === this.currentPlayer.id;
-      const nodeBOwned = nodeB.owner?.id === this.currentPlayer.id;
-      const assignmentA = nodeAOwned ? nodeA.getAssignedEnergy(edge) : 0;
-      const assignmentB = nodeBOwned ? nodeB.getAssignedEnergy(edge) : 0;
-
-      if (assignmentA > 0) {
-        // Quitar energía del nodo A
-        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
-          this.currentPlayer,
-          nodeA,
-          edge,
-          amount,
-        );
-
-        if (result.success) {
-          const remaining = nodeA.getAssignedEnergy(edge);
-          this.selectionText?.setText(
-            `Energía devuelta: -${amount} desde ${nodeA.name} | Asignado restante: ${remaining}`,
-          );
-        }
-        else {
-          this.selectionText?.setText(`Error: ${result.error}`);
-        }
-        return;
-      }
-
-      if (assignmentB > 0) {
-        // Quitar energía del nodo B
-        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
-          this.currentPlayer,
-          nodeB,
-          edge,
-          amount,
-        );
-
-        if (result.success) {
-          const remaining = nodeB.getAssignedEnergy(edge);
-          this.selectionText?.setText(
-            `Energía devuelta: -${amount} desde ${nodeB.name} | Asignado restante: ${remaining}`,
-          );
-        }
-        else {
-          this.selectionText?.setText(`Error: ${result.error}`);
-        }
-        return;
-      }
-
-      // Si no hay energía asignada, informar al jugador
-      this.selectionText?.setText('Esta arista no tiene energía asignada');
       return;
     }
 
-    // CASO 2: Con nodo seleccionado - comportamiento original
-    // Detectar si el otro extremo de la arista es un nodo aliado
-    const targetNode = edge.flipSide(this.selectedNode);
-    const isAllyTransfer = !isRemoveAction
-      && targetNode.owner?.id === this.currentPlayer.id;
+    // CASO 2: Hay nodo seleccionado
+    // Si clickean el mismo nodo, deseleccionar
+    if (node.equals(this.selectedNode)) {
+      this.selectedNode = null;
+      this.selectionText?.setText('Generador deseleccionado');
+      return;
+    }
 
-    if (isAllyTransfer) {
-      // Usar transferencia especial entre aliados (un solo paquete)
+    // Si clickean otro de sus nodos, cambiar selección
+    if (isOwnNode) {
+      this.selectedNode = node;
+      const defense = node.defenseEnergy();
+      this.selectionText?.setText(
+        `Generador seleccionado: ${node.name} | Pool: ${Math.floor(node.energyPool)} | Defensa: ${Math.floor(defense)}`,
+      );
+      return;
+    }
+
+    // CASO 3: Click en nodo vecino (enemigo o neutral)
+    // Buscar arista que conecta selectedNode con el nodo clickeado
+    const edge = Array.from(this.selectedNode.edges).find(e => e.hasNode(node));
+
+    if (!edge) {
+      this.selectionText?.setText(`⚠️ ${this.selectedNode.name} no está conectado a ${node.name}`);
+      return;
+    }
+
+    // Asignar o quitar energía a la arista
+    this.handleEnergyAssignment(edge, isRemoveAction);
+  }
+
+  private handleEnergyAssignment(edge: Edge, isRemoveAction: boolean): void {
+    if (!this.currentPlayer || !this.selectedNode) return;
+
+    const amount = GAME_CONSTANTS.ASSIGNMENT_AMOUNT;
+    const targetNode = edge.flipSide(this.selectedNode);
+    const isAllyTarget = targetNode.owner?.id === this.currentPlayer.id;
+
+    // TRANSFERENCIA ENTRE ALIADOS
+    if (isAllyTarget && !isRemoveAction) {
       const result = this.gameController.getEnergyCommander().transferEnergyBetweenAllies(
         this.currentPlayer,
         this.selectedNode,
@@ -660,40 +700,105 @@ export class GameScene extends Scene implements Loggeable {
 
       if (result.success) {
         this.selectionText?.setText(
-          `Transferencia: ${this.selectedNode.name} → ${targetNode.name} (${amount} energía enviada)`,
+          `✅ Transferencia: ${this.selectedNode.name} → ${targetNode.name} (+${amount} energía)`,
         );
       }
       else {
-        this.selectionText?.setText(`Error: ${result.error}`);
+        this.selectionText?.setText(`❌ Error: ${result.error}`);
       }
+      return;
+    }
+
+    // ASIGNACIÓN DE ATAQUE O REMOCIÓN
+    const result = isRemoveAction
+      ? this.gameController.getEnergyCommander().removeEnergyFromEdge(
+          this.currentPlayer,
+          this.selectedNode,
+          edge,
+          amount,
+        )
+      : this.gameController.getEnergyCommander().assignEnergyToEdge(
+          this.currentPlayer,
+          this.selectedNode,
+          edge,
+          amount,
+        );
+
+    if (result.success) {
+      const assignment = this.selectedNode.getAssignedEnergy(edge);
+      const defense = this.selectedNode.defenseEnergy();
+      const action = isRemoveAction ? '⬇️' : '⬆️';
+      const targetName = targetNode.name || 'nodo';
+
+      this.selectionText?.setText(
+        `${action} ${this.selectedNode.name} → ${targetName}: ${isRemoveAction ? '-' : '+'}${amount} | Flujo: ${assignment}/s | Defensa: ${Math.floor(defense)}`,
+      );
     }
     else {
-      // Asignación normal de ataque o remoción
-      const result = isRemoveAction
-        ? this.gameController.getEnergyCommander().removeEnergyFromEdge(
-            this.currentPlayer,
-            this.selectedNode,
-            edge,
-            amount,
-          )
-        : this.gameController.getEnergyCommander().assignEnergyToEdge(
-            this.currentPlayer,
-            this.selectedNode,
-            edge,
-            amount,
-          );
-
-      if (result.success) {
-        const assignment = this.selectedNode.getAssignedEnergy(edge);
-        const defense = this.selectedNode.defenseEnergy();
-        this.selectionText?.setText(
-          `${isRemoveAction ? '-' : '+'}${amount} → Flujo: ${assignment}/s | Pool: ${Math.floor(this.selectedNode.energyPool)} | Defensa: ${Math.floor(defense)}`,
-        );
-      }
-      else {
-        this.selectionText?.setText(`Error: ${result.error}`);
-      }
+      this.selectionText?.setText(`❌ Error: ${result.error}`);
     }
+  }
+
+  // Modificar handleEdgeClick para seguir funcionando sin nodo seleccionado
+  private handleEdgeClick(edge: Edge, isRemoveAction: boolean): void {
+    if (!this.currentPlayer) return;
+
+    const amount = 10;
+    const [nodeA, nodeB] = edge.endpoints;
+
+    // CASO 1: Sin nodo seleccionado - quitar energía asignada de cualquier extremo
+    if (!this.selectedNode) {
+      const nodeAOwned = nodeA.owner?.id === this.currentPlayer.id;
+      const nodeBOwned = nodeB.owner?.id === this.currentPlayer.id;
+      const assignmentA = nodeAOwned ? nodeA.getAssignedEnergy(edge) : 0;
+      const assignmentB = nodeBOwned ? nodeB.getAssignedEnergy(edge) : 0;
+
+      if (assignmentA > 0) {
+        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
+          this.currentPlayer,
+          nodeA,
+          edge,
+          amount,
+        );
+
+        if (result.success) {
+          const remaining = nodeA.getAssignedEnergy(edge);
+          this.selectionText?.setText(
+            `⬇️ Energía devuelta desde ${nodeA.name}: -${amount} | Restante: ${remaining}/s`,
+          );
+        }
+        else {
+          this.selectionText?.setText(`❌ Error: ${result.error}`);
+        }
+        return;
+      }
+
+      if (assignmentB > 0) {
+        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
+          this.currentPlayer,
+          nodeB,
+          edge,
+          amount,
+        );
+
+        if (result.success) {
+          const remaining = nodeB.getAssignedEnergy(edge);
+          this.selectionText?.setText(
+            `⬇️ Energía devuelta desde ${nodeB.name}: -${amount} | Restante: ${remaining}/s`,
+          );
+        }
+        else {
+          this.selectionText?.setText(`❌ Error: ${result.error}`);
+        }
+        return;
+      }
+
+      this.selectionText?.setText('⚠️ Esta arista no tiene energía asignada');
+      return;
+    }
+
+    // CASO 2: Con nodo seleccionado - usar el nuevo sistema
+    this.handleEnergyAssignment(edge, isRemoveAction);
   }
 
   update(_time: number, delta: number): void {
@@ -848,11 +953,23 @@ export class GameScene extends Scene implements Loggeable {
   private updateVisuals(): void {
     try {
       const graph = this.gameController.getGraph();
-      // Always render all nodes, even after game over
-      graph.nodes.forEach(node => this.renderNode(node));
+
+      // Solo actualizar datos dinámicos, no recrear gráficos
+      graph.nodes.forEach(node => this.updateNodeData(node));
+
+      // Los paquetes de energía sí necesitan re-renderizarse porque se mueven
       graph.edges.forEach((edge) => {
-        this.renderConnection(edge);
-        this.renderEnergyPackets(edge);
+        const [nodeA, nodeB] = edge.endpoints;
+        const posA = this.gameController.getNodePositions().get(nodeA);
+        const posB = this.gameController.getNodePositions().get(nodeB);
+
+        if (posA && posB) {
+          // Actualizar asignaciones de energía (los números)
+          this.renderEdgeAssignments(edge, nodeA, nodeB, posA, posB);
+
+          // Actualizar paquetes de energía en movimiento
+          this.renderEnergyPackets(edge);
+        }
       });
     }
     catch (error) {
@@ -860,23 +977,26 @@ export class GameScene extends Scene implements Loggeable {
     }
   }
 
-  private renderNode(node: Node): void {
+  /**
+   * Crea los gráficos iniciales del nodo (llamar solo UNA VEZ)
+   */
+  private createNodeGraphics(node: Node): void {
     const pos = this.gameController.getNodePositions().get(node);
     if (!pos) return;
 
-    let container = this.nodeGraphics.get(String(node.id));
-    if (!container) {
-      container = this.add.container(pos.x, pos.y);
-      this.nodeGraphics.set(String(node.id), container);
+    // Si ya existe, no recrear
+    if (this.nodeGraphics.has(String(node.id))) {
+      return;
     }
 
-    container.removeAll(true);
+    const container = this.add.container(pos.x, pos.y);
+    this.nodeGraphics.set(String(node.id), container);
 
     let color = 0x888888;
-    const label = node.name; // Siempre usar el nombre del nodo
+    const label = node.name;
 
     if (node.isNeutral()) {
-      color = 0x888888; // Gris para todos los neutrales
+      color = 0x888888;
     }
     else if (node.owner?.id === this.humanPlayer?.id) {
       color = 0x00ffff;
@@ -885,16 +1005,49 @@ export class GameScene extends Scene implements Loggeable {
       color = 0xff00ff;
     }
 
-    const radius = 30;
-    const circle = this.add.circle(0, 0, radius, color, 0.8);
-    const border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
+    const colorString = `#${color.toString(16).padStart(6, '0')}`;
+    const radius = VISUAL_CONSTANTS.NODE_RADIUS;
+
+    const circle = this.add.circle(0, 0, radius, color, 0.9);
+    circle.setData(this.NODE_GRAPHICS_KEY, 'circle'); // Tag para identificar después
+
+    const isInitialNode = (this.humanPlayer?.initialNode?.equals(node))
+      || (this.aiPlayer?.initialNode?.equals(node));
+
+    let border;
+    let outerBorder = null;
+
+    if (isInitialNode) {
+      border = this.add.circle(0, 0, radius + 3, color, 0).setStrokeStyle(4, color, 1);
+      border.setData(this.NODE_GRAPHICS_KEY, 'border');
+
+      outerBorder = this.add.circle(0, 0, radius + 6, color, 0).setStrokeStyle(2, color, 0.6);
+      outerBorder.setData(this.NODE_GRAPHICS_KEY, 'outerBorder');
+
+      // Efecto de pulso (solo se crea una vez)
+      this.tweens.add({
+        targets: outerBorder,
+        scaleX: 1.1,
+        scaleY: 1.1,
+        alpha: 0.3,
+        duration: 1500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+    }
+    else {
+      border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
+      border.setData(this.NODE_GRAPHICS_KEY, 'border');
+    }
+
     const text = this.add.text(0, 0, label, {
       fontFamily: 'Orbitron, monospace',
       fontSize: '20px',
       color: '#fff',
     }).setOrigin(0.5);
+    text.setData(this.NODE_GRAPHICS_KEY, 'label');
 
-    // Mostrar energía en formato "defensa/pool" para nodos con dueño, solo pool para neutrales
     let energyDisplayText = Math.floor(node.energyPool).toString();
     if (!node.isNeutral()) {
       const defense = Math.floor(node.defenseEnergy());
@@ -905,16 +1058,86 @@ export class GameScene extends Scene implements Loggeable {
     const energyText = this.add.text(0, radius + 15, energyDisplayText, {
       fontFamily: 'Orbitron, monospace',
       fontSize: '12px',
-      color: '#00ff88',
+      backgroundColor: '#000000aa',
+      color: colorString,
     }).setOrigin(0.5);
+    energyText.setData(this.NODE_GRAPHICS_KEY, 'energyText');
 
-    // Agregar símbolo especial para nodos especiales
     const symbol = this.getNodeSymbol(node.nodeType, color);
     if (symbol) {
+      symbol.setData(this.NODE_GRAPHICS_KEY, 'symbol');
       container.add(symbol);
     }
 
-    container.add([circle, border, text, energyText]);
+    // Orden de adición es importante para identificar después
+    if (outerBorder) {
+      container.add([outerBorder, circle, border, text, energyText]);
+    }
+    else {
+      container.add([circle, border, text, energyText]);
+    }
+
+    container.setDepth(10);
+  }
+
+  /**
+   * Actualiza solo los datos dinámicos del nodo (llamar cada frame)
+   */
+  private updateNodeData(node: Node): void {
+    const container = this.nodeGraphics.get(String(node.id));
+    if (!container) {
+      // Si no existe el gráfico, crearlo
+      this.createNodeGraphics(node);
+      return;
+    }
+
+    // Determinar color actual basado en el dueño
+    let color = 0x888888;
+    if (node.owner?.id === this.humanPlayer?.id) {
+      color = 0x00ffff;
+    }
+    else if (node.owner?.id === this.aiPlayer?.id) {
+      color = 0xff00ff;
+    }
+
+    const colorString = `#${color.toString(16).padStart(6, '0')}`;
+
+    // Buscar y actualizar los objetos gráficos
+    const children = container.list;
+
+    for (const child of children) {
+      const graphicsType = child.getData(this.NODE_GRAPHICS_KEY);
+
+      if (graphicsType === 'circle') {
+        // Actualizar color del círculo principal
+        const circle = child as Phaser.GameObjects.Arc;
+        circle.fillColor = color;
+      }
+      else if (graphicsType === 'border' || graphicsType === 'outerBorder') {
+        // Actualizar color del borde
+        const border = child as Phaser.GameObjects.Arc;
+        border.setStrokeStyle(border.lineWidth, color, border.strokeAlpha);
+      }
+      else if (graphicsType === 'energyText') {
+        // Actualizar texto y color de energía
+        const energyText = child as Phaser.GameObjects.Text;
+
+        let energyDisplayText = Math.floor(node.energyPool).toString();
+        if (!node.isNeutral()) {
+          const defense = Math.floor(node.defenseEnergy());
+          const pool = Math.floor(node.energyPool);
+          energyDisplayText = `${defense}/${pool}`;
+        }
+
+        energyText.setText(energyDisplayText);
+        energyText.setColor(colorString);
+      }
+      else if (graphicsType === 'symbol') {
+        // Actualizar color del símbolo
+        const symbol = child as Phaser.GameObjects.Text;
+        symbol.setColor(colorString);
+      }
+    }
   }
 
   private getNodeSymbol(nodeType: NodeType, nodeColor: number): Phaser.GameObjects.Text | null {
@@ -950,18 +1173,30 @@ export class GameScene extends Scene implements Loggeable {
     const posB = this.gameController.getNodePositions().get(nodeB);
     if (!posA || !posB) return;
 
-    const edgeId = `${nodeA.id}-${nodeB.id}`;
+    const edgeId = String(edge.id);
     let graphics = this.connectionGraphics.get(edgeId);
+
+    // Solo crear si no existe
     if (!graphics) {
       graphics = this.add.graphics();
       this.connectionGraphics.set(edgeId, graphics);
+
+      // Capa 2: Brillo medio
+      graphics.lineStyle(5, 0x00dd99, 0.1);
+      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+      // Capa 3: Línea principal brillante
+      graphics.lineStyle(3, 0x00ffaa, 0.5);
+      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+      // Capa 4: Centro brillante (highlight)
+      graphics.lineStyle(1, 0x00ffff, 1);
+      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+      graphics.setDepth(1);
     }
 
-    graphics.clear();
-    graphics.lineStyle(2, 0x004466, 0.6);
-    graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
-
-    // Renderizar asignaciones de energía para ambos nodos
+    // Renderizar asignaciones de energía (estos sí cambian)
     this.renderEdgeAssignments(edge, nodeA, nodeB, posA, posB);
   }
 
@@ -972,81 +1207,66 @@ export class GameScene extends Scene implements Loggeable {
     posA: { x: number; y: number },
     posB: { x: number; y: number },
   ): void {
-    // Calcular vector y perpendicular para posicionar los textos
+    const edgeId = String(edge.id);
     const dx = posB.x - posA.x;
     const dy = posB.y - posA.y;
     const len = Math.sqrt(dx * dx + dy * dy);
     const perpX = -dy / len;
     const perpY = dx / len;
+    const offset = 15;
 
-    const offset = 15; // Distancia desde la línea
-
-    // Asignación de nodeA hacia nodeB
-    const assignmentA = nodeA.getAssignedEnergy(edge);
-    if (assignmentA > 0 && !nodeA.isNeutral()) {
-      const keyA = `${edge.id}-${nodeA.id}`;
-      let textA = this.edgeAssignmentTexts.get(keyA);
-
-      if (!textA) {
-        textA = this.add.text(0, 0, '', {
+    // Obtener o crear el par de textos para esta arista
+    let textPair = this.edgeAssignmentTexts.get(edgeId);
+    if (!textPair) {
+      textPair = {
+        nodeA: this.add.text(0, 0, '', {
           fontFamily: 'Orbitron, monospace',
           fontSize: '11px',
           color: '#ffffff',
           backgroundColor: '#000000aa',
           padding: { x: 3, y: 2 },
-        }).setOrigin(0.5);
-        this.edgeAssignmentTexts.set(keyA, textA);
-      }
+        }).setOrigin(0.5),
+        nodeB: this.add.text(0, 0, '', {
+          fontFamily: 'Orbitron, monospace',
+          fontSize: '11px',
+          color: '#ffffff',
+          backgroundColor: '#000000aa',
+          padding: { x: 3, y: 2 },
+        }).setOrigin(0.5),
+      };
+      this.edgeAssignmentTexts.set(edgeId, textPair);
+    }
 
-      // Posicionar cerca del nodeA (1/4 del camino hacia nodeB)
+    // Asignación de nodeA hacia nodeB
+    const assignmentA = nodeA.getAssignedEnergy(edge);
+    if (assignmentA > 0 && !nodeA.isNeutral()) {
       const posX = posA.x + dx * 0.25 + perpX * offset;
       const posY = posA.y + dy * 0.25 + perpY * offset;
-
-      // Color según el dueño del nodo
       const color = nodeA.owner?.id === this.humanPlayer?.id ? '#00ffff' : '#ff00ff';
-      textA.setColor(color);
-      textA.setPosition(posX, posY);
-      textA.setText(Math.floor(assignmentA).toString());
-      textA.setVisible(true);
+
+      textPair.nodeA.setColor(color);
+      textPair.nodeA.setPosition(posX, posY);
+      textPair.nodeA.setText(Math.floor(assignmentA).toString());
+      textPair.nodeA.setVisible(true);
     }
     else {
-      const keyA = `${edge.id}-${nodeA.id}`;
-      const textA = this.edgeAssignmentTexts.get(keyA);
-      if (textA) textA.setVisible(false);
+      textPair.nodeA.setVisible(false);
     }
 
     // Asignación de nodeB hacia nodeA
     const assignmentB = nodeB.getAssignedEnergy(edge);
     if (assignmentB > 0 && !nodeB.isNeutral()) {
-      const keyB = `${edge.id}-${nodeB.id}`;
-      let textB = this.edgeAssignmentTexts.get(keyB);
-
-      if (!textB) {
-        textB = this.add.text(0, 0, '', {
-          fontFamily: 'Orbitron, monospace',
-          fontSize: '11px',
-          color: '#ffffff',
-          backgroundColor: '#000000aa',
-          padding: { x: 3, y: 2 },
-        }).setOrigin(0.5);
-        this.edgeAssignmentTexts.set(keyB, textB);
-      }
-
-      // Posicionar cerca del nodeB (3/4 del camino desde nodeA)
       const posX = posA.x + dx * 0.75 - perpX * offset;
       const posY = posA.y + dy * 0.75 - perpY * offset;
-
-      // Color según el dueño del nodo
       const color = nodeB.owner?.id === this.humanPlayer?.id ? '#00ffff' : '#ff00ff';
-      textB.setColor(color);
-      textB.setPosition(posX, posY);
-      textB.setText(Math.floor(assignmentB).toString());
-      textB.setVisible(true);
+
+      textPair.nodeB.setColor(color);
+      textPair.nodeB.setPosition(posX, posY);
+      textPair.nodeB.setText(Math.floor(assignmentB).toString());
+      textPair.nodeB.setVisible(true);
     }
     else {
-      const keyB = `${edge.id}-${nodeB.id}`;
-      const textB = this.edgeAssignmentTexts.get(keyB);
-      if (textB) textB.setVisible(false);
+      textPair.nodeB.setVisible(false);
     }
   }
 
@@ -1056,7 +1276,7 @@ export class GameScene extends Scene implements Loggeable {
     const posB = this.gameController.getNodePositions().get(nodeB);
     if (!posA || !posB) return;
 
-    const edgeId = `${nodeA.id}-${nodeB.id}`;
+    const edgeId = String(edge.id);
     let graphics = this.packetGraphics.get(edgeId);
     if (!graphics) {
       graphics = this.add.graphics();
@@ -1064,6 +1284,8 @@ export class GameScene extends Scene implements Loggeable {
     }
 
     graphics.clear();
+
+    graphics.setDepth(5);
 
     // Draw each energy packet
     edge.energyPackets.forEach((packet) => {
@@ -1113,13 +1335,11 @@ export class GameScene extends Scene implements Loggeable {
 
     // Clear state
     this.gamePhase = GamePhase.WAITING_PLAYER_SELECTION;
-    this.playerSelectedNodeId = null;
-    this.aiSelectedNodeId = null;
+    this.playerSelectedNode = null;
+    this.aiSelectedNode = null;
     this.selectedNode = null;
     this.currentPlayer = null;
     this.victoryHandled = false;
-    this.redistributionMode = false;
-    this.redistributionSourceNode = null;
 
     // Clear visuals
     this.nodeGraphics.forEach(container => container.destroy());
@@ -1128,7 +1348,10 @@ export class GameScene extends Scene implements Loggeable {
     this.connectionGraphics.clear();
     this.packetGraphics.forEach(graphics => graphics.destroy());
     this.packetGraphics.clear();
-    this.edgeAssignmentTexts.forEach(text => text.destroy());
+    this.edgeAssignmentTexts.forEach((pair) => {
+      pair.nodeA.destroy();
+      pair.nodeB.destroy();
+    });
     this.edgeAssignmentTexts.clear();
 
     // Reset UI
