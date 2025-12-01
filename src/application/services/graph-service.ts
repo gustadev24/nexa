@@ -12,6 +12,7 @@ import { NodeType } from '@/core/types/node-type';
 import type { LayoutStrategy } from '@/application/strategies/layout/layout-strategy';
 import type { Position } from '@/application/interfaces/types/position';
 import type { IdGeneratorStrategy } from '@/application/strategies/id-generator/id-generator-strategy';
+import { VISUAL_CONSTANTS } from '@/application/constants/visual-constants';
 
 export class GraphService implements Loggeable {
   _logContext = 'GraphService';
@@ -139,7 +140,9 @@ export class GraphService implements Loggeable {
     // CÁLCULO INMEDIATO: Si tenemos posiciones, calculamos la distancia real
     let distance = 1; // Valor default
     if (posA && posB) {
-      distance = this.layoutStrategy.calculateDistance(posA, posB);
+      const pixelDistance = this.layoutStrategy.calculateDistance(posA, posB);
+      const borderToBorderPixels = pixelDistance - (2 * VISUAL_CONSTANTS.NODE_RADIUS);
+      distance = Math.max(1, borderToBorderPixels / VISUAL_CONSTANTS.NORMALIZATION);
     }
 
     const edgeId = this.idGenerator.generate();
