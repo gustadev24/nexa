@@ -1,4 +1,4 @@
-# 🎮 Nexa - Juego de Estrategia en Tiempo Real
+# 🎮 Nexa - Juego de Estrategia en Tiempo Real sobre Grafos
 
 <div align="center">
 
@@ -10,8 +10,10 @@
 [![Phaser](https://img.shields.io/badge/Phaser-3.90-orange?logo=phaser)](https://phaser.io/)
 [![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?logo=vite)](https://vitejs.dev/)
 [![pnpm](https://img.shields.io/badge/pnpm-8.x-yellow?logo=pnpm)](https://pnpm.io/)
+[![Version](https://img.shields.io/badge/Version-1.0.0-green)]()
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
-[Características](#-características) • [Instalación](#-instalación) • [Cómo Jugar](#-cómo-jugar) • [Mecánicas](#-mecánicas-del-juego) • [Desarrollo](#-desarrollo)
+[Características](#-características) • [Instalación](#-instalación) • [Cómo Jugar](#-cómo-jugar) • [Mecánicas](#-mecánicas-del-juego) • [Arquitectura](#-arquitectura) • [Contribuir](#-contribuir)
 
 </div>
 
@@ -19,13 +21,16 @@
 
 ## 📖 Descripción General
 
-**Nexa** es un título de estrategia en tiempo real donde los jugadores compiten por controlar la mayor cantidad de **nodos** dentro de un campo representado como un **grafo**. Cada jugador comienza con un nodo inicial desde el cual administra la distribución de **energía** hacia nodos vecinos a través de aristas conectadas.
+**Nexa** es un juego de estrategia en tiempo real desarrollado con **TypeScript** y **Phaser 3**, donde los jugadores compiten por controlar la mayor cantidad de **nodos** dentro de un campo representado como un **grafo**. Cada jugador comienza con un nodo inicial desde el cual administra la distribución de **energía** hacia nodos vecinos a través de aristas conectadas.
+
+El proyecto implementa una **arquitectura limpia** por capas (Domain, Application, Infrastructure, Presentation) con patrones de diseño modernos y testing completo.
 
 ### 🎯 Objetivo del Juego
 
-- **Victoria primaria:** Controlar el **70% de los nodos** durante **10 segundos continuos**
-- **Victoria alternativa:** Mantener la **mayor cantidad de nodos** al finalizar el límite de tiempo de **3 minutos**
-- **Derrota automática:** Perder el nodo inicial (base central)
+- **Victoria por Dominancia:** Controlar el **70% de los nodos** durante **10 segundos continuos**
+- **Victoria por Tiempo:** Mantener la **mayor cantidad de nodos** al finalizar el límite de tiempo de **3 minutos**
+- **Victoria por Eliminación:** Capturar el nodo inicial del oponente
+- **Derrota Automática:** Perder el nodo inicial (base central)
 
 ---
 
@@ -265,15 +270,46 @@ Este proyecto está bajo la licencia [MIT](LICENSE).
 
 ---
 
-## 👥 Equipo
+## 👥 Equipo de Desarrollo
 
-**Desarrollado por:** Equipo Nexa  
-**Repositorio:** [github.com/gustadev24/nexa](https://github.com/gustadev24/nexa)
+**Nexa** fue desarrollado como proyecto académico del curso de Ingeniería de Software por:
+
+| Nombre | GitHub | Rol | Contribuciones Principales |
+|--------|--------|-----|----------------------------|
+| **Luis Gustavo Sequeiros Condori** | [@gustadev24](https://github.com/gustadev24) | Tech Lead | Arquitectura del sistema, Servicios core, Game Controller, Integración de componentes |
+| **Ricardo Chambilla** | [@rikich3](https://github.com/rikich3) | Backend Developer | GameStateManager, Infraestructura, Git Workflow, Documentación técnica |
+| **Paul Cari Lipe** | [@PaulCari](https://github.com/PaulCari) | QA Engineer | Victory Service, Suite de testing, Validación de lógica |
+| **Jhon Aquino** | [@JhonAQ](https://github.com/JhonAQ) | Game Developer | Capture Service, Detección de articulación, Lógica de fragmentación |
+| **Raquel Quispe** | [@RaqDxs](https://github.com/RaqDxs) | UI/UX Developer | Escenas de Phaser, Diseño de interfaz, Experiencia de usuario |
+| **Rafael Chambilla** | [@rchambillap](https://github.com/rchambillap) | Integration Engineer | Integración de servicios, Testing end-to-end, Validación de integración |
+
+### Estadísticas del Proyecto
+
+- **Commits Totales:** 300+
+- **Líneas de Código:** ~15,000
+- **Tests Unitarios:** 50+
+- **Tiempo de Desarrollo:** 4 meses
+- **Versión Final:** 1.0.0
+
+### Institución
+
+**Universidad Nacional de San Agustín de Arequipa**  
+**Facultad:** Ingeniería de Producción y Servicios  
+**Escuela Profesional:** Ingeniería de Sistemas  
+**Curso:** Ingeniería de Software  
+**Fecha de Finalización:** Diciembre 2025
+
+---
+
+**Repositorio:** [github.com/gustadev24/nexa](https://github.com/gustadev24/nexa)  
+**Documentación Completa:** [docs/](docs/)
 
 ---
 
 <div align="center">
 
 **¿Te gusta Nexa? ¡Dale una ⭐ al repositorio!**
+
+Made with ❤️ by Team Nexa
 
 </div>
