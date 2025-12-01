@@ -25,8 +25,8 @@ export class GameScene extends Scene implements Loggeable {
 
   // Game state
   private gamePhase: GamePhase = GamePhase.WAITING_PLAYER_SELECTION;
-  private playerSelectedNodeId: string | null = null;
-  private aiSelectedNodeId: string | null = null;
+  private playerSelectedNode: Node | null = null;
+  private aiSelectedNode: Node | null = null;
   private victoryHandled = false;
   private redistributionMode = false;
   private redistributionSourceNode: Node | null = null;
@@ -55,8 +55,8 @@ export class GameScene extends Scene implements Loggeable {
   init() {
     // Reset all state variables to initial values
     this.gamePhase = GamePhase.WAITING_PLAYER_SELECTION;
-    this.playerSelectedNodeId = null;
-    this.aiSelectedNodeId = null;
+    this.playerSelectedNode = null;
+    this.aiSelectedNode = null;
     this.victoryHandled = false;
     this.redistributionMode = false;
     this.redistributionSourceNode = null;
@@ -113,7 +113,6 @@ export class GameScene extends Scene implements Loggeable {
       + '4. Los nodos GENERAN paquetes cada 1 segundo\n'
       + '5. ¡Capturar nodo → Energía asignada se transfiere!\n'
       + '6. Defensa = Pool - Asignado (se regenera cada 1.5s)\n\n'
-      + '¡Los nodos son GENERADORES INFINITOS!\n\n'
       + 'Haz clic en cualquier nodo neutral para empezar',
       {
         fontFamily: 'Orbitron, monospace',
@@ -346,30 +345,34 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private handlePlayerNodeSelection(pointer: Phaser.Input.Pointer): void {
-    const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
-    if (!clickedNodeId) return;
+    const clickedNode = this.findClickedNode(pointer.x, pointer.y);
+    if (!clickedNode) return;
 
     // Player selects their initial node
-    this.playerSelectedNodeId = clickedNodeId;
-    this.highlightSelectedNode(clickedNodeId, 0x00ffff);
-    this.selectionText?.setText(`You selected ${clickedNodeId} as your base!`);
-    this.phaseText?.setText('WAITING FOR AI...');
+    this.playerSelectedNode = clickedNode;
+    this.highlightSelectedNode(clickedNode, 0x00ffff);
+    this.selectionText?.setText(`Tu seleccionaste ${clickedNode.name} como tu base!`);
+    this.phaseText?.setText('Esperando a la IA...');
 
     // AI selects automatically
     setTimeout(() => this.aiSelectNode(), 500);
   }
 
   private aiSelectNode(): void {
+    if (!this.playerSelectedNode) {
+      this.gameController.logger.error(this, 'Selección de nodo de IA fallida: el jugador no ha seleccionado un nodo');
+      return;
+    }
+    const playerNode = this.playerSelectedNode;
     // AI picks random node different from player
     const availableNodes = Array.from(this.gameController.getGraph().nodes).filter(
-      n => String(n.id) !== this.playerSelectedNodeId,
+      n => !n.equals(playerNode),
     );
 
     if (availableNodes.length === 0) return;
 
-    const aiNode = Phaser.Utils.Array.GetRandom(availableNodes);
-    this.aiSelectedNodeId = String(aiNode.id);
-    this.highlightSelectedNode(this.aiSelectedNodeId, 0xff00ff);
+    this.aiSelectedNode = Phaser.Utils.Array.GetRandom(availableNodes);
+    this.highlightSelectedNode(this.aiSelectedNode, 0xff00ff);
 
     this.gamePhase = GamePhase.WAITING_AI_SELECTION;
     this.phaseText?.setText('STARTING GAME...');
@@ -378,8 +381,8 @@ export class GameScene extends Scene implements Loggeable {
     setTimeout(() => this.intializeGame(), 1000);
   }
 
-  private highlightSelectedNode(nodeId: string, color: number): void {
-    const container = this.nodeGraphics.get(nodeId);
+  private highlightSelectedNode(node: Node, color: number): void {
+    const container = this.nodeGraphics.get(String(node.id));
     if (!container) return;
 
     const radius = 30;
@@ -390,6 +393,14 @@ export class GameScene extends Scene implements Loggeable {
 
   private intializeGame(): void {
     this.gameController.logger.info(this, 'Inicializando juego con selecciones...');
+
+    if (!this.playerSelectedNode || !this.aiSelectedNode) {
+      this.gameController.logger.error(this, 'No se han seleccionado nodos iniciales para ambos jugadores');
+      return;
+    }
+
+    const playerNode = this.playerSelectedNode;
+    const aiNode = this.aiSelectedNode;
 
     try {
       this.gameController.startGame();
@@ -406,11 +417,6 @@ export class GameScene extends Scene implements Loggeable {
       // Asignar nodos iniciales
       const assignments = new Map<Player, Node>();
 
-      const playerNode = Array.from(graph.nodes).find(n => String(n.id) === this.playerSelectedNodeId);
-      const aiNode = Array.from(graph.nodes).find(n => String(n.id) === this.aiSelectedNodeId);
-      if (!playerNode || !aiNode) {
-        throw new Error('Invalid node selection for players');
-      }
       assignments.set(players[0], playerNode);
       assignments.set(players[1], aiNode);
       this.gameController.assignInitialNodes(assignments);
@@ -437,12 +443,12 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   private handleGameplayInput(pointer: Phaser.Input.Pointer): void {
-    const clickedNodeId = this.findClickedNode(pointer.x, pointer.y);
-    if (clickedNodeId) {
+    const clickedNode = this.findClickedNode(pointer.x, pointer.y);
+    if (clickedNode) {
       // Explicitly cast/type to avoid 'unknown' error
       const graph = this.gameController.getGraph();
       const nodes: Node[] = Array.from(graph.nodes);
-      const node = nodes.find(n => String(n.id) === clickedNodeId);
+      const node = nodes.find(n => n.equals(clickedNode));
       if (node) {
         // SHIFT + Click = redistribution mode
         if (pointer.event.shiftKey && node.owner?.id === this.currentPlayer?.id) {
@@ -464,19 +470,19 @@ export class GameScene extends Scene implements Loggeable {
     }
   }
 
-  private findClickedNode(x: number, y: number): string | null {
-    let clickedNodeId: string | null = null;
+  private findClickedNode(x: number, y: number): Node | null {
+    let clickedNode: Node | null = null;
     let minDist = 35;
 
     this.gameController.getNodePositions().forEach((pos, node) => {
       const dist = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
       if (dist < minDist) {
         minDist = dist;
-        clickedNodeId = String(node.id);
+        clickedNode = node;
       }
     });
 
-    return clickedNodeId;
+    return clickedNode;
   }
 
   private findClickedEdge(x: number, y: number): Edge | null {
@@ -1113,8 +1119,8 @@ export class GameScene extends Scene implements Loggeable {
 
     // Clear state
     this.gamePhase = GamePhase.WAITING_PLAYER_SELECTION;
-    this.playerSelectedNodeId = null;
-    this.aiSelectedNodeId = null;
+    this.playerSelectedNode = null;
+    this.aiSelectedNode = null;
     this.selectedNode = null;
     this.currentPlayer = null;
     this.victoryHandled = false;
