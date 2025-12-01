@@ -18,6 +18,7 @@ enum GamePhase {
 
 export class GameScene extends Scene implements Loggeable {
   _logContext = 'GameScene';
+  private readonly NODE_GRAPHICS_KEY = 'nodeGraphicsType';
   private camera?: Phaser.Cameras.Scene2D.Camera;
   private gameController: GameController;
   private currentPlayer: Player | null = null;
@@ -278,41 +279,8 @@ export class GameScene extends Scene implements Loggeable {
 
     // Render nodes
     this.gameController.getGraph().nodes.forEach((node) => {
-      this.renderInitialNode(node);
+      this.createNodeGraphics(node);
     });
-  }
-
-  private renderInitialNode(node: Node): void {
-    const pos = this.gameController.getNodePositions().get(node);
-    if (!pos) return;
-
-    const container = this.add.container(pos.x, pos.y);
-    this.nodeGraphics.set(String(node.id), container);
-
-    const color = 0x888888; // Gris para neutrales
-    const label = node.name; // Usar nombre del nodo
-
-    const radius = VISUAL_CONSTANTS.NODE_RADIUS;
-    const circle = this.add.circle(0, 0, radius, color, 0.6);
-    const border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
-    const text = this.add.text(0, 0, label, {
-      fontFamily: 'Orbitron, monospace',
-      fontSize: '20px',
-      color: '#fff',
-    }).setOrigin(0.5);
-    const energyText = this.add.text(0, radius + 15, Math.floor(node.energyPool).toString(), {
-      fontFamily: 'Orbitron, monospace',
-      fontSize: '14px',
-      color: '#00ff88',
-    }).setOrigin(0.5);
-
-    // Agregar símbolo especial para nodos especiales
-    const symbol = this.getNodeSymbol(node.nodeType, color);
-    if (symbol) {
-      container.add(symbol);
-    }
-
-    container.add([circle, border, text, energyText]);
   }
 
   private setupInputHandlers(): void {
@@ -376,10 +344,10 @@ export class GameScene extends Scene implements Loggeable {
     this.highlightSelectedNode(this.aiSelectedNode, 0xff00ff);
 
     this.gamePhase = GamePhase.WAITING_AI_SELECTION;
-    this.phaseText?.setText('STARTING GAME...');
+    this.phaseText?.setText('Iniciando juego...');
 
     // Start the game
-    setTimeout(() => this.intializeGame(), 1000);
+    setTimeout(() => this.initializeGame(), 1000);
   }
 
   private highlightSelectedNode(node: Node, color: number): void {
@@ -392,7 +360,7 @@ export class GameScene extends Scene implements Loggeable {
     container.add([border]);
   }
 
-  private intializeGame(): void {
+  private initializeGame(): void {
     this.gameController.logger.info(this, 'Inicializando juego con selecciones...');
 
     if (!this.playerSelectedNode || !this.aiSelectedNode) {
@@ -427,14 +395,14 @@ export class GameScene extends Scene implements Loggeable {
         this.handleVictoryFromController(victoryResult);
       });
 
-      this.gameController.logger.info(this, 'Game started with', graph.nodes.size, 'nodes');
+      this.gameController.logger.info(this, 'Jueog iniciado con', graph.nodes.size, 'nodos');
 
       this.gamePhase = GamePhase.PLAYING;
       this.phaseText?.setText('JUEGO EN PROGRESO');
       this.selectionText?.setText('Selecciona tus nodos y asigna energía a las aristas');
 
       // Render initial state
-      graph.nodes.forEach((node: Node) => this.renderNode(node));
+      graph.nodes.forEach((node: Node) => this.createNodeGraphics(node));
       graph.edges.forEach((edge: Edge) => this.renderConnection(edge));
     }
     catch (error) {
@@ -534,7 +502,7 @@ export class GameScene extends Scene implements Loggeable {
     }
     else {
       this.selectedNode = null;
-      this.selectionText?.setText('Cannot select enemy/neutral node');
+      this.selectionText?.setText('Este nodo no te pertenece');
     }
   }
 
@@ -855,10 +823,12 @@ export class GameScene extends Scene implements Loggeable {
   private updateVisuals(): void {
     try {
       const graph = this.gameController.getGraph();
-      // Always render all nodes, even after game over
-      graph.nodes.forEach(node => this.renderNode(node));
+
+      // Solo actualizar datos dinámicos, no recrear gráficos
+      graph.nodes.forEach(node => this.updateNodeData(node));
+
+      // Los paquetes de energía sí necesitan re-renderizarse porque se mueven
       graph.edges.forEach((edge) => {
-        this.renderConnection(edge);
         this.renderEnergyPackets(edge);
       });
     }
@@ -867,23 +837,26 @@ export class GameScene extends Scene implements Loggeable {
     }
   }
 
-  private renderNode(node: Node): void {
+  /**
+   * Crea los gráficos iniciales del nodo (llamar solo UNA VEZ)
+   */
+  private createNodeGraphics(node: Node): void {
     const pos = this.gameController.getNodePositions().get(node);
     if (!pos) return;
 
-    let container = this.nodeGraphics.get(String(node.id));
-    if (!container) {
-      container = this.add.container(pos.x, pos.y);
-      this.nodeGraphics.set(String(node.id), container);
+    // Si ya existe, no recrear
+    if (this.nodeGraphics.has(String(node.id))) {
+      return;
     }
 
-    container.removeAll(true);
+    const container = this.add.container(pos.x, pos.y);
+    this.nodeGraphics.set(String(node.id), container);
 
     let color = 0x888888;
-    const label = node.name; // Siempre usar el nombre del nodo
+    const label = node.name;
 
     if (node.isNeutral()) {
-      color = 0x888888; // Gris para todos los neutrales
+      color = 0x888888;
     }
     else if (node.owner?.id === this.humanPlayer?.id) {
       color = 0x00ffff;
@@ -893,21 +866,25 @@ export class GameScene extends Scene implements Loggeable {
     }
 
     const colorString = `#${color.toString(16).padStart(6, '0')}`;
-
     const radius = VISUAL_CONSTANTS.NODE_RADIUS;
-    const circle = this.add.circle(0, 0, radius, color, 0.9);
 
-    const isInitialNode = (this.humanPlayer?.initialNode?.equals(node)) || (this.aiPlayer?.initialNode?.equals(node));
+    const circle = this.add.circle(0, 0, radius, color, 0.9);
+    circle.setData(this.NODE_GRAPHICS_KEY, 'circle'); // Tag para identificar después
+
+    const isInitialNode = (this.humanPlayer?.initialNode?.equals(node))
+      || (this.aiPlayer?.initialNode?.equals(node));
 
     let border;
+    let outerBorder = null;
+
     if (isInitialNode) {
-      // Nodo inicial: borde más grueso y con efecto de pulso
       border = this.add.circle(0, 0, radius + 3, color, 0).setStrokeStyle(4, color, 1);
+      border.setData(this.NODE_GRAPHICS_KEY, 'border');
 
-      // Añadir un segundo borde pulsante
-      const outerBorder = this.add.circle(0, 0, radius + 6, color, 0).setStrokeStyle(2, color, 0.6);
+      outerBorder = this.add.circle(0, 0, radius + 6, color, 0).setStrokeStyle(2, color, 0.6);
+      outerBorder.setData(this.NODE_GRAPHICS_KEY, 'outerBorder');
 
-      // Efecto de pulso
+      // Efecto de pulso (solo se crea una vez)
       this.tweens.add({
         targets: outerBorder,
         scaleX: 1.1,
@@ -918,19 +895,19 @@ export class GameScene extends Scene implements Loggeable {
         repeat: -1,
         ease: 'Sine.easeInOut',
       });
-
-      container.add(outerBorder);
     }
     else {
       border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
+      border.setData(this.NODE_GRAPHICS_KEY, 'border');
     }
+
     const text = this.add.text(0, 0, label, {
       fontFamily: 'Orbitron, monospace',
       fontSize: '20px',
       color: '#fff',
     }).setOrigin(0.5);
+    text.setData(this.NODE_GRAPHICS_KEY, 'label');
 
-    // Mostrar energía en formato "defensa/pool" para nodos con dueño, solo pool para neutrales
     let energyDisplayText = Math.floor(node.energyPool).toString();
     if (!node.isNeutral()) {
       const defense = Math.floor(node.defenseEnergy());
@@ -941,19 +918,86 @@ export class GameScene extends Scene implements Loggeable {
     const energyText = this.add.text(0, radius + 15, energyDisplayText, {
       fontFamily: 'Orbitron, monospace',
       fontSize: '12px',
-      // Use player color for energy text
       backgroundColor: '#000000aa',
       color: colorString,
     }).setOrigin(0.5);
+    energyText.setData(this.NODE_GRAPHICS_KEY, 'energyText');
 
-    // Agregar símbolo especial para nodos especiales
     const symbol = this.getNodeSymbol(node.nodeType, color);
     if (symbol) {
+      symbol.setData(this.NODE_GRAPHICS_KEY, 'symbol');
       container.add(symbol);
     }
 
-    container.add([circle, border, text, energyText]);
+    // Orden de adición es importante para identificar después
+    if (outerBorder) {
+      container.add([outerBorder, circle, border, text, energyText]);
+    }
+    else {
+      container.add([circle, border, text, energyText]);
+    }
+
     container.setDepth(10);
+  }
+
+  /**
+   * Actualiza solo los datos dinámicos del nodo (llamar cada frame)
+   */
+  private updateNodeData(node: Node): void {
+    const container = this.nodeGraphics.get(String(node.id));
+    if (!container) {
+      // Si no existe el gráfico, crearlo
+      this.createNodeGraphics(node);
+      return;
+    }
+
+    // Determinar color actual basado en el dueño
+    let color = 0x888888;
+    if (node.owner?.id === this.humanPlayer?.id) {
+      color = 0x00ffff;
+    }
+    else if (node.owner?.id === this.aiPlayer?.id) {
+      color = 0xff00ff;
+    }
+
+    const colorString = `#${color.toString(16).padStart(6, '0')}`;
+
+    // Buscar y actualizar los objetos gráficos
+    const children = container.list;
+
+    for (const child of children) {
+      const graphicsType = child.getData(this.NODE_GRAPHICS_KEY);
+
+      if (graphicsType === 'circle') {
+        // Actualizar color del círculo principal
+        const circle = child as Phaser.GameObjects.Arc;
+        circle.fillColor = color;
+      }
+      else if (graphicsType === 'border' || graphicsType === 'outerBorder') {
+        // Actualizar color del borde
+        const border = child as Phaser.GameObjects.Arc;
+        border.setStrokeStyle(border.lineWidth, color, border.strokeAlpha);
+      }
+      else if (graphicsType === 'energyText') {
+        // Actualizar texto y color de energía
+        const energyText = child as Phaser.GameObjects.Text;
+
+        let energyDisplayText = Math.floor(node.energyPool).toString();
+        if (!node.isNeutral()) {
+          const defense = Math.floor(node.defenseEnergy());
+          const pool = Math.floor(node.energyPool);
+          energyDisplayText = `${defense}/${pool}`;
+        }
+
+        energyText.setText(energyDisplayText);
+        energyText.setColor(colorString);
+      }
+      else if (graphicsType === 'symbol') {
+        // Actualizar color del símbolo
+        const symbol = child as Phaser.GameObjects.Text;
+        symbol.setColor(colorString);
+      }
+    }
   }
 
   private getNodeSymbol(nodeType: NodeType, nodeColor: number): Phaser.GameObjects.Text | null {
@@ -991,20 +1035,32 @@ export class GameScene extends Scene implements Loggeable {
 
     const edgeId = `${nodeA.id}-${nodeB.id}`;
     let graphics = this.connectionGraphics.get(edgeId);
+
+    // Solo crear si no existe
     if (!graphics) {
       graphics = this.add.graphics();
       this.connectionGraphics.set(edgeId, graphics);
+
+      // Capa 1: Brillo exterior (más suave y ancho)
+      graphics.lineStyle(8, 0x0088cc, 0.15);
+      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+      // Capa 2: Brillo medio
+      graphics.lineStyle(5, 0x0099dd, 0.3);
+      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+      // Capa 3: Línea principal brillante
+      graphics.lineStyle(3, 0x00aaff, 0.8);
+      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+      // Capa 4: Centro brillante (highlight)
+      graphics.lineStyle(1, 0x00ffff, 1);
+      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+      graphics.setDepth(1);
     }
 
-    // Color verde
-    graphics.lineStyle(2, 0x00cf66, 0.1);
-    graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
-
-    // Core brillante verde
-    graphics.lineStyle(1, 0x00cf66, 0.3);
-    graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
-
-    // Renderizar asignaciones de energía para ambos nodos
+    // Renderizar asignaciones de energía (estos sí cambian)
     this.renderEdgeAssignments(edge, nodeA, nodeB, posA, posB);
   }
 
