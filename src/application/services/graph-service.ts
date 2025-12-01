@@ -117,8 +117,7 @@ export class GraphService implements Loggeable {
     for (let i = 1; i < nodeCount; i++) {
       const fromNode = nodesArray[i];
       const toNode = nodesArray[Math.floor(Math.random() * i)];
-      const edgeId = this.idGenerator.generate();
-      const edge = new Edge(edgeId, [fromNode, toNode], Math.floor(Math.random() * 10) + 1);
+      const edge = this.createEdge(fromNode, toNode);
       this.graph.registerEdge(edge, fromNode, toNode);
     }
     // Añadir aristas adicionales aleatorias hasta alcanzar edgeCount
