@@ -3,7 +3,6 @@ import type { Node } from '@/core/entities/node/node';
 
 import { CollisionService } from '@/application/services/collision-service';
 import { CaptureService } from '@/application/services/capture-service';
-import type { Edge } from '@/core/entities/edge'; // Needed for packetsToAddBack
 import type { GameState } from '@/application/interfaces/game/game-state';
 import type { TickResult } from '@/application/interfaces/tick/tick-result';
 import type { ArrivalIntent } from '@/application/interfaces/arrival/arrival-intent';
@@ -138,9 +137,6 @@ export class TickService implements Loggeable {
     let arrivalCount = 0;
     let captureCount = 0;
 
-    // Use a temporary array to store packets to add back to edges
-    const packetsToAddBack: { edge: Edge; packet: EnergyPacket }[] = [];
-
     for (const edge of game.graph.edges) {
       const packets = edge.energyPackets;
       const arrivedPackets: EnergyPacket[] = [];
@@ -256,18 +252,9 @@ export class TickService implements Loggeable {
               intent.node.reduceDefense(intent.energyAmount);
             }
 
-            // Si el ataque proviene de un nodo que aún existe, podría retornar (feature futura)
-            if (intent.returnPacket) {
-              packetsToAddBack.push({ edge, packet: intent.returnPacket });
-            }
             break;
         }
       }
-    }
-
-    // Re-add any return packets to their respective edges
-    for (const { edge, packet } of packetsToAddBack) {
-      edge.addEnergyPacket(packet);
     }
 
     return { arrivals: arrivalCount, captures: captureCount };

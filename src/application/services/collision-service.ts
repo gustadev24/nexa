@@ -208,8 +208,6 @@ export class CollisionService {
     // Ataque es menor que la defensa
     // La energía de defensa se reduce, y el paquete atacante podría regresar
     // node.defenseMultiplier unused here for calculation as intention doesn't mutate
-    const returnPacket = this.handleDefeatedEnergy(packet, packet.origin);
-
     return {
       outcome: ArrivalOutcome.DEFEATED,
       node,
@@ -217,22 +215,6 @@ export class CollisionService {
       attacker,
       previousOwner,
       energyAmount: attackEnergy,
-      returnPacket: returnPacket ?? undefined,
     };
-  }
-
-  private handleDefeatedEnergy(
-    packet: EnergyPacket,
-    originNode: Node,
-  ): EnergyPacket | null {
-    if (originNode.isNeutral()) {
-      return null;
-    }
-
-    if (originNode.owner?.equals(packet.owner)) {
-      return packet.reverse();
-    }
-
-    return null;
   }
 }
