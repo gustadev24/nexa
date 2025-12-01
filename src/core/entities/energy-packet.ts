@@ -68,16 +68,4 @@ export class EnergyPacket {
     packet._progress = this._progress;
     return packet;
   }
-
-  reverse(): EnergyPacket {
-    const packet = new EnergyPacket(
-      this._owner,
-      this._amount,
-      this._target, // Ahora es origen
-      this._origin, // Ahora es destino
-      this._isTransfer,
-    );
-    packet._progress = 1 - this._progress;
-    return packet;
-  }
 }

@@ -2,16 +2,7 @@ import type { Player } from '@/core/entities/player';
 import type { Graph } from '@/core/entities/graph';
 import type { GameStatus } from '@/application/interfaces/game/game-status';
 
-/**
- * Estado completo de una partida de NEXA
- */
-export interface GameState {
-  /** Jugadores en la partida */
-  players: Player[];
-
-  /** Grafo del mapa (nodos y aristas) */
-  graph: Graph;
-
+export interface GameProgressState {
   /** Tick actual del juego (contador de actualizaciones) */
   currentTick: number;
 
@@ -26,18 +17,13 @@ export interface GameState {
 }
 
 /**
- * Configuración para crear un nuevo estado de juego
+ * Estado completo de una partida de NEXA
  */
-export interface GameStateConfig {
-  /** Jugadores participantes */
+export interface GameState extends GameProgressState {
+  /** Jugadores en la partida */
   players: Player[];
 
-  /** Grafo del mapa */
+  /** Grafo del mapa (nodos y aristas) */
   graph: Graph;
 
-  /** Tiempo inicial (opcional, por defecto 0) */
-  initialTime?: number;
-
-  /** Tick inicial (opcional, por defecto 0) */
-  initialTick?: number;
 }
