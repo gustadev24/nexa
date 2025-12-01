@@ -7,6 +7,7 @@ import type { Edge } from '@/core/entities/edge';
 import type { Player } from '@/core/entities/player';
 import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
 import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import { VISUAL_CONSTANTS } from '@/application/constants/visual-constants';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -291,7 +292,7 @@ export class GameScene extends Scene implements Loggeable {
     const color = 0x888888; // Gris para neutrales
     const label = node.name; // Usar nombre del nodo
 
-    const radius = 30;
+    const radius = VISUAL_CONSTANTS.NODE_RADIUS;
     const circle = this.add.circle(0, 0, radius, color, 0.6);
     const border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
     const text = this.add.text(0, 0, label, {
@@ -385,7 +386,7 @@ export class GameScene extends Scene implements Loggeable {
     const container = this.nodeGraphics.get(String(node.id));
     if (!container) return;
 
-    const radius = 30;
+    const radius = VISUAL_CONSTANTS.NODE_RADIUS;
     const border = this.add.circle(0, 0, radius + 4, color, 0).setStrokeStyle(4, color, 1);
 
     container.add([border]);
@@ -891,9 +892,36 @@ export class GameScene extends Scene implements Loggeable {
       color = 0xff00ff;
     }
 
-    const radius = 30;
+    const radius = VISUAL_CONSTANTS.NODE_RADIUS;
     const circle = this.add.circle(0, 0, radius, color, 0.8);
-    const border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
+
+    const isInitialNode = (this.humanPlayer?.initialNode?.equals(node)) || (this.aiPlayer?.initialNode?.equals(node));
+
+    let border;
+    if (isInitialNode) {
+      // Nodo inicial: borde más grueso y con efecto de pulso
+      border = this.add.circle(0, 0, radius + 3, color, 0).setStrokeStyle(4, color, 1);
+
+      // Añadir un segundo borde pulsante
+      const outerBorder = this.add.circle(0, 0, radius + 6, color, 0).setStrokeStyle(2, color, 0.6);
+
+      // Efecto de pulso
+      this.tweens.add({
+        targets: outerBorder,
+        scaleX: 1.1,
+        scaleY: 1.1,
+        alpha: 0.3,
+        duration: 1500,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
+
+      container.add(outerBorder);
+    }
+    else {
+      border = this.add.circle(0, 0, radius + 2, color, 0).setStrokeStyle(2, color, 1);
+    }
     const text = this.add.text(0, 0, label, {
       fontFamily: 'Orbitron, monospace',
       fontSize: '20px',
@@ -921,6 +949,7 @@ export class GameScene extends Scene implements Loggeable {
     }
 
     container.add([circle, border, text, energyText]);
+    container.setDepth(10);
   }
 
   private getNodeSymbol(nodeType: NodeType, nodeColor: number): Phaser.GameObjects.Text | null {
@@ -966,6 +995,8 @@ export class GameScene extends Scene implements Loggeable {
     graphics.clear();
     graphics.lineStyle(2, 0x004466, 0.6);
     graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
+
+    graphics.setDepth(1);
 
     // Renderizar asignaciones de energía para ambos nodos
     this.renderEdgeAssignments(edge, nodeA, nodeB, posA, posB);
@@ -1070,6 +1101,8 @@ export class GameScene extends Scene implements Loggeable {
     }
 
     graphics.clear();
+
+    graphics.setDepth(5);
 
     // Draw each energy packet
     edge.energyPackets.forEach((packet) => {

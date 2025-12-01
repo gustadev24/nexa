@@ -10,10 +10,10 @@ import type { ArrivalIntent } from '@/application/interfaces/arrival/arrival-int
 import { ArrivalOutcome } from '@/application/interfaces/arrival/arrival-outcome';
 import type { Logger } from '@/application/interfaces/logging/logger';
 import type { Loggeable } from '@/application/interfaces/logging/loggeable';
+import { GAME_CONSTANTS } from '@/application/constants/game-constants';
 
 export class TickService implements Loggeable {
   _logContext = 'TickService';
-  private static readonly DEFAULT_SPEED = 0.005; // Velocidad ajustada para distancias normalizadas
 
   private lastDefenseUpdate = new Map<Node, number>();
   private lastAttackEmission = new Map<Node, number>();
@@ -115,7 +115,7 @@ export class TickService implements Loggeable {
         packet.advance(
           deltaTime,
           edge.length,
-          TickService.DEFAULT_SPEED,
+          GAME_CONSTANTS.DEFAULT_SPEED,
         );
       }
     }
