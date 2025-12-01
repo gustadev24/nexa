@@ -8,6 +8,7 @@ import type { Player } from '@/core/entities/player';
 import type { VictoryResult } from '@/application/interfaces/victory/victory-result';
 import type { Loggeable } from '@/application/interfaces/logging/loggeable';
 import { VISUAL_CONSTANTS } from '@/application/constants/visual-constants';
+import { GAME_CONSTANTS } from '@/application/constants/game-constants';
 
 enum GamePhase {
   WAITING_PLAYER_SELECTION = 'WAITING_PLAYER_SELECTION',
@@ -30,8 +31,6 @@ export class GameScene extends Scene implements Loggeable {
   private playerSelectedNode: Node | null = null;
   private aiSelectedNode: Node | null = null;
   private victoryHandled = false;
-  private redistributionMode = false;
-  private redistributionSourceNode: Node | null = null;
 
   // UI
   private statsText?: Phaser.GameObjects.Text;
@@ -60,8 +59,6 @@ export class GameScene extends Scene implements Loggeable {
     this.playerSelectedNode = null;
     this.aiSelectedNode = null;
     this.victoryHandled = false;
-    this.redistributionMode = false;
-    this.redistributionSourceNode = null;
     this.selectedNode = null;
     this.currentPlayer = null;
     this.humanPlayer = null;
@@ -306,8 +303,6 @@ export class GameScene extends Scene implements Loggeable {
     this.input.keyboard?.on('keydown-C', () => {
       if (this.gamePhase === GamePhase.PLAYING) {
         this.selectedNode = null;
-        this.redistributionMode = false;
-        this.redistributionSourceNode = null;
         this.selectionText?.setText('');
       }
     });
@@ -413,27 +408,15 @@ export class GameScene extends Scene implements Loggeable {
 
   private handleGameplayInput(pointer: Phaser.Input.Pointer): void {
     const clickedNode = this.findClickedNode(pointer.x, pointer.y);
+
     if (clickedNode) {
-      // Explicitly cast/type to avoid 'unknown' error
-      const graph = this.gameController.getGraph();
-      const nodes: Node[] = Array.from(graph.nodes);
-      const node = nodes.find(n => n.equals(clickedNode));
-      if (node) {
-        // SHIFT + Click = redistribution mode
-        if (pointer.event.shiftKey && node.owner?.id === this.currentPlayer?.id) {
-          this.handleRedistributionClick(node);
-        }
-        else {
-          this.handleNodeClick(node);
-        }
-        return;
-      }
+      this.handleNodeClick(clickedNode, pointer.event.ctrlKey);
+      return;
     }
 
-    // Buscar clic en arista (con o sin nodo seleccionado)
+    // Si no clickeó un nodo, intentar arista (mantener compatibilidad)
     const clickedEdge = this.findClickedEdge(pointer.x, pointer.y);
     if (clickedEdge) {
-      // CTRL + Clic = quitar energía (equivalente a clic derecho)
       const isRemoveAction = pointer.event.ctrlKey;
       this.handleEdgeClick(clickedEdge, isRemoveAction);
     }
@@ -489,142 +472,67 @@ export class GameScene extends Scene implements Loggeable {
     return Math.sqrt((p.x - projX) ** 2 + (p.y - projY) ** 2);
   }
 
-  private handleNodeClick(node: Node): void {
-    if (!this.currentPlayer) return;
-    if (node.owner?.id === this.currentPlayer.id) {
-      this.selectedNode = node;
-      this.redistributionMode = false;
-      this.redistributionSourceNode = null;
-      const defense = node.defenseEnergy();
-      this.selectionText?.setText(
-        `Generador: ${node.name} | Capacidad: ${Math.floor(node.energyPool)} | Defensa: ${Math.floor(defense)}`,
-      );
-    }
-    else {
-      this.selectedNode = null;
-      this.selectionText?.setText('Este nodo no te pertenece');
-    }
-  }
-
-  private handleRedistributionClick(node: Node): void {
+  private handleNodeClick(node: Node, isRemoveAction = false): void {
     if (!this.currentPlayer) return;
 
-    if (!this.redistributionMode) {
-      // First click: select source node
-      this.redistributionMode = true;
-      this.redistributionSourceNode = node;
-      this.selectedNode = null;
-      this.selectionText?.setText(
-        `GENERADOR: ${node.name} (${Math.floor(node.energyPool)} capacidad) - SHIFT+Clic en destino para flujo continuo`,
-      );
-    }
-    else {
-      // Second click: assign energy to edge leading to target
-      if (!this.redistributionSourceNode) return;
+    const isOwnNode = node.owner?.id === this.currentPlayer.id;
 
-      // Find edge connecting the two nodes
-      const edge = Array.from(this.redistributionSourceNode.edges).find(e => e.hasNode(node));
-
-      if (!edge) {
-        this.selectionText?.setText('Nodes are not connected!');
-        this.redistributionMode = false;
-        this.redistributionSourceNode = null;
-        return;
-      }
-
-      // Usar transferencia especial entre aliados (un solo paquete de 10)
-      const result = this.gameController.getEnergyCommander().transferEnergyBetweenAllies(
-        this.currentPlayer,
-        this.redistributionSourceNode,
-        node,
-        edge,
-        10, // Un paquete único de 10 energía
-      );
-
-      if (result.success) {
+    // CASO 1: No hay nodo seleccionado
+    if (!this.selectedNode) {
+      // Solo puedes seleccionar tus propios nodos
+      if (isOwnNode) {
+        this.selectedNode = node;
+        const defense = node.defenseEnergy();
         this.selectionText?.setText(
-          `Energy transfer: ${this.redistributionSourceNode.id} → ${node.id} (10 energy sent)`,
+          `Generador seleccionado: ${node.name} | Pool: ${Math.floor(node.energyPool)} | Defensa: ${Math.floor(defense)}`,
         );
       }
       else {
-        this.selectionText?.setText(`Error: ${result.error}`);
+        this.selectionText?.setText('⚠️ Debes seleccionar tu propio generador primero');
       }
-
-      // Reset redistribution mode
-      this.redistributionMode = false;
-      this.redistributionSourceNode = null;
-    }
-  }
-
-  private handleEdgeClick(edge: Edge, isRemoveAction: boolean): void {
-    if (!this.currentPlayer) return;
-
-    const amount = 10;
-    const [nodeA, nodeB] = edge.endpoints;
-
-    // CASO 1: Sin nodo seleccionado - quitar energía asignada de cualquier extremo
-    if (!this.selectedNode) {
-      // Buscar cuál extremo tiene energía asignada del jugador actual
-      const nodeAOwned = nodeA.owner?.id === this.currentPlayer.id;
-      const nodeBOwned = nodeB.owner?.id === this.currentPlayer.id;
-      const assignmentA = nodeAOwned ? nodeA.getAssignedEnergy(edge) : 0;
-      const assignmentB = nodeBOwned ? nodeB.getAssignedEnergy(edge) : 0;
-
-      if (assignmentA > 0) {
-        // Quitar energía del nodo A
-        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
-          this.currentPlayer,
-          nodeA,
-          edge,
-          amount,
-        );
-
-        if (result.success) {
-          const remaining = nodeA.getAssignedEnergy(edge);
-          this.selectionText?.setText(
-            `Energía devuelta: -${amount} desde ${nodeA.name} | Asignado restante: ${remaining}`,
-          );
-        }
-        else {
-          this.selectionText?.setText(`Error: ${result.error}`);
-        }
-        return;
-      }
-
-      if (assignmentB > 0) {
-        // Quitar energía del nodo B
-        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
-          this.currentPlayer,
-          nodeB,
-          edge,
-          amount,
-        );
-
-        if (result.success) {
-          const remaining = nodeB.getAssignedEnergy(edge);
-          this.selectionText?.setText(
-            `Energía devuelta: -${amount} desde ${nodeB.name} | Asignado restante: ${remaining}`,
-          );
-        }
-        else {
-          this.selectionText?.setText(`Error: ${result.error}`);
-        }
-        return;
-      }
-
-      // Si no hay energía asignada, informar al jugador
-      this.selectionText?.setText('Esta arista no tiene energía asignada');
       return;
     }
 
-    // CASO 2: Con nodo seleccionado - comportamiento original
-    // Detectar si el otro extremo de la arista es un nodo aliado
-    const targetNode = edge.flipSide(this.selectedNode);
-    const isAllyTransfer = !isRemoveAction
-      && targetNode.owner?.id === this.currentPlayer.id;
+    // CASO 2: Hay nodo seleccionado
+    // Si clickean el mismo nodo, deseleccionar
+    if (node.equals(this.selectedNode)) {
+      this.selectedNode = null;
+      this.selectionText?.setText('Generador deseleccionado');
+      return;
+    }
 
-    if (isAllyTransfer) {
-      // Usar transferencia especial entre aliados (un solo paquete)
+    // Si clickean otro de sus nodos, cambiar selección
+    if (isOwnNode) {
+      this.selectedNode = node;
+      const defense = node.defenseEnergy();
+      this.selectionText?.setText(
+        `Generador seleccionado: ${node.name} | Pool: ${Math.floor(node.energyPool)} | Defensa: ${Math.floor(defense)}`,
+      );
+      return;
+    }
+
+    // CASO 3: Click en nodo vecino (enemigo o neutral)
+    // Buscar arista que conecta selectedNode con el nodo clickeado
+    const edge = Array.from(this.selectedNode.edges).find(e => e.hasNode(node));
+
+    if (!edge) {
+      this.selectionText?.setText(`⚠️ ${this.selectedNode.name} no está conectado a ${node.name}`);
+      return;
+    }
+
+    // Asignar o quitar energía a la arista
+    this.handleEnergyAssignment(edge, isRemoveAction);
+  }
+
+  private handleEnergyAssignment(edge: Edge, isRemoveAction: boolean): void {
+    if (!this.currentPlayer || !this.selectedNode) return;
+
+    const amount = GAME_CONSTANTS.ASSIGNMENT_AMOUNT;
+    const targetNode = edge.flipSide(this.selectedNode);
+    const isAllyTarget = targetNode.owner?.id === this.currentPlayer.id;
+
+    // TRANSFERENCIA ENTRE ALIADOS
+    if (isAllyTarget && !isRemoveAction) {
       const result = this.gameController.getEnergyCommander().transferEnergyBetweenAllies(
         this.currentPlayer,
         this.selectedNode,
@@ -635,40 +543,105 @@ export class GameScene extends Scene implements Loggeable {
 
       if (result.success) {
         this.selectionText?.setText(
-          `Transferencia: ${this.selectedNode.name} → ${targetNode.name} (${amount} energía enviada)`,
+          `✅ Transferencia: ${this.selectedNode.name} → ${targetNode.name} (+${amount} energía)`,
         );
       }
       else {
-        this.selectionText?.setText(`Error: ${result.error}`);
+        this.selectionText?.setText(`❌ Error: ${result.error}`);
       }
+      return;
+    }
+
+    // ASIGNACIÓN DE ATAQUE O REMOCIÓN
+    const result = isRemoveAction
+      ? this.gameController.getEnergyCommander().removeEnergyFromEdge(
+          this.currentPlayer,
+          this.selectedNode,
+          edge,
+          amount,
+        )
+      : this.gameController.getEnergyCommander().assignEnergyToEdge(
+          this.currentPlayer,
+          this.selectedNode,
+          edge,
+          amount,
+        );
+
+    if (result.success) {
+      const assignment = this.selectedNode.getAssignedEnergy(edge);
+      const defense = this.selectedNode.defenseEnergy();
+      const action = isRemoveAction ? '⬇️' : '⬆️';
+      const targetName = targetNode.name || 'nodo';
+
+      this.selectionText?.setText(
+        `${action} ${this.selectedNode.name} → ${targetName}: ${isRemoveAction ? '-' : '+'}${amount} | Flujo: ${assignment}/s | Defensa: ${Math.floor(defense)}`,
+      );
     }
     else {
-      // Asignación normal de ataque o remoción
-      const result = isRemoveAction
-        ? this.gameController.getEnergyCommander().removeEnergyFromEdge(
-            this.currentPlayer,
-            this.selectedNode,
-            edge,
-            amount,
-          )
-        : this.gameController.getEnergyCommander().assignEnergyToEdge(
-            this.currentPlayer,
-            this.selectedNode,
-            edge,
-            amount,
-          );
-
-      if (result.success) {
-        const assignment = this.selectedNode.getAssignedEnergy(edge);
-        const defense = this.selectedNode.defenseEnergy();
-        this.selectionText?.setText(
-          `${isRemoveAction ? '-' : '+'}${amount} → Flujo: ${assignment}/s | Pool: ${Math.floor(this.selectedNode.energyPool)} | Defensa: ${Math.floor(defense)}`,
-        );
-      }
-      else {
-        this.selectionText?.setText(`Error: ${result.error}`);
-      }
+      this.selectionText?.setText(`❌ Error: ${result.error}`);
     }
+  }
+
+  // Modificar handleEdgeClick para seguir funcionando sin nodo seleccionado
+  private handleEdgeClick(edge: Edge, isRemoveAction: boolean): void {
+    if (!this.currentPlayer) return;
+
+    const amount = 10;
+    const [nodeA, nodeB] = edge.endpoints;
+
+    // CASO 1: Sin nodo seleccionado - quitar energía asignada de cualquier extremo
+    if (!this.selectedNode) {
+      const nodeAOwned = nodeA.owner?.id === this.currentPlayer.id;
+      const nodeBOwned = nodeB.owner?.id === this.currentPlayer.id;
+      const assignmentA = nodeAOwned ? nodeA.getAssignedEnergy(edge) : 0;
+      const assignmentB = nodeBOwned ? nodeB.getAssignedEnergy(edge) : 0;
+
+      if (assignmentA > 0) {
+        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
+          this.currentPlayer,
+          nodeA,
+          edge,
+          amount,
+        );
+
+        if (result.success) {
+          const remaining = nodeA.getAssignedEnergy(edge);
+          this.selectionText?.setText(
+            `⬇️ Energía devuelta desde ${nodeA.name}: -${amount} | Restante: ${remaining}/s`,
+          );
+        }
+        else {
+          this.selectionText?.setText(`❌ Error: ${result.error}`);
+        }
+        return;
+      }
+
+      if (assignmentB > 0) {
+        const result = this.gameController.getEnergyCommander().removeEnergyFromEdge(
+          this.currentPlayer,
+          nodeB,
+          edge,
+          amount,
+        );
+
+        if (result.success) {
+          const remaining = nodeB.getAssignedEnergy(edge);
+          this.selectionText?.setText(
+            `⬇️ Energía devuelta desde ${nodeB.name}: -${amount} | Restante: ${remaining}/s`,
+          );
+        }
+        else {
+          this.selectionText?.setText(`❌ Error: ${result.error}`);
+        }
+        return;
+      }
+
+      this.selectionText?.setText('⚠️ Esta arista no tiene energía asignada');
+      return;
+    }
+
+    // CASO 2: Con nodo seleccionado - usar el nuevo sistema
+    this.handleEnergyAssignment(edge, isRemoveAction);
   }
 
   update(_time: number, delta: number): void {
@@ -1219,8 +1192,6 @@ export class GameScene extends Scene implements Loggeable {
     this.selectedNode = null;
     this.currentPlayer = null;
     this.victoryHandled = false;
-    this.redistributionMode = false;
-    this.redistributionSourceNode = null;
 
     // Clear visuals
     this.nodeGraphics.forEach(container => container.destroy());
