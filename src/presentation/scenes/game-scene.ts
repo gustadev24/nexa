@@ -44,7 +44,10 @@ export class GameScene extends Scene implements Loggeable {
   private nodeGraphics = new Map<string, Phaser.GameObjects.Container>();
   private connectionGraphics = new Map<string, Phaser.GameObjects.Graphics>();
   private packetGraphics = new Map<string, Phaser.GameObjects.Graphics>();
-  private edgeAssignmentTexts = new Map<string, Phaser.GameObjects.Text>();
+  private edgeAssignmentTexts = new Map<string, {
+    nodeA: Phaser.GameObjects.Text;
+    nodeB: Phaser.GameObjects.Text;
+  }>();
 
   // Selection
   private selectedNode: Node | null = null;
@@ -84,8 +87,6 @@ export class GameScene extends Scene implements Loggeable {
   }
 
   create() {
-    const { width, height } = this.scale;
-
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x001122);
 
@@ -99,37 +100,202 @@ export class GameScene extends Scene implements Loggeable {
     this.generateRandomGraph();
     this.setupInputHandlers();
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-    const startText = this.add.text(
-      centerX,
-      centerY,
-      'NEXA - Estrategia de Generadores de Energía\n\n'
-      + 'Cómo funciona:\n'
-      + '1. Selecciona nodo y CLIC en arista: +10 energía\n'
-      + '2. CTRL+CLIC en arista: -10 energía\n'
-      + '3. CLIC en arista SIN nodo: quita energía asignada\n'
-      + '4. Los nodos GENERAN paquetes cada 1 segundo\n'
-      + '5. ¡Capturar nodo → Energía asignada se transfiere!\n'
-      + '6. Defensa = Pool - Asignado (se regenera cada 1.5s)\n\n'
-      + 'Haz clic en cualquier nodo neutral para empezar',
+    this.showWelcomeDialog();
+  }
+
+  private showWelcomeDialog(): void {
+    const { width, height } = this.scale;
+
+    // Overlay oscuro (fondo semitransparente)
+    const overlay = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      0x000000,
+      0.85,
+    );
+    overlay.setDepth(1000);
+    overlay.setInteractive();
+    overlay.setAlpha(0);
+
+    // Panel del diálogo - más alto para dar espacio
+    const panelWidth = Math.min(720, width - 40);
+    const panelHeight = Math.min(620, height - 40);
+
+    const dialogPanel = this.add.rectangle(
+      width / 2,
+      height / 2,
+      panelWidth,
+      panelHeight,
+      0x001122,
+      1,
+    );
+    dialogPanel.setStrokeStyle(3, 0x00ffff, 1);
+    dialogPanel.setDepth(1001);
+    dialogPanel.setAlpha(0);
+
+    // Brillo del panel (efecto neón)
+    const glow = this.add.rectangle(
+      width / 2,
+      height / 2,
+      panelWidth + 6,
+      panelHeight + 6,
+      0x00ffff,
+      0,
+    );
+    glow.setStrokeStyle(6, 0x00ffff, 0.3);
+    glow.setDepth(1000);
+    glow.setAlpha(0);
+
+    // Título
+    const title = this.add.text(
+      width / 2,
+      height / 2 - panelHeight / 2 + 45,
+      '⚡ NEXA ⚡',
       {
         fontFamily: 'Orbitron, monospace',
-        fontSize: '14px',
+        fontSize: '44px',
         color: '#00ffff',
         align: 'center',
-        backgroundColor: '#000000cc',
-        padding: { x: 20, y: 20 },
+        stroke: '#00ffff',
+        strokeThickness: 2,
       },
-    ).setOrigin(0.5).setAlpha(0);
+    ).setOrigin(0.5);
+    title.setDepth(1002);
+    title.setAlpha(0);
 
+    // Línea separadora
+    const separator = this.add.rectangle(
+      width / 2,
+      height / 2 - panelHeight / 2 + 95,
+      panelWidth - 80,
+      2,
+      0x00ffff,
+      0.5,
+    );
+    separator.setDepth(1002);
+    separator.setAlpha(0);
+
+    // Contenido - texto más grande
+    const content = this.add.text(
+      width / 2,
+      height / 2 - panelHeight / 2 + 95 + (panelHeight - 190) / 2,
+      '🎮 CONTROLES:\n'
+      + '• Click en nodo → Selecciona\n'
+      + '• Click en vecino → +10 energía\n'
+      + '• CTRL + Click → -10 energía\n'
+      + '• Tecla C → Deselecciona\n\n'
+      + '⚡ MECÁNICAS:\n'
+      + '• Nodos generan paquetes cada 1s\n'
+      + '• Al capturar: energía se transfiere\n'
+      + '• Defensa = Pool - Asignado\n\n'
+      + '🎯 OBJETIVO:\n'
+      + '• 70% nodos por 10 segundos\n'
+      + '• O mayor control en 3 minutos',
+      {
+        fontFamily: 'Orbitron, monospace',
+        fontSize: '15px', // ✅ Aumentado de 13px a 15px
+        color: '#ffffff',
+        align: 'left',
+        lineSpacing: 5, // ✅ Un poco más de espacio entre líneas
+      },
+    ).setOrigin(0.5);
+    content.setDepth(1002);
+    content.setAlpha(0);
+
+    // Botón de cerrar
+    const buttonText = this.add.text(
+      width / 2,
+      height / 2 + panelHeight / 2 - 45,
+      '[ CLICK PARA COMENZAR ]',
+      {
+        fontFamily: 'Orbitron, monospace',
+        fontSize: '16px', // ✅ Aumentado de 15px a 16px
+        color: '#00ff88',
+        align: 'center',
+        backgroundColor: '#00ffff22',
+        padding: { x: 20, y: 10 },
+      },
+    ).setOrigin(0.5);
+    buttonText.setDepth(1002);
+    buttonText.setAlpha(0);
+
+    // Efecto de pulso en el botón
     this.tweens.add({
-      targets: startText,
-      alpha: 1,
+      targets: buttonText,
+      alpha: { from: 0.6, to: 1 },
+      scale: { from: 0.98, to: 1.02 },
       duration: 1000,
       yoyo: true,
-      hold: 5000,
-      onComplete: () => startText.destroy(),
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Agrupar todos los elementos del diálogo
+    const dialogElements = [
+      overlay,
+      glow,
+      dialogPanel,
+      title,
+      separator,
+      content,
+      buttonText,
+    ];
+
+    // Animación de entrada
+    this.tweens.add({
+      targets: dialogElements,
+      alpha: 1,
+      duration: 500,
+      ease: 'Power2',
+    });
+
+    // Animación especial para el título
+    this.tweens.add({
+      targets: title,
+      scale: { from: 0.8, to: 1 },
+      duration: 600,
+      ease: 'Back.easeOut',
+    });
+
+    // Función para cerrar el diálogo
+    const closeDialog = () => {
+      // Animación de salida
+      this.tweens.add({
+        targets: dialogElements,
+        alpha: 0,
+        duration: 300,
+        ease: 'Power2',
+        onComplete: () => {
+          // Destruir todos los elementos
+          dialogElements.forEach(element => element.destroy());
+        },
+      });
+
+      // Animación especial para el panel (zoom out)
+      this.tweens.add({
+        targets: [dialogPanel, glow],
+        scale: 0.8,
+        duration: 300,
+        ease: 'Back.easeIn',
+      });
+    };
+
+    // Click en overlay o botón para cerrar
+    overlay.on('pointerdown', closeDialog);
+    buttonText.setInteractive();
+    buttonText.on('pointerdown', closeDialog);
+
+    // Efecto hover en el botón
+    buttonText.on('pointerover', () => {
+      buttonText.setColor('#00ffff');
+      buttonText.setScale(1.05);
+    });
+
+    buttonText.on('pointerout', () => {
+      buttonText.setColor('#00ff88');
+      buttonText.setScale(1);
     });
   }
 
@@ -262,16 +428,7 @@ export class GameScene extends Scene implements Loggeable {
   private renderInitialGraph(): void {
     // Render edges
     this.gameController.getGraph().edges.forEach((edge) => {
-      const [nodeA, nodeB] = edge.endpoints;
-      const posA = this.gameController.getNodePositions().get(nodeA);
-      const posB = this.gameController.getNodePositions().get(nodeB);
-      if (!posA || !posB) return;
-
-      const edgeId = String(edge.id);
-      const graphics = this.add.graphics();
-      graphics.lineStyle(2, 0x004466, 0.6);
-      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
-      this.connectionGraphics.set(edgeId, graphics);
+      this.renderConnection(edge);
     });
 
     // Render nodes
@@ -1006,7 +1163,7 @@ export class GameScene extends Scene implements Loggeable {
     const posB = this.gameController.getNodePositions().get(nodeB);
     if (!posA || !posB) return;
 
-    const edgeId = `${nodeA.id}-${nodeB.id}`;
+    const edgeId = String(edge.id);
     let graphics = this.connectionGraphics.get(edgeId);
 
     // Solo crear si no existe
@@ -1014,16 +1171,12 @@ export class GameScene extends Scene implements Loggeable {
       graphics = this.add.graphics();
       this.connectionGraphics.set(edgeId, graphics);
 
-      // Capa 1: Brillo exterior (más suave y ancho)
-      graphics.lineStyle(8, 0x0088cc, 0.15);
-      graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
-
       // Capa 2: Brillo medio
-      graphics.lineStyle(5, 0x0099dd, 0.3);
+      graphics.lineStyle(5, 0x00dd99, 0.1);
       graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
 
       // Capa 3: Línea principal brillante
-      graphics.lineStyle(3, 0x00aaff, 0.8);
+      graphics.lineStyle(3, 0x00ffaa, 0.5);
       graphics.lineBetween(posA.x, posA.y, posB.x, posB.y);
 
       // Capa 4: Centro brillante (highlight)
@@ -1044,81 +1197,66 @@ export class GameScene extends Scene implements Loggeable {
     posA: { x: number; y: number },
     posB: { x: number; y: number },
   ): void {
-    // Calcular vector y perpendicular para posicionar los textos
+    const edgeId = String(edge.id);
     const dx = posB.x - posA.x;
     const dy = posB.y - posA.y;
     const len = Math.sqrt(dx * dx + dy * dy);
     const perpX = -dy / len;
     const perpY = dx / len;
+    const offset = 15;
 
-    const offset = 15; // Distancia desde la línea
-
-    // Asignación de nodeA hacia nodeB
-    const assignmentA = nodeA.getAssignedEnergy(edge);
-    if (assignmentA > 0 && !nodeA.isNeutral()) {
-      const keyA = `${edge.id}-${nodeA.id}`;
-      let textA = this.edgeAssignmentTexts.get(keyA);
-
-      if (!textA) {
-        textA = this.add.text(0, 0, '', {
+    // Obtener o crear el par de textos para esta arista
+    let textPair = this.edgeAssignmentTexts.get(edgeId);
+    if (!textPair) {
+      textPair = {
+        nodeA: this.add.text(0, 0, '', {
           fontFamily: 'Orbitron, monospace',
           fontSize: '11px',
           color: '#ffffff',
           backgroundColor: '#000000aa',
           padding: { x: 3, y: 2 },
-        }).setOrigin(0.5);
-        this.edgeAssignmentTexts.set(keyA, textA);
-      }
+        }).setOrigin(0.5),
+        nodeB: this.add.text(0, 0, '', {
+          fontFamily: 'Orbitron, monospace',
+          fontSize: '11px',
+          color: '#ffffff',
+          backgroundColor: '#000000aa',
+          padding: { x: 3, y: 2 },
+        }).setOrigin(0.5),
+      };
+      this.edgeAssignmentTexts.set(edgeId, textPair);
+    }
 
-      // Posicionar cerca del nodeA (1/4 del camino hacia nodeB)
+    // Asignación de nodeA hacia nodeB
+    const assignmentA = nodeA.getAssignedEnergy(edge);
+    if (assignmentA > 0 && !nodeA.isNeutral()) {
       const posX = posA.x + dx * 0.25 + perpX * offset;
       const posY = posA.y + dy * 0.25 + perpY * offset;
-
-      // Color según el dueño del nodo
       const color = nodeA.owner?.id === this.humanPlayer?.id ? '#00ffff' : '#ff00ff';
-      textA.setColor(color);
-      textA.setPosition(posX, posY);
-      textA.setText(Math.floor(assignmentA).toString());
-      textA.setVisible(true);
+
+      textPair.nodeA.setColor(color);
+      textPair.nodeA.setPosition(posX, posY);
+      textPair.nodeA.setText(Math.floor(assignmentA).toString());
+      textPair.nodeA.setVisible(true);
     }
     else {
-      const keyA = `${edge.id}-${nodeA.id}`;
-      const textA = this.edgeAssignmentTexts.get(keyA);
-      if (textA) textA.setVisible(false);
+      textPair.nodeA.setVisible(false);
     }
 
     // Asignación de nodeB hacia nodeA
     const assignmentB = nodeB.getAssignedEnergy(edge);
     if (assignmentB > 0 && !nodeB.isNeutral()) {
-      const keyB = `${edge.id}-${nodeB.id}`;
-      let textB = this.edgeAssignmentTexts.get(keyB);
-
-      if (!textB) {
-        textB = this.add.text(0, 0, '', {
-          fontFamily: 'Orbitron, monospace',
-          fontSize: '11px',
-          color: '#ffffff',
-          backgroundColor: '#000000aa',
-          padding: { x: 3, y: 2 },
-        }).setOrigin(0.5);
-        this.edgeAssignmentTexts.set(keyB, textB);
-      }
-
-      // Posicionar cerca del nodeB (3/4 del camino desde nodeA)
       const posX = posA.x + dx * 0.75 - perpX * offset;
       const posY = posA.y + dy * 0.75 - perpY * offset;
-
-      // Color según el dueño del nodo
       const color = nodeB.owner?.id === this.humanPlayer?.id ? '#00ffff' : '#ff00ff';
-      textB.setColor(color);
-      textB.setPosition(posX, posY);
-      textB.setText(Math.floor(assignmentB).toString());
-      textB.setVisible(true);
+
+      textPair.nodeB.setColor(color);
+      textPair.nodeB.setPosition(posX, posY);
+      textPair.nodeB.setText(Math.floor(assignmentB).toString());
+      textPair.nodeB.setVisible(true);
     }
     else {
-      const keyB = `${edge.id}-${nodeB.id}`;
-      const textB = this.edgeAssignmentTexts.get(keyB);
-      if (textB) textB.setVisible(false);
+      textPair.nodeB.setVisible(false);
     }
   }
 
@@ -1128,7 +1266,7 @@ export class GameScene extends Scene implements Loggeable {
     const posB = this.gameController.getNodePositions().get(nodeB);
     if (!posA || !posB) return;
 
-    const edgeId = `${nodeA.id}-${nodeB.id}`;
+    const edgeId = String(edge.id);
     let graphics = this.packetGraphics.get(edgeId);
     if (!graphics) {
       graphics = this.add.graphics();
@@ -1200,7 +1338,10 @@ export class GameScene extends Scene implements Loggeable {
     this.connectionGraphics.clear();
     this.packetGraphics.forEach(graphics => graphics.destroy());
     this.packetGraphics.clear();
-    this.edgeAssignmentTexts.forEach(text => text.destroy());
+    this.edgeAssignmentTexts.forEach((pair) => {
+      pair.nodeA.destroy();
+      pair.nodeB.destroy();
+    });
     this.edgeAssignmentTexts.clear();
 
     // Reset UI
