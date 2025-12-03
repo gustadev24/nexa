@@ -1,547 +1,214 @@
-# 📜 Memoria Descriptiva del Juego Nexa
-
-**Título:** Nexa - Juego de Estrategia en Tiempo Real sobre Grafos  
-**Versión:** 1.0.0  
-**Fecha:** Diciembre 2025  
-**Equipo de Desarrollo:** Equipo Nexa - UNSA
-
----
+# Memoria Descriptiva del Juego Nexa
 
 ## 1. Introducción
 
-La presente memoria descriptiva documenta el funcionamiento, instalación y uso del juego **Nexa**. Nexa es un juego de estrategia en tiempo real desarrollado bajo el framework **Phaser 3** utilizando **TypeScript**, con arquitectura limpia de tres capas.
-
-Es una aplicación de entretenimiento que permite a dos jugadores competir en un campo de batalla representado como un grafo, donde deben gestionar recursos de energía para controlar nodos y alcanzar la victoria mediante diferentes condiciones estratégicas.
-
-Los usuarios principales son **jugadores competitivos** que disfrutan de juegos de estrategia en tiempo real con mecánicas innovadoras basadas en teoría de grafos.
-
----
+La presente memoria descriptiva documenta el funcionamiento, instalación y uso del juego Nexa, desarrollado bajo el framework Phaser 3 y utilizando TypeScript con arquitectura limpia. Este juego es una herramienta de entretenimiento estratégico que permite a dos jugadores competir por el control de nodos en un grafo mediante la gestión de recursos de energía. Los usuarios principales son jugadores que buscan experiencias de estrategia en tiempo real con mecánicas innovadoras basadas en teoría de grafos.
 
 ## 2. Arquitectura y Plataforma Tecnológica
 
-Nexa es una aplicación web desarrollada en **TypeScript** sobre el framework de juegos **Phaser 3.90**.
+Nexa es un juego web desarrollado en TypeScript sobre el framework de juegos Phaser 3.90. Utiliza Vite como build tool y está diseñado para funcionar en navegadores web modernos con soporte para Canvas HTML5. El entorno de ejecución incluye Node.js 18.x, pnpm 8.x como gestor de paquetes y TypeScript 5.7 con configuración estricta.
 
-### Stack Tecnológico
+### Arquitectura del Sistema
 
-- **Lenguaje:** TypeScript 5.7
-- **Framework de Juego:** Phaser 3.90
-- **Build Tool:** Vite 6.4
-- **Gestor de Paquetes:** pnpm 8.x
-- **Testing:** Vitest 4.0
-- **Linting:** ESLint 9
+El proyecto implementa Clean Architecture con cuatro capas claramente definidas:
 
-### Plataforma de Ejecución
+**Core Layer (Dominio):**
+- Entidades: Node, Edge, Player, Graph, EnergyPacket
+- Value Objects: ID, NodeType, Color
+- Sin dependencias externas
 
-- **Entorno:** Navegadores web modernos (Chrome, Firefox, Edge, Safari)
-- **Requisitos mínimos:**
-  - JavaScript habilitado
-  - Soporte para Canvas HTML5
-  - Resolución mínima: 1280x720
-  - Memoria RAM: 2GB mínimo
+**Application Layer (Casos de Uso):**
+- Servicios: TickService, CollisionService, CaptureService, VictoryService
+- Interfaces y contratos entre capas
+- Lógica de negocio del juego
 
-### Arquitectura de Software
+**Infrastructure Layer (Adaptadores):**
+- GameController: Orquestador principal
+- GameRenderer: Adaptador de Phaser
+- GameFactory: Inyección de dependencias
 
-Nexa implementa una **Arquitectura Limpia de tres capas**:
-
-```
-┌─────────────────────────────────────────┐
-│  Presentation Layer (Phaser Scenes)    │  
-│  - Renderizado visual                  │
-│  - Manejo de entrada del usuario       │
-│  - Efectos visuales y audio            │
-├─────────────────────────────────────────┤
-│  Application Layer (Services)          │  
-│  - Lógica de negocio                   │
-│  - Casos de uso del juego              │
-│  - Coordinación entre entidades        │
-├─────────────────────────────────────────┤
-│  Domain Layer (Entities)               │  
-│  - Modelos del dominio                 │
-│  - Reglas fundamentales del juego      │
-│  - Tipos y constantes                  │
-└─────────────────────────────────────────┘
-```
-
----
+**Presentation Layer (UI):**
+- Escenas de Phaser: Boot, MainMenu, Game, GameOver
+- Manejo de eventos de usuario
 
 ## 3. Funcionalidades del Sistema
 
-Nexa permite la gestión completa de partidas de estrategia en tiempo real sobre grafos. Sus principales funcionalidades son:
+Nexa permite la gestión completa de partidas de estrategia en tiempo real sobre grafos. Sus principales funcionalidades incluyen:
 
-### Gestión de Juego
-
-- **Inicio de partida** con configuración de jugadores
-- **Generación procedural** del grafo de juego
-- **Sistema de turnos en tiempo real** con ciclos de ataque (20ms) y defensa (30ms)
-- **Gestión de energía** con conservación total del sistema
-- **Detección automática** de condiciones de victoria
-
-### Mecánicas de Juego
-
-- **6 tipos de nodos especiales:**
-  - Nodo Básico: Capacidad estándar
-  - Nodo de Ataque: Genera energía ofensiva
-  - Nodo de Defensa: Genera energía defensiva
-  - Nodo de Energía: Mayor capacidad de almacenamiento
-  - Nodo Productivo: Genera energía pasiva
-  - Nodo Recolector: Captura energía enemiga
-
-- **Sistema de conflictos:**
-  - Resolución de colisiones en aristas
-  - Combate de energías opuestas
-  - Captura y neutralización de nodos
-
-- **Detección de articulación:**
-  - Identificación de nodos críticos del grafo
-  - Fragmentación del grafo al perder puntos de articulación
-
-### Condiciones de Victoria
-
-1. **Victoria por Dominancia:** Controlar ≥70% de nodos durante 10 segundos continuos
-2. **Victoria por Tiempo:** Mayor cantidad de nodos al finalizar los 3 minutos
-3. **Victoria por Eliminación:** Capturar el nodo inicial del oponente
-
----
+- Registro y gestión de dos jugadores en partida 1v1.
+- Generación procedural de grafos con diferentes topologías.
+- Sistema de energía conservativa con distribución entre nodos y aristas.
+- Cuatro tipos de nodos especializados (Básico, Ataque, Defensa, Energía).
+- Sistema de colisiones con resolución en tiempo real.
+- Detección automática de tres condiciones de victoria diferentes.
+- Sistema de fragmentación de grafo mediante detección de nodos de articulación.
+- Envío de paquetes de energía con intervalos configurables por tipo de nodo.
 
 ## 4. Proceso de Instalación
 
-La instalación de Nexa requiere un entorno de desarrollo web con Node.js y pnpm configurados.
+La instalación de Nexa requiere la configuración de un entorno de desarrollo con Node.js y pnpm. Posteriormente, se deben realizar los siguientes pasos:
 
-### Requisitos Previos
+1. Instalar Node.js 18.x o superior y pnpm 8.x en el sistema operativo.
+2. Clonar el repositorio desde GitHub.
+3. Instalar las dependencias del proyecto con pnpm install.
+4. Configurar las variables de entorno si es necesario.
+5. Ejecutar el servidor de desarrollo con pnpm run dev.
+6. Acceder al juego vía navegador web en http://localhost:8080.
+7. Para producción, compilar con pnpm run build y servir la carpeta dist/.
 
-1. **Node.js 18.x o superior** instalado en el sistema
-2. **pnpm 8.x** como gestor de paquetes
-3. **Git** para clonar el repositorio
+## 5. Roles de Usuario y Permisos
 
-### Pasos de Instalación
+Los usuarios del sistema tienen dos roles principales:
 
-#### 1. Clonar el Repositorio
+- Jugador 1: controla nodos de color azul, inicia en un nodo específico del grafo, gestiona la distribución de su energía total entre sus nodos controlados.
 
-```bash
-git clone https://github.com/gustadev24/nexa.git
-cd nexa
-```
+- Jugador 2: controla nodos de color rojo, inicia en un nodo opuesto del grafo, gestiona su pool de energía independiente del jugador contrario.
 
-#### 2. Instalar Dependencias
+Ambos jugadores tienen las mismas capacidades: seleccionar nodos propios, asignar energía de ataque a aristas hacia nodos vecinos, defender nodos automáticamente con energía no asignada, y capturar nodos enemigos cuando su ataque supera la defensa.
 
-```bash
-pnpm install
-```
+## 6. Gestión de Energía y Recursos
 
-Este comando descarga e instala todas las dependencias necesarias del proyecto.
+Los jugadores pueden distribuir su energía total entre sus nodos controlados. Cada nodo tiene propiedades específicas según su tipo: intervalos de ataque (frecuencia de emisión de paquetes), intervalos de defensa (frecuencia de regeneración), multiplicadores de ataque y defensa, y energía inicial que aporta al ser capturado.
 
-#### 3. Configuración del Entorno
+El sistema implementa conservación de energía: la suma de energía en todos los nodos más la energía en tránsito por aristas se mantiene constante. Los paquetes de energía viajan por las aristas hasta su destino, donde pueden colisionar con paquetes enemigos o atacar nodos enemigos si superan su defensa.
 
-El proyecto incluye configuraciones predeterminadas en:
-- `scripts/vite/config.dev.mjs` - Configuración de desarrollo
-- `scripts/vite/config.prod.mjs` - Configuración de producción
+## 7. Condiciones de Victoria
 
-#### 4. Ejecutar en Modo Desarrollo
+El sistema verifica continuamente tres condiciones de victoria:
 
-```bash
-pnpm dev
-```
+**Victoria por Dominación:** Un jugador debe controlar al menos el 70% de los nodos del grafo de forma sostenida durante 10 segundos consecutivos. El sistema trackea el tiempo de dominación de cada jugador y reinicia el contador si pierde la mayoría.
 
-La aplicación se ejecutará en `http://localhost:8080` (puerto configurable).
+**Victoria por Tiempo:** Si transcurren 3 minutos (180 segundos) sin que ningún jugador alcance otra condición, gana quien controle la mayor cantidad de nodos al finalizar el tiempo. En caso de empate, la partida termina en empate.
 
-#### 5. Compilar para Producción
+**Victoria por Eliminación:** Si un jugador pierde su nodo inicial (base), pierde inmediatamente la partida. Esta es una condición de derrota automática que termina el juego sin importar otros factores.
 
-```bash
-pnpm build
-```
+## 8. Sistema de Colisiones y Conflictos
 
-Los archivos compilados se generarán en el directorio `dist/`.
+El sistema implementa un algoritmo determinístico para resolver conflictos entre paquetes de energía:
 
-#### 6. Ejecutar Tests
+**Colisión en aristas:** Cuando dos paquetes enemigos se encuentran en la misma arista, si tienen igual magnitud se destruyen ambos. Si tienen diferente magnitud, el mayor continúa con energía igual a la diferencia.
 
-```bash
-pnpm test
-```
+**Ataque a nodos:** Cuando un paquete de energía alcanza un nodo enemigo, si la energía de ataque es mayor que la defensa actual del nodo, el nodo es capturado y la energía sobrante se convierte en su nueva defensa. Si son iguales, el nodo queda sin propietario (neutral). Si el ataque es menor, se destruye y la defensa se reduce.
 
-Ejecuta la suite completa de pruebas unitarias.
+**Fragmentación de grafo:** Al capturarse un nodo de articulación (nodo crítico que conecta componentes del grafo), el grafo puede fragmentarse. El jugador solo conserva los nodos en el componente conexo que contiene su nodo inicial. Los nodos en componentes desconectados quedan sin propietario.
 
----
+## 9. Arquitectura Técnica Detallada
 
-## 5. Estructura del Proyecto
+### GameController (Infrastructure)
+Actúa como Facade entre la capa de presentación y la capa de aplicación. Coordina el game loop principal impulsado por Phaser, procesa eventos de entrada del usuario, sincroniza TickService, VictoryService y GameStateManager, y maneja el inicio, pausa y finalización de partidas.
 
-### Organización de Directorios
+### TickService (Application)
+Implementa el game loop del juego ejecutándose en cada frame. Actualiza la defensa de nodos cada 30ms, emite paquetes de energía según intervalos de cada nodo, avanza paquetes en las aristas, detecta y resuelve colisiones, procesa llegadas a nodos destino, y ejecuta capturas cuando corresponde.
+
+### CollisionService (Application)
+Detecta colisiones entre paquetes de energía agrupándolos por arista. Resuelve conflictos según las reglas definidas: destrucción mutua en empate, sobrevivencia del mayor con diferencia, y advertencia en caso de colisión entre paquetes aliados opuestos.
+
+### CaptureService (Application)
+Maneja la captura de nodos verificando si el ataque supera la defensa. Aplica efectos especiales del nodo capturado (energía adicional, multiplicadores). Detecta nodos de articulación usando el algoritmo de Tarjan con complejidad O(V + E). Gestiona la fragmentación eliminando nodos desconectados del nodo inicial del jugador.
+
+### VictoryService (Application)
+Verifica las tres condiciones de victoria en cada tick. Trackea el tiempo de dominación acumulado por cada jugador. Calcula el porcentaje de nodos controlados. Genera resultados de victoria con estadísticas finales cuando se cumple alguna condición.
+
+### GameStateManagerService (Application)
+Mantiene el estado inmutable del juego. Genera snapshots para la capa de presentación sin exponer entidades mutables. Calcula estadísticas derivadas como porcentajes de control y energía total. Gestiona contadores de tiempo, ticks y trackers de dominación.
+
+## 10. Tipos de Nodos Especializados
+
+**Nodo Básico:** Intervalo de ataque 2000ms, intervalo de defensa 3000ms, multiplicadores 1x para ataque y defensa, energía inicial 20 unidades. Funcionalidad estándar sin bonificaciones.
+
+**Nodo de Ataque:** Intervalo de ataque reducido a 1000ms, intervalo de defensa 3000ms, multiplicador de ataque 2x (duplica energía enviada), multiplicador de defensa 1x, energía inicial 20 unidades. Ideal para ofensivas agresivas.
+
+**Nodo de Defensa:** Intervalo de ataque 2000ms, intervalo de defensa reducido a 1500ms, multiplicador de ataque 1x, multiplicador de defensa 2x (duplica protección), energía inicial 20 unidades. Ideal para posiciones defensivas.
+
+**Nodo de Energía:** Intervalos estándar de 2000ms ataque y 3000ms defensa, multiplicadores 1x, pero energía inicial de 50 unidades. Capturarlo otorga un boost significativo de recursos al jugador.
+
+## 11. Implementación de Testing
+
+El proyecto incluye una suite completa de tests unitarios con Vitest 4.0. Se implementan tests para todos los servicios principales: GameStateManager con 20 tests de estado y snapshots, CaptureService con tests de articulación y fragmentación, VictoryService con verificación de las tres condiciones, CollisionService con múltiples escenarios de conflicto.
+
+Los tests se ejecutan con pnpm test y garantizan la estabilidad del sistema. Se utiliza ESLint 9 con reglas estrictas de TypeScript para mantener calidad de código. La cobertura de tests supera el 75% del código base.
+
+## 12. Configuración y Constantes
+
+El sistema define constantes críticas en GAME_CONSTANTS:
+
+- DOMINANCE_PERCENT: 70 (porcentaje requerido para victoria por dominación)
+- DOMINANCE_DURATION_MS: 10000 (10 segundos sostenidos de dominación)
+- TIME_LIMIT_MS: 180000 (3 minutos de límite temporal)
+- DEFAULT_SPEED: 0.002 (velocidad de paquetes de energía)
+- ASSIGNMENT_AMOUNT: 10 (cantidad base de asignación de energía)
+
+La configuración de Phaser establece resolución de 1024x768, modo de escalado FIT con centrado automático, física arcade sin gravedad, y cuatro escenas principales.
+
+## 13. Sistema de Path Aliases
+
+El proyecto utiliza path aliases de TypeScript para mejorar la legibilidad:
+
+- @/ apunta a src/
+- @/core apunta a src/core/
+- @/application apunta a src/application/
+- @/infrastructure apunta a src/infrastructure/
+- @/presentation apunta a src/presentation/
+
+Esto permite imports limpios sin rutas relativas complejas y facilita refactorizaciones futuras.
+
+## 14. Despliegue y Producción
+
+Para desplegar en producción se ejecuta pnpm run build, lo que genera archivos optimizados en la carpeta dist/. Estos archivos pueden servirse desde cualquier servidor web estático: GitHub Pages, Netlify, Vercel, o servidor propio con Apache/Nginx.
+
+El build de producción aplica minificación, tree-shaking, code-splitting y optimización de assets. El sistema de logging se configura automáticamente según el entorno (detallado en desarrollo, mínimo en producción).
+
+## 15. Limitaciones del Sistema
+
+El sistema actual tiene las siguientes limitaciones conocidas:
+
+- Soporte limitado a 2 jugadores (partidas 1v1).
+- El grafo es estático y se genera al inicio de la partida.
+- No hay persistencia automática de partidas.
+- Rendimiento óptimo con 15-30 nodos en el grafo.
+- Requiere resolución mínima de 1280x720 para experiencia completa.
+- No incluye sistema de matchmaking o juego en línea.
+
+## 16. Estructura de Directorios
 
 ```
 nexa/
 ├── src/
 │   ├── core/                    # Domain Layer
-│   │   ├── entities/           
-│   │   │   ├── node/           # Tipos de nodos
-│   │   │   ├── edge.ts         # Aristas del grafo
-│   │   │   ├── player.ts       # Jugador
-│   │   │   └── energy-packet.ts
-│   │   └── types/              # Tipos del dominio
-│   │
+│   │   ├── entities/           # Node, Edge, Player, Graph, EnergyPacket
+│   │   └── types/              # ID, NodeType, Color
 │   ├── application/             # Application Layer
-│   │   ├── services/           # Servicios de negocio
-│   │   │   ├── game-state-manager-service.ts
-│   │   │   ├── capture-service.ts
-│   │   │   ├── collision-service.ts
-│   │   │   ├── victory-service.ts
-│   │   │   └── tick-service.ts
-│   │   ├── interfaces/         # Contratos
-│   │   └── constants/          # Constantes del juego
-│   │
+│   │   ├── services/           # TickService, CollisionService, etc.
+│   │   ├── interfaces/         # Contratos entre capas
+│   │   ├── strategies/         # Algoritmos intercambiables
+│   │   └── constants/          # Constantes del sistema
 │   ├── infrastructure/          # Infrastructure Layer
-│   │   ├── game/               
-│   │   │   ├── game-controller.ts
-│   │   │   └── game-factory.ts
-│   │   ├── renderer/           # Sistema de renderizado
+│   │   ├── game/               # GameController, GameFactory
+│   │   ├── renderer/           # GameRenderer (Phaser adapter)
+│   │   ├── implementations/    # Implementaciones concretas
 │   │   └── logging/            # Sistema de logs
-│   │
 │   └── presentation/            # Presentation Layer
-│       └── scenes/             # Escenas de Phaser
-│           ├── boot-scene.ts
-│           ├── main-menu-scene.ts
-│           ├── game-scene.ts
-│           └── game-over-scene.ts
-│
+│       └── scenes/             # BootScene, MainMenuScene, etc.
 ├── public/                      # Assets estáticos
-├── tests/                       # Tests unitarios
-├── docs/                        # Documentación
-└── contexto/                    # Documentación técnica
+├── tests/                       # Suite de tests unitarios
+├── docs/                        # Documentación del proyecto
+└── vite/                        # Configuración de Vite
 ```
 
-### Archivos de Configuración
+## 17. Mantenimiento y Versionado
 
-- **`package.json`:** Dependencias y scripts del proyecto
-- **`tsconfig.json`:** Configuración de TypeScript
-- **`vite.config.ts`:** Configuración de Vite
-- **`eslint.config.mjs`:** Reglas de linting
-- **`vitest.config.ts`:** Configuración de tests
+El proyecto sigue Semantic Versioning (SemVer): versión mayor para cambios incompatibles, versión menor para nuevas funcionalidades compatibles, versión patch para correcciones de bugs.
 
----
+El workflow de Git utiliza rama main para producción, rama dev para desarrollo activo, ramas feature/* para nuevas funcionalidades, y ramas fix/* para correcciones. Se requiere Pull Request y revisión de código antes de merge a main.
 
-## 6. Gestión de Partidas y Recursos
+Las dependencias se actualizan periódicamente verificando con pnpm outdated y aplicando pnpm update. Se mantiene documentación actualizada en el directorio docs/ y se siguen Conventional Commits para mensajes de commit claros.
 
-### Flujo de Juego
+## 18. Conclusiones
 
-1. **Inicio:** Los jugadores inician en el menú principal
-2. **Configuración:** Se genera el grafo y se asignan nodos iniciales
-3. **Partida:** Los jugadores envían energía para controlar nodos
-4. **Resolución:** El sistema procesa conflictos y actualiza el estado
-5. **Victoria:** Se detecta la condición de victoria y finaliza la partida
-6. **Pantalla Final:** Se muestra el resultado y estadísticas
+Nexa es una solución integral para juegos de estrategia en tiempo real basados en grafos, con un sistema escalable y accesible desde cualquier navegador moderno. Su implementación con Clean Architecture permite separación clara de responsabilidades, alta testabilidad y facilidad de mantenimiento.
 
-### Gestión de Energía
+El uso de TypeScript con tipado estricto garantiza robustez del código y prevención de errores en tiempo de compilación. La suite completa de tests proporciona confianza en la estabilidad del sistema y facilita la integración continua de nuevas características.
 
-- **Conservación:** La energía total del sistema se mantiene constante
-- **Distribución:** Los jugadores envían energía a través de aristas
-- **Almacenamiento:** Los nodos tienen capacidad máxima de energía
-- **Producción:** Algunos nodos generan energía periódicamente
+La arquitectura en capas con inversión de dependencias permite que cada capa sea independiente y testeable, facilitando la evolución futura del sistema sin comprometer la estabilidad. El sistema de colisiones determinístico y la detección de fragmentación de grafos demuestran la aplicación práctica de algoritmos avanzados en un contexto de entretenimiento.
 
-### Sistema de Conflictos
-
-```
-Reglas de Conflicto:
-
-1. Colisión en Arista:
-   - Energías iguales → Ambas destruidas
-   - Energías diferentes → La mayor continúa con la diferencia
-
-2. Ataque a Nodo:
-   - Ataque > Defensa → Nodo capturado
-   - Ataque = Defensa → Nodo neutralizado
-   - Ataque < Defensa → Ataque destruido
-
-3. Energía Enemiga en Nodo Aliado:
-   - Se suma a la defensa del nodo
-
-4. Energías Aliadas Opuestas:
-   - Se anulan mutuamente (desperdicio)
-```
-
----
-
-## 7. Servicios Principales del Sistema
-
-### GameStateManager
-
-Gestiona el estado global de la partida:
-- Estado de jugadores
-- Trackers de dominancia
-- Tiempo transcurrido y ticks
-- Generación de snapshots para UI
-
-### CaptureService
-
-Maneja la captura de nodos:
-- Detección de puntos de articulación
-- Fragmentación del grafo
-- Asignación de nuevos propietarios
-
-### CollisionService
-
-Resuelve conflictos entre energías:
-- Colisiones en aristas
-- Ataques a nodos
-- Neutralización de energías
-
-### VictoryService
-
-Verifica condiciones de victoria:
-- Victoria por dominancia
-- Victoria por tiempo
-- Victoria por eliminación
-
-### TickService
-
-Coordina los ciclos del juego:
-- Actualización de entidades
-- Procesamiento de eventos
-- Sincronización de sistemas
-
----
-
-## 8. Interfaz de Usuario
-
-### Escenas del Juego
-
-#### Boot Scene
-- Carga de assets
-- Inicialización del sistema
-- Configuración inicial
-
-#### Main Menu Scene
-- Pantalla de inicio
-- Configuración de jugadores
-- Inicio de partida
-
-#### Game Scene
-- Campo de juego principal
-- Visualización del grafo
-- Controles de energía
-- HUD con información de partida
-
-#### Game Over Scene
-- Pantalla de victoria/derrota
-- Estadísticas finales
-- Opciones de reinicio
-
-### Elementos de la Interfaz
-
-- **Nodos:** Círculos coloreados según propietario
-- **Aristas:** Líneas conectando nodos
-- **Paquetes de Energía:** Partículas en movimiento
-- **HUD:** Tiempo, dominancia, energía total
-- **Advertencias:** Notificaciones de eventos importantes
-
----
-
-## 9. Testing y Calidad
-
-### Suite de Tests
-
-El proyecto incluye tests unitarios completos:
-
-```bash
-# Ejecutar todos los tests
-pnpm test
-
-# Tests con interfaz visual
-pnpm test:ui
-
-# Tests en modo watch
-pnpm test --watch
-```
-
-### Cobertura de Tests
-
-- **GameStateManager:** 20 tests (100% passing)
-- **CaptureService:** Tests de articulación y fragmentación
-- **VictoryService:** Tests de condiciones de victoria
-- **CollisionService:** Tests de resolución de conflictos
-
-### Linting
-
-```bash
-# Verificar código
-pnpm lint
-```
-
-El proyecto usa ESLint con reglas estrictas de TypeScript para mantener calidad de código.
-
----
-
-## 10. Despliegue
-
-### Despliegue en Producción
-
-```bash
-# 1. Compilar para producción
-pnpm build
-
-# 2. Los archivos estarán en dist/
-# 3. Servir con cualquier servidor web estático
-```
-
-### Opciones de Hosting
-
-- **GitHub Pages:** Hosting gratuito para proyectos estáticos
-- **Netlify:** Deploy automático desde Git
-- **Vercel:** Optimizado para aplicaciones frontend
-- **Servidor propio:** Apache/Nginx sirviendo la carpeta dist/
-
-### Variables de Entorno
-
-El proyecto usa variables de Vite:
-- `VITE_LOG_LEVEL`: Nivel de logging (dev/prod)
-- Configurables en archivos de configuración de Vite
-
----
-
-## 11. Mantenimiento y Actualizaciones
-
-### Actualización de Dependencias
-
-```bash
-# Verificar dependencias desactualizadas
-pnpm outdated
-
-# Actualizar dependencias
-pnpm update
-```
-
-### Convenciones de Versionado
-
-El proyecto sigue **Semantic Versioning (SemVer)**:
-- **Major (X.0.0):** Cambios incompatibles
-- **Minor (1.X.0):** Nuevas funcionalidades compatibles
-- **Patch (1.0.X):** Correcciones de bugs
-
-### Git Workflow
-
-- Rama `main`: Código en producción
-- Rama `dev`: Desarrollo activo
-- Ramas `feature/*`: Nuevas funcionalidades
-- Ramas `fix/*`: Correcciones de bugs
-
----
-
-## 12. Limitaciones Conocidas
-
-### Limitaciones Técnicas
-
-- **Máximo 2 jugadores:** El sistema actual soporta partidas 1v1
-- **Grafo estático:** El grafo se genera al inicio y no cambia durante la partida
-- **Sin persistencia:** Las partidas no se guardan automáticamente
-
-### Limitaciones de Rendimiento
-
-- **Nodos recomendados:** 15-30 nodos para rendimiento óptimo
-- **Frecuencia de ticks:** Limitada por capacidad del navegador
-- **Resolución mínima:** 1280x720 para experiencia completa
-
----
-
-## 13. Solución de Problemas
-
-### Problemas Comunes
-
-#### La aplicación no inicia
-
-```bash
-# 1. Verificar versión de Node.js
-node --version  # Debe ser ≥18
-
-# 2. Limpiar caché y reinstalar
-rm -rf node_modules
-pnpm install
-```
-
-#### Tests fallan
-
-```bash
-# Ejecutar tests con más detalles
-pnpm test --reporter=verbose
-```
-
-#### Build falla
-
-```bash
-# Verificar errores de TypeScript
-pnpm lint
-```
-
-### Logs y Debugging
-
-El sistema incluye logging configurable:
-- En desarrollo: Logs detallados en consola
-- En producción: Logs mínimos
-
----
-
-## 14. Conclusiones
-
-Nexa es una **solución completa** para juegos de estrategia en tiempo real basados en grafos. El sistema es **escalable**, **mantenible** y **accesible** desde cualquier navegador moderno.
-
-La implementación de una arquitectura limpia de tres capas permite:
-- **Separación de responsabilidades**
-- **Facilidad de testing**
-- **Mantenibilidad a largo plazo**
-- **Extensibilidad para nuevas funcionalidades**
-
-La suite completa de tests garantiza la **estabilidad** del sistema y facilita la **integración continua** de nuevas características.
-
-Su implementación adecuada permite una **experiencia de usuario fluida** y **competitiva** para todos los jugadores.
-
----
-
-## 15. Referencias Técnicas
-
-### Documentación del Proyecto
-
-- **README.md:** Descripción general y guía de inicio
-- **CONTRIBUTING.md:** Guía de contribución
-- **contexto/:** Documentación técnica detallada
-  - `descripcion_logica.md`: Arquitectura y lógica del juego
-  - `git-workflow-rebase.md`: Workflow de Git
-  - `impacto-rebase-equipo.md`: Políticas de equipo
-
-### Tecnologías Utilizadas
-
-- [Phaser 3 Documentation](https://photonstorm.github.io/phaser3-docs/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
-- [Vite Guide](https://vitejs.dev/guide/)
-- [Vitest Documentation](https://vitest.dev/)
-
-### Recursos Adicionales
-
-- [Conventional Commits](https://www.conventionalcommits.org/)
-- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Game Programming Patterns](https://gameprogrammingpatterns.com/)
-
----
-
-## 16. Información del Proyecto
-
-**Nombre:** Nexa - Juego de Estrategia en Tiempo Real sobre Grafos  
-**Versión:** 1.0.0  
-**Licencia:** MIT  
-**Repositorio:** https://github.com/gustadev24/nexa  
-
-**Equipo de Desarrollo:**
-- Luis Gustavo Sequeiros Condori (Tech Lead)
-- Ricardo Chambilla (Backend Developer)
-- Paul Cari Lipe (QA Engineer)
-- Jhon Aquino (Game Developer)
-- Raquel Quispe (UI/UX Developer)
-- Rafael Chambilla (Integration Engineer)
-
-**Institución:** Universidad Nacional de San Agustín  
-**Curso:** Ingeniería de Software  
-**Fecha de Finalización:** Diciembre 2025
-
----
-
-<div align="center">
-
-**Memoria Descriptiva - Nexa v1.0.0**  
-© 2025 Equipo Nexa - UNSA
-
-</div>
+Nexa representa un ejemplo académico de aplicación de principios de ingeniería de software en el desarrollo de juegos, demostrando que las buenas prácticas de arquitectura son aplicables más allá de aplicaciones empresariales tradicionales.
