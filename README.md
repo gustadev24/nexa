@@ -277,11 +277,10 @@ Este proyecto está bajo la licencia [MIT](LICENSE).
 | Nombre | GitHub | Rol | Contribuciones Principales |
 |--------|--------|-----|----------------------------|
 | **Luis Gustavo Sequeiros Condori** | [@gustadev24](https://github.com/gustadev24) | Tech Lead | Arquitectura del sistema, Servicios core, Game Controller, Integración de componentes |
-| **Ricardo Chambilla** | [@rikich3](https://github.com/rikich3) | Backend Developer | GameStateManager, Infraestructura, Git Workflow, Documentación técnica |
+| **Ricardo Chambilla Perca** | [@rikich3](https://github.com/rikich3) | Backend Developer | GameStateManager, Infraestructura, Git Workflow, Documentación técnica |
 | **Paul Cari Lipe** | [@PaulCari](https://github.com/PaulCari) | QA Engineer | Victory Service, Suite de testing, Validación de lógica |
-| **Jhon Aquino** | [@JhonAQ](https://github.com/JhonAQ) | Game Developer | Capture Service, Detección de articulación, Lógica de fragmentación |
-| **Raquel Quispe** | [@RaqDxs](https://github.com/RaqDxs) | UI/UX Developer | Escenas de Phaser, Diseño de interfaz, Experiencia de usuario |
-| **Rafael Chambilla** | [@rchambillap](https://github.com/rchambillap) | Integration Engineer | Integración de servicios, Testing end-to-end, Validación de integración |
+| **Jhonatan David Arias Quispe** | [@JhonAQ](https://github.com/JhonAQ) | Game Developer | Capture Service, Detección de articulación, Lógica de fragmentación |
+| **Alexandra Raquel Quispe Arratea** | [@RaqDxs](https://github.com/RaqDxs) | UI/UX Developer | Escenas de Phaser, Diseño de interfaz, Experiencia de usuario |
 
 ### Estadísticas del Proyecto
 
