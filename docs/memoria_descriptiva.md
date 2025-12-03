@@ -43,26 +43,7 @@ Nexa es una aplicación web desarrollada en **TypeScript** sobre el framework de
 
 Nexa implementa una **Arquitectura Limpia de tres capas**:
 
-```
-┌─────────────────────────────────────────┐
-│  Presentation Layer (Phaser Scenes)    │  
-│  - Renderizado visual                  │
-│  - Manejo de entrada del usuario       │
-│  - Efectos visuales y audio            │
-├─────────────────────────────────────────┤
-│  Application Layer (Services)          │  
-│  - Lógica de negocio                   │
-│  - Casos de uso del juego              │
-│  - Coordinación entre entidades        │
-├─────────────────────────────────────────┤
-│  Domain Layer (Entities)               │  
-│  - Modelos del dominio                 │
-│  - Reglas fundamentales del juego      │
-│  - Tipos y constantes                  │
-└─────────────────────────────────────────┘
-```
-
----
+![Arquitectura Limpia de Tres Capas](./img/diagrama.PNG)
 
 ## 3. Funcionalidades del Sistema
 
@@ -527,11 +508,10 @@ Su implementación adecuada permite una **experiencia de usuario fluida** y **co
 
 **Equipo de Desarrollo:**
 - Luis Gustavo Sequeiros Condori (Tech Lead)
-- Ricardo Chambilla (Backend Developer)
-- Paul Cari Lipe (QA Engineer)
-- Jhon Aquino (Game Developer)
-- Raquel Quispe (UI/UX Developer)
-- Rafael Chambilla (Integration Engineer)
+- Ricardo Mauricio Chambilla (Backend Developer)
+- Paul Andree Cari Lipe (QA Engineer)
+- Jhonatan David Arias Quispe (Game Developer)
+- Alexandra Raquel Quispe Arratea(UI/UX Developer)
 
 **Institución:** Universidad Nacional de San Agustín  
 **Curso:** Ingeniería de Software  
