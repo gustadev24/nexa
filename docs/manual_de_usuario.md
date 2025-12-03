@@ -119,23 +119,7 @@ pnpm dev
 
 ### Pantalla Principal de Juego
 
-```
-┌─────────────────────────────────────────────────────┐
-│  ⏱️  Tiempo: 01:23        🏆 Dominancia: 45%       │  ← HUD Superior
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│          ⚪ ─── ⚪         Nodos Neutros            │
-│           │      │                                  │
-│          🔵 ─── 🔴         Nodos de Jugadores      │
-│           │      │                                  │
-│          ⚪ ─── ⚪         Aristas Conectoras        │
-│                                                     │
-│          💠 → → →          Paquetes de Energía     │
-│                                                     │
-├─────────────────────────────────────────────────────┤
-│  🔋 Energía Total: 500    📊 Nodos: 5/15           │  ← HUD Inferior
-└─────────────────────────────────────────────────────┘
-```
+![./img/pantalla-principal.png](./img/pantalla-principal.png)
 
 ### Elementos de la Interfaz
 
@@ -148,9 +132,9 @@ pnpm dev
 #### 2. Campo de Juego (Centro)
 
 - **Nodos:**
-  - ⚪ **Blanco:** Nodos neutrales
-  - 🔵 **Azul:** Nodos del Jugador 1
-  - 🔴 **Rojo:** Nodos del Jugador 2
+  - **Blanco:** Nodos neutrales
+  - **Celeste:** Nodos del Jugador 1
+  - **Rosa:** Nodos del Jugador 2
   - Tamaño indica cantidad de energía almacenada
 
 - **Aristas:**
@@ -172,11 +156,11 @@ pnpm dev
 Los nodos pueden tener diferentes apariencias según su tipo:
 
 - **Nodo Básico:** Círculo simple
-- **Nodo de Ataque:** Con símbolo de espada ⚔️
-- **Nodo de Defensa:** Con símbolo de escudo 🛡️
-- **Nodo de Energía:** Más grande, con símbolo de rayo ⚡
-- **Nodo Productivo:** Con símbolo de fábrica 🏭
-- **Nodo Recolector:** Con símbolo de imán 🧲
+- **Nodo de Ataque:** Con símbolo de espada
+- **Nodo de Defensa:** Con símbolo de escudo
+- **Nodo de Energía:** Más grande, con símbolo de rayo
+- **Nodo Productivo:** Con símbolo de fábrica
+- **Nodo Recolector:** Con símbolo de imán
 
 ---
 
@@ -202,21 +186,7 @@ Los nodos pueden tener diferentes apariencias según su tipo:
 
 ### Flujo de Juego Básico
 
-```
-┌─────────────────────────────────────────┐
-│ 1. Analiza el grafo y localiza tu base │
-├─────────────────────────────────────────┤
-│ 2. Identifica nodos neutros cercanos    │
-├─────────────────────────────────────────┤
-│ 3. Envía energía para capturar nodos    │
-├─────────────────────────────────────────┤
-│ 4. Defiende tus nodos de ataques        │
-├─────────────────────────────────────────┤
-│ 5. Expande tu territorio                │
-├─────────────────────────────────────────┤
-│ 6. Controla ≥70% de nodos para ganar    │
-└─────────────────────────────────────────┘
-```
+![./img/flujo.png](./img/flujo.png)
 
 ### Ciclos de Juego
 
@@ -632,37 +602,27 @@ Si encuentras bugs o problemas técnicos:
 - **Punto de Articulación:** Nodo crítico cuya pérdida fragmenta el grafo
 - **HUD:** Head-Up Display, interfaz de información
 
-### C. Atajos Rápidos (Si Aplica)
-
-| Atajo | Acción |
-|-------|--------|
-| `Click` | Seleccionar nodo |
-| `Double Click` | Enviar máxima energía |
-| `ESC` | Abrir menú de pausa |
-| `Space` | Vista rápida de estadísticas |
-
 ---
 
 ## Créditos
 
 **Desarrollado por:** Equipo Nexa  
 **Universidad:** Universidad Nacional de San Agustín  
-**Curso:** Ingeniería de Software  
+**Curso:** Tecnología de objetos  
 **Año:** 2025
 
 **Equipo de Desarrollo:**
 - Luis Gustavo Sequeiros Condori
-- Ricardo Chambilla
-- Paul Cari Lipe
-- Jhon Aquino
-- Raquel Quispe
-- Rafael Chambilla
+- Ricardo Mauricio Chambilla Perca
+- Paul Andree Cari Lipe
+- Jhonatan David Arias Quispe
+- Alexandra Raquel Quispe Arratea
 
 ---
 
 <div align="center">
 
-**¡Disfruta jugando Nexa!** 🎮
+**¡Disfruta jugando Nexa!**
 
 **Versión del Manual:** 1.0.0  
 **Fecha:** Diciembre 2025
