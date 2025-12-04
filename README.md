@@ -18,6 +18,12 @@ Nexa es un juego de estrategia en tiempo real donde dos jugadores compiten por c
 - Phaser 3.90.
 - Vite 6.4 (incluido como dependencia de desarrollo).
 
+## Consideraciones para la revision de las ramas y avances
+- Este proyecto sigue el git workflow tradicional, en donde existe una rama principal (main) en donde se encuentra los releases, una rama dev donde se encuentran los cambios estables y de donde se bifurcan ramas de desarrollo y luego estan las ramas de desarrollo: uno por integrante, a excepcion de Ricardo que ha creado una rama por aumento que le corresponde (siguiendo la forma tradicional del git workflow).
+- El estudiante Ricardo Chambilla Perca ha realizado sus features en ramas separadas para seguir el git workflow tradicional.
+- Las ramas son: ricardo, ricardoDev, rickDeb, rickViber
+- Estas ramas se mergearon con la rama dev, en donde todas las features estables residen.
+
 ## Instalación Local
 
 ### Clonar el repositorio
