@@ -145,6 +145,8 @@ export class GameRenderer {
     // Efecto de brillo (Glow) para el nodo principal
     if (isPrincipal) {
       this.ctx.save();
+      this.ctx.shadowBlur = 20 + 8 * Math.sin(Date.now() / 200); 
+      this.ctx.shadowColor = node.isNeutral ? '#FFD700' : node.color;
       this.ctx.shadowBlur = 25;
       this.ctx.shadowColor = node.isNeutral ? '#FFD700' : node.color;
     }
