@@ -20,6 +20,7 @@ export abstract class Node {
   protected _currentDefense: number; // Defensa actual que se reduce con ataques
   protected _edges: Set<Edge>;
   protected _edgeAssignments = new Map<Edge, number>();
+  protected _isInitialNode = false; // Marca si este nodo es el nodo inicial de su propietario
 
   constructor(id: ID, edges?: Set<Edge>, name?: string) {
     this._id = id;
@@ -43,6 +44,8 @@ export abstract class Node {
   get edges(): ReadonlySet<Edge> { return this._edges; }
   get nodeType(): NodeType { return this._nodeType; }
   get edgeAssignments(): ReadonlyMap<Edge, number> { return this._edgeAssignments; }
+  get isInitialNode(): boolean { return this._isInitialNode; }
+  set isInitialNode(value: boolean) { this._isInitialNode = value; }
 
   // Defensa efectiva actual (puede estar reducida por ataques)
   defenseEnergy(): number {
@@ -140,6 +143,7 @@ export abstract class Node {
 
   resetToNeutral(): void {
     this._owner = null;
+    this._isInitialNode = false;
     this._energyPool = this.energyAddition;
     this.regenerateDefense();
     this.clearAssignments();

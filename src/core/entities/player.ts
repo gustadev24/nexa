@@ -69,6 +69,7 @@ export class Player {
       throw new Error('Initial node can only be set at the start of the game.');
     }
     this._initialNode = node;
+    node.isInitialNode = true;
     this._controlledNodes.add(node);
   }
 
@@ -81,6 +82,9 @@ export class Player {
   }
 
   prepareForNewGame(): void {
+    if (this._initialNode) {
+      this._initialNode.isInitialNode = false;
+    }
     this._initialNode = null;
     this._controlledNodes.clear();
     this._totalEnergy = 0;
@@ -89,6 +93,9 @@ export class Player {
   }
 
   reset(): void {
+    if (this._initialNode) {
+      this._initialNode.isInitialNode = false;
+    }
     this._initialNode = null;
     this._controlledNodes.clear();
     this._totalEnergy = 0;
@@ -124,6 +131,7 @@ export class Player {
     this._controlledNodes.delete(node);
 
     if (node === this._initialNode) {
+      node.isInitialNode = false;
       this.eliminate();
     }
   }
