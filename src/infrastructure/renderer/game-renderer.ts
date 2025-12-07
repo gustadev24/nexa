@@ -44,12 +44,13 @@ export class GameRenderer {
   private readonly NEUTRAL_COLOR = '#808080';
 
   // Colores por tipo de nodo (indicadores visuales)
-  private readonly NODE_TYPE_COLORS = {
+  private readonly NODE_TYPE_COLORS: Record<string, string> = {
     'basic': '#FFFFFF',
     'attack': '#FF4444',
     'defense': '#4444FF',
     'energy': '#44FF44',
     'super-energy': '#FFD700',
+    'principal': '#FFD700',
   };
 
   /**
@@ -136,7 +137,17 @@ export class GameRenderer {
     }
 
     const [canvasX, canvasY] = this.worldToCanvas(node.x, node.y);
-    const radius = node.radius * this.scale;
+    
+    // Ajustar tamaño si es nodo principal
+    const isPrincipal = node.isInitialNode;
+    const radius = (node.radius * this.scale) * (isPrincipal ? 1.25 : 1.0);
+
+    // Efecto de brillo (Glow) para el nodo principal
+    if (isPrincipal) {
+      this.ctx.save();
+      this.ctx.shadowBlur = 25;
+      this.ctx.shadowColor = node.isNeutral ? '#FFD700' : node.color;
+    }
 
     // 1. Dibujar círculo principal con color del propietario
     this.ctx.beginPath();
@@ -144,16 +155,20 @@ export class GameRenderer {
     this.ctx.fillStyle = node.isNeutral ? this.NEUTRAL_COLOR : node.color;
     this.ctx.fill();
 
+    if (isPrincipal) {
+      this.ctx.restore();
+    }
+
     // 2. Dibujar borde con color del tipo de nodo
-    this.ctx.strokeStyle = this.NODE_TYPE_COLORS[node.nodeType];
-    this.ctx.lineWidth = this.NODE_BORDER_WIDTH;
+    this.ctx.strokeStyle = isPrincipal ? '#FFD700' : (this.NODE_TYPE_COLORS[node.nodeType] || '#FFFFFF');
+    this.ctx.lineWidth = isPrincipal ? 4 : this.NODE_BORDER_WIDTH;
     this.ctx.stroke();
 
     // 3. Si es nodo inicial, agregar indicador especial (doble borde)
-    if (node.isInitialNode) {
+    if (isPrincipal) {
       this.ctx.beginPath();
-      this.ctx.arc(canvasX, canvasY, radius + 5, 0, Math.PI * 2);
-      this.ctx.strokeStyle = node.color;
+      this.ctx.arc(canvasX, canvasY, radius + 6, 0, Math.PI * 2);
+      this.ctx.strokeStyle = '#FFD700';
       this.ctx.lineWidth = 2;
       this.ctx.stroke();
     }
@@ -172,7 +187,7 @@ export class GameRenderer {
     this.ctx.fillText(
       Math.floor(node.energyPool).toString(),
       canvasX,
-      canvasY + radius * 0.3,
+      canvasY + radius * 0.4,
     );
   }
 
@@ -501,6 +516,33 @@ export class GameRenderer {
     radius: number,
   ): void {
     if (!this.ctx) return;
+
+    // Si es nodo inicial (HQ), renderizar corona
+    if (node.isInitialNode) {
+      const iconSize = radius * 0.6;
+      this.ctx.fillStyle = '#FFD700'; // Dorado
+      this.ctx.beginPath();
+      
+      const w = iconSize * 1.2;
+      const h = iconSize * 0.8;
+      const topY = y - h/2;
+      const botY = y + h/2;
+
+      this.ctx.moveTo(x - w, botY); 
+      this.ctx.lineTo(x + w, botY); 
+      this.ctx.lineTo(x + w, topY); 
+      this.ctx.lineTo(x + w/2, y);  
+      this.ctx.lineTo(x, topY - h*0.3); 
+      this.ctx.lineTo(x - w/2, y);  
+      this.ctx.lineTo(x - w, topY); 
+      this.ctx.closePath();
+      
+      this.ctx.fill();
+      this.ctx.strokeStyle = '#000000';
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
+      return;
+    }
 
     const iconSize = radius * 0.4;
     // Note: node.nodeType in snapshot is already an existing NodeType string ('basic', 'attack', 'defense', 'energy')
