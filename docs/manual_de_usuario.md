@@ -1,51 +1,6 @@
 # Manual de Usuario - NEXA
 
-## Contenido
-
-0. [Acerca de NEXA](#0-acerca-de-nexa)
-1. [¿Quiénes deben leer este documento?](#1-quiénes-deben-leer-este-documento)
-2. [Pantallas y funcionalidades del juego NEXA](#2-pantallas-y-funcionalidades-del-juego-nexa)
-   - 2.1. [Portada principal del juego NEXA](#21-portada-principal-del-juego-nexa)
-   - 2.2. [Bloques de la portada principal](#22-bloques-de-la-portada-principal)
-   - 2.3. [Iniciar una partida en NEXA](#23-iniciar-una-partida-en-nexa)
-   - 2.4. [Configuración inicial del juego](#24-configuración-inicial-del-juego)
-   - 2.5. [Interfaz principal del campo de juego](#25-interfaz-principal-del-campo-de-juego)
-   - 2.6. [Panel de información (HUD superior)](#26-panel-de-información-hud-superior)
-   - 2.7. [Visualización del grafo](#27-visualización-del-grafo)
-3. [Mecánicas del juego](#3-mecánicas-del-juego)
-   - 3.1. [Seleccionar un nodo propio](#31-seleccionar-un-nodo-propio)
-   - 3.2. [Asignar energía de ataque a una arista](#32-asignar-energía-de-ataque-a-una-arista)
-   - 3.3. [Gestión automática de defensa](#33-gestión-automática-de-defensa)
-   - 3.4. [Visualización de paquetes de energía en tránsito](#34-visualización-de-paquetes-de-energía-en-tránsito)
-   - 3.5. [Sistema de colisiones entre paquetes](#35-sistema-de-colisiones-entre-paquetes)
-   - 3.6. [Captura de nodos enemigos](#36-captura-de-nodos-enemigos)
-   - 3.7. [Captura de nodos neutrales](#37-captura-de-nodos-neutrales)
-4. [Tipos de nodos especializados](#4-tipos-de-nodos-especializados)
-   - 4.1. [Nodo Básico](#41-nodo-básico)
-   - 4.2. [Nodo de Ataque](#42-nodo-de-ataque)
-   - 4.3. [Nodo de Defensa](#43-nodo-de-defensa)
-   - 4.4. [Nodo de Energía](#44-nodo-de-energía)
-5. [Condiciones de victoria y derrota](#5-condiciones-de-victoria-y-derrota)
-   - 5.1. [Victoria por Dominación](#51-victoria-por-dominación)
-   - 5.2. [Victoria por Tiempo Límite](#52-victoria-por-tiempo-límite)
-   - 5.3. [Victoria por Eliminación](#53-victoria-por-eliminación)
-   - 5.4. [Pantalla de fin de partida](#54-pantalla-de-fin-de-partida)
-6. [Estrategias y consejos avanzados](#6-estrategias-y-consejos-avanzados)
-   - 6.1. [Estrategia de expansión gradual](#61-estrategia-de-expansión-gradual)
-   - 6.2. [Identificación de nodos de articulación](#62-identificación-de-nodos-de-articulación)
-   - 6.3. [Gestión eficiente de energía](#63-gestión-eficiente-de-energía)
-   - 6.4. [Defensa de puntos críticos](#64-defensa-de-puntos-críticos)
-7. [Solución de problemas comunes](#7-solución-de-problemas-comunes)
-   - 7.1. [El juego no carga o presenta errores](#71-el-juego-no-carga-o-presenta-errores)
-   - 7.2. [Rendimiento bajo o lag](#72-rendimiento-bajo-o-lag)
-   - 7.3. [Controles no responden correctamente](#73-controles-no-responden-correctamente)
-8. [Anexos](#8-anexos)
-   - 8.1. [Tabla comparativa de tipos de nodos](#81-tabla-comparativa-de-tipos-de-nodos)
-   - 8.2. [Glosario de términos técnicos](#82-glosario-de-términos-técnicos)
-
----
-
-## 0. Acerca de NEXA
+## Acerca de NEXA
 
 NEXA es un juego de estrategia en tiempo real desarrollado con TypeScript y Phaser 3, donde dos jugadores compiten por el control de nodos en un grafo. El sistema implementa mecánicas de gestión de energía conservativa, sistema de colisiones determinístico y detección de fragmentación de grafos mediante algoritmos de teoría de grafos.
 
@@ -58,7 +13,7 @@ El juego fue desarrollado como proyecto académico por estudiantes de Ingenierí
 
 ---
 
-## 1. ¿Quiénes deben leer este documento?
+## ¿Quiénes deben leer este documento?
 
 Este manual está dirigido a:
 
@@ -72,9 +27,9 @@ Este manual está dirigido a:
 
 ---
 
-## 2. Pantallas y funcionalidades del juego NEXA
+## Pantallas y funcionalidades del juego NEXA
 
-### 2.1. Portada principal del juego NEXA
+### Portada principal del juego NEXA
 
 Al acceder al juego NEXA desde el navegador web (URL: http://localhost:8080 en instalación local), el usuario visualiza la pantalla principal o menú de inicio.
 
@@ -82,7 +37,7 @@ Al acceder al juego NEXA desde el navegador web (URL: http://localhost:8080 en i
 
 ---
 
-### 2.2. Bloques de la portada principal
+### Bloques de la portada principal
 
 La portada principal de NEXA está compuesta por los siguientes elementos visuales:
 
@@ -92,7 +47,7 @@ La portada principal de NEXA está compuesta por los siguientes elementos visual
 
 ---
 
-### 2.3. Iniciar una partida en NEXA
+### Iniciar una partida en NEXA
 
 Para iniciar una nueva partida, el usuario debe:
 
@@ -109,7 +64,7 @@ Para iniciar una nueva partida, el usuario debe:
 ![Pantalla de carga](../assets/img/manual/img-4.png)
 
 
-### 2.4. Configuración inicial del juego
+### Configuración inicial del juego
 
 Al iniciar la partida, el sistema configura automáticamente:
 
@@ -121,7 +76,7 @@ Al iniciar la partida, el sistema configura automáticamente:
 
 ![Configuración inicial del juego](../assets/img/manual/img-5.png)
 
-### 2.5. Interfaz principal del campo de juego
+### Interfaz principal del campo de juego
 
 La interfaz del campo de juego se compone de tres áreas principales:
 
@@ -132,7 +87,7 @@ La interfaz del campo de juego se compone de tres áreas principales:
 ![Interfaz principal del campo de juego](../assets/img/manual/img-6.png)
 
 
-### 2.6. Panel de información (HUD superior)
+### Panel de información (HUD superior)
 
 El HUD superior muestra información crítica en tiempo real:
 
@@ -145,7 +100,7 @@ El HUD superior muestra información crítica en tiempo real:
 
 ![Panel de información HUD superior](../assets/img/manual/img-7.png)
 
-### 2.7. Visualización del grafo
+### Visualización del grafo
 
 El campo de juego central muestra la representación visual del grafo:
 
@@ -165,9 +120,9 @@ El campo de juego central muestra la representación visual del grafo:
 ![Visualización del grafo](../assets/img/manual/img-8.png)
 
 
-## 3. Mecánicas del juego
+## Mecánicas del juego
 
-### 3.1. Seleccionar un nodo propio
+### Seleccionar un nodo propio
 
 Para interactuar con un nodo, el jugador debe:
 
@@ -179,7 +134,7 @@ Para interactuar con un nodo, el jugador debe:
 
 ![Seleccionar un nodo propio](../assets/img/manual/img-9.png)
 
-### 3.2. Asignar energía de ataque a una arista
+### Asignar energía de ataque a una arista
 
 Una vez seleccionado un nodo propio, el jugador puede asignar energía de ataque:
 
@@ -193,7 +148,7 @@ Una vez seleccionado un nodo propio, el jugador puede asignar energía de ataque
 
 ![Asignar energía de ataque](../assets/img/manual/img-10.png)
 
-### 3.3. Gestión automática de defensa
+### Gestión automática de defensa
 
 La energía no asignada a aristas permanece automáticamente en el nodo como defensa:
 
@@ -207,18 +162,20 @@ La energía no asignada a aristas permanece automáticamente en el nodo como def
 
 ![Gestión automática de defensa](../assets/img/manual/img-11.png)
 
-### 3.4. Visualización de paquetes de energía en tránsito
+### Visualización de paquetes de energía en tránsito
 
 Los paquetes de energía son representaciones visuales de energía viajando por aristas:
 
 - **Apariencia:** Esferas pequeñas, partículas o puntos de color según el jugador propietario.
 - **Movimiento:** Se desplazan desde el nodo origen hacia el nodo destino.
 - **Velocidad:** Configurable en el sistema (DEFAULT_SPEED = 0.002).
-- **Cantidad:** La cantidad de energía puede representarse por el tamaño del paquete o un número visible.
+- **Cantidad:** La cantidad de energía puede representarse por el
+ tamaño del
+ paquete o un número visible.
 
 ![Paquetes de energía en tránsito](../assets/img/manual/img-12.png)
 
-### 3.5. Sistema de colisiones entre paquetes
+### Sistema de colisiones entre paquetes
 
 Cuando paquetes de energía enemigos se encuentran en la misma arista, ocurre una colisión:
 
@@ -232,7 +189,7 @@ Cuando paquetes de energía enemigos se encuentran en la misma arista, ocurre un
 
 ![Sistema de colisiones](../assets/img/manual/img-13.png)
 
-### 3.6. Captura de nodos enemigos
+### Captura de nodos enemigos
 
 Para capturar un nodo enemigo:
 
@@ -244,7 +201,7 @@ Para capturar un nodo enemigo:
 
 ![Captura de nodos enemigos](../assets/img/manual/img-14.png)
 
-### 3.7. Captura de nodos neutrales
+### Captura de nodos neutrales
 
 Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
@@ -256,28 +213,27 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 ![Captura de nodos neutrales](../assets/img/manual/img-15.png)
 
-## 4. Tipos de nodos especializados
+## Tipos de nodos especializados
 
-### 4.1. Nodo Básico
+### Nodo Básico
 
 **Características:**
-- **Color distintivo:** Blanco o color base sin indicador especial.
-- **Intervalo de ataque:** 2000ms (emite paquetes cada 2 segundos).
-- **Intervalo de defensa:** 3000ms (regenera defensa cada 3 segundos).
+- **Intervalo de ataque:** 1000ms (emite paquetes cada 2 segundos).
+- **Intervalo de defensa:** 1500ms (regenera defensa cada 3 segundos).
 - **Multiplicador de ataque:** 1.0x (sin bonificación).
 - **Multiplicador de defensa:** 1.0x (sin bonificación).
-- **Energía inicial:** 20 unidades al capturarlo.
+- **Energía inicial:** 40 unidades al capturarlo.
 
 **Uso:** Nodo estándar sin ventajas especiales. Útil para expansión general.
 
 ![Nodo Básico](../assets/img/manual/img-16.png)
 
-### 4.2. Nodo de Ataque
+### Nodo de Ataque
 
 **Características:**
 - **Color distintivo:** Rojo oscuro o con icono de espada/ataque.
 - **Intervalo de ataque:** 1000ms (emite paquetes cada 1 segundo - ¡el doble de rápido!).
-- **Intervalo de defensa:** 3000ms (estándar).
+- **Intervalo de defensa:** 1500ms (estándar).
 - **Multiplicador de ataque:** 2.0x (duplica la energía enviada por aristas).
 - **Multiplicador de defensa:** 1.0x (defensa normal).
 - **Energía inicial:** 20 unidades.
@@ -286,11 +242,11 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 ![Nodo de Ataque](../assets/img/manual/img-17.png)
 
-### 4.3. Nodo de Defensa
+### Nodo de Defensa
 
 **Características:**
 - **Color distintivo:** Verde o con icono de escudo/defensa.
-- **Intervalo de ataque:** 2000ms (estándar).
+- **Intervalo de ataque:** 1000ms (estándar).
 - **Intervalo de defensa:** 1500ms (regenera defensa cada 1.5 segundos - más rápido).
 - **Multiplicador de ataque:** 1.0x (ataque normal).
 - **Multiplicador de defensa:** 2.0x (duplica la defensa del nodo).
@@ -300,23 +256,23 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 ![Nodo de Defensa](../assets/img/manual/img-18.png)
 
-### 4.4. Nodo de Energía
+### Nodo de Energía
 
 **Características:**
 - **Color distintivo:** Amarillo, dorado o con icono de rayo/energía.
-- **Intervalo de ataque:** 2000ms (estándar).
-- **Intervalo de defensa:** 3000ms (estándar).
+- **Intervalo de ataque:** 1000ms (estándar).
+- **Intervalo de defensa:** 1500ms (estándar).
 - **Multiplicador de ataque:** 1.0x (ataque normal).
 - **Multiplicador de defensa:** 1.0x (defensa normal).
-- **Energía inicial:** 50 unidades (¡más del doble que nodos normales!).
+- **Energía inicial:** 60 unidades (¡más del doble que nodos normales!).
 
 **Uso:** Capturar este nodo otorga un boost significativo de recursos. Es un objetivo prioritario.
 
 ![Nodo de Energía](../assets/img/manual/img-19.png)
 
-## 5. Condiciones de victoria y derrota
+## Condiciones de victoria y derrota
 
-### 5.1. Victoria por Dominación
+### Victoria por Dominación
 
 **Condición:** Controlar al menos el 70% de los nodos del grafo de forma sostenida durante 10 segundos consecutivos.
 
@@ -330,7 +286,7 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 ![Victoria por Dominación](../assets/img/manual/img-20.jpg)
 
-### 5.2. Victoria por Tiempo Límite
+### Victoria por Tiempo Límite
 
 **Condición:** Al finalizar los 3 minutos (180 segundos), el jugador con mayor cantidad de nodos controlados gana.
 
@@ -342,7 +298,7 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 ![Victoria por Tiempo Límite](../assets/img/manual/img-21.png)
 
-### 5.3. Victoria por Eliminación
+### Victoria por Eliminación
 
 **Condición:** Si un jugador pierde su nodo inicial (base), pierde inmediatamente la partida.
 
@@ -355,7 +311,7 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 ![Victoria por Eliminación](../assets/img/manual/img-22.png)
 
-### 5.4. Pantalla de fin de partida
+### Pantalla de fin de partida
 
 Al finalizar la partida por cualquier condición de victoria, el juego muestra la pantalla de Game Over:
 
@@ -374,9 +330,9 @@ Al finalizar la partida por cualquier condición de victoria, el juego muestra l
 
 ![Pantalla de fin de partida](../assets/img/manual/img-23.png)
 
-## 6. Estrategias y consejos avanzados
+## Estrategias y consejos avanzados
 
-### 6.1. Estrategia de expansión gradual
+### Estrategia de expansión gradual
 
 **Para principiantes:**
 
@@ -396,7 +352,7 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ![Estrategia de expansión gradual](../assets/img/manual/img-24.png)
 
-### 6.2. Identificación de nodos de articulación
+### Identificación de nodos de articulación
 
 **Concepto avanzado:** Los nodos de articulación son nodos críticos que, al ser capturados, dividen el grafo.
 
@@ -412,7 +368,7 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ![Identificación de nodos de articulación](../assets/img/manual/img-25.png)
 
-### 6.3. Gestión eficiente de energía
+### Gestión eficiente de energía
 
 **Principios:**
 
@@ -426,7 +382,7 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ![Gestión eficiente de energía](../assets/img/manual/img-26.png)
 
-### 6.4. Defensa de puntos críticos
+### Defensa de puntos críticos
 
 **Nodos críticos a defender:**
 
@@ -443,9 +399,9 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ![Defensa de puntos críticos](../assets/img/manual/img-27.png)
 
-## 7. Solución de problemas comunes
+## Solución de problemas comunes
 
-### 7.1. El juego no carga o presenta errores
+### El juego no carga o presenta errores
 
 **Síntomas:**
 - Pantalla en blanco al acceder a la URL.
@@ -479,7 +435,7 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ![Solución de problemas de carga](../assets/img/manual/img-28.png)
 
-### 7.2. Rendimiento bajo o lag
+### Rendimiento bajo o lag
 
 **Síntomas:**
 - Animaciones entrecortadas.
@@ -507,7 +463,7 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ![Diagnóstico de rendimiento](../assets/img/manual/img-29.png)
 
-### 7.3. Controles no responden correctamente
+### Controles no responden correctamente
 
 **Síntomas:**
 - Clics en nodos no seleccionan el nodo.
@@ -536,9 +492,9 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ![Solución de controles](../assets/img/manual/img-30.png)
 
-## 8. Anexos
+## Anexos
 
-### 8.1. Tabla comparativa de tipos de nodos
+### Tabla comparativa de tipos de nodos
 
 | Tipo | Intervalo Ataque | Intervalo Defensa | Mult. Ataque | Mult. Defensa | Energía Inicial |
 |------|------------------|-------------------|--------------|---------------|-----------------|
@@ -556,7 +512,7 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ---
 
-### 8.2. Glosario de términos técnicos
+### Glosario de términos técnicos
 
 **Arista:** Conexión entre dos nodos en el grafo. Permite el tránsito de paquetes de energía.
 
@@ -598,18 +554,3 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 - Paul Andree Cari Lipe (QA Engineer)
 - Jhonatan David Arias Quispe (Game Developer)
 - Alexandra Raquel Quispe Arratea (UI/UX Developer)
-
-**Institución:**  
-Universidad Nacional de San Agustín de Arequipa  
-Escuela Profesional de Ingeniería de Sistemas  
-Curso: Tecnología de Objetos  
-Año: 2025
-
-**Contacto y Soporte:**  
-- Repositorio: https://github.com/gustadev24/nexa  
-- Issues: https://github.com/gustadev24/nexa/issues  
-- Email: lgsc21211@gmail.com
-
----
-
-**Fin del Manual de Usuario**
