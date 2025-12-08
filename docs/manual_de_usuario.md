@@ -1,51 +1,6 @@
 # Manual de Usuario - NEXA
 
-## Contenido
-
-0. [Acerca de NEXA](#0-acerca-de-nexa)
-1. [¿Quiénes deben leer este documento?](#1-quiénes-deben-leer-este-documento)
-2. [Pantallas y funcionalidades del juego NEXA](#2-pantallas-y-funcionalidades-del-juego-nexa)
-   - 2.1. [Portada principal del juego NEXA](#21-portada-principal-del-juego-nexa)
-   - 2.2. [Bloques de la portada principal](#22-bloques-de-la-portada-principal)
-   - 2.3. [Iniciar una partida en NEXA](#23-iniciar-una-partida-en-nexa)
-   - 2.4. [Configuración inicial del juego](#24-configuración-inicial-del-juego)
-   - 2.5. [Interfaz principal del campo de juego](#25-interfaz-principal-del-campo-de-juego)
-   - 2.6. [Panel de información (HUD superior)](#26-panel-de-información-hud-superior)
-   - 2.7. [Visualización del grafo](#27-visualización-del-grafo)
-3. [Mecánicas del juego](#3-mecánicas-del-juego)
-   - 3.1. [Seleccionar un nodo propio](#31-seleccionar-un-nodo-propio)
-   - 3.2. [Asignar energía de ataque a una arista](#32-asignar-energía-de-ataque-a-una-arista)
-   - 3.3. [Gestión automática de defensa](#33-gestión-automática-de-defensa)
-   - 3.4. [Visualización de paquetes de energía en tránsito](#34-visualización-de-paquetes-de-energía-en-tránsito)
-   - 3.5. [Sistema de colisiones entre paquetes](#35-sistema-de-colisiones-entre-paquetes)
-   - 3.6. [Captura de nodos enemigos](#36-captura-de-nodos-enemigos)
-   - 3.7. [Captura de nodos neutrales](#37-captura-de-nodos-neutrales)
-4. [Tipos de nodos especializados](#4-tipos-de-nodos-especializados)
-   - 4.1. [Nodo Básico](#41-nodo-básico)
-   - 4.2. [Nodo de Ataque](#42-nodo-de-ataque)
-   - 4.3. [Nodo de Defensa](#43-nodo-de-defensa)
-   - 4.4. [Nodo de Energía](#44-nodo-de-energía)
-5. [Condiciones de victoria y derrota](#5-condiciones-de-victoria-y-derrota)
-   - 5.1. [Victoria por Dominación](#51-victoria-por-dominación)
-   - 5.2. [Victoria por Tiempo Límite](#52-victoria-por-tiempo-límite)
-   - 5.3. [Victoria por Eliminación](#53-victoria-por-eliminación)
-   - 5.4. [Pantalla de fin de partida](#54-pantalla-de-fin-de-partida)
-6. [Estrategias y consejos avanzados](#6-estrategias-y-consejos-avanzados)
-   - 6.1. [Estrategia de expansión gradual](#61-estrategia-de-expansión-gradual)
-   - 6.2. [Identificación de nodos de articulación](#62-identificación-de-nodos-de-articulación)
-   - 6.3. [Gestión eficiente de energía](#63-gestión-eficiente-de-energía)
-   - 6.4. [Defensa de puntos críticos](#64-defensa-de-puntos-críticos)
-7. [Solución de problemas comunes](#7-solución-de-problemas-comunes)
-   - 7.1. [El juego no carga o presenta errores](#71-el-juego-no-carga-o-presenta-errores)
-   - 7.2. [Rendimiento bajo o lag](#72-rendimiento-bajo-o-lag)
-   - 7.3. [Controles no responden correctamente](#73-controles-no-responden-correctamente)
-8. [Anexos](#8-anexos)
-   - 8.1. [Tabla comparativa de tipos de nodos](#81-tabla-comparativa-de-tipos-de-nodos)
-   - 8.2. [Glosario de términos técnicos](#82-glosario-de-términos-técnicos)
-
----
-
-## 0. Acerca de NEXA
+## Acerca de NEXA
 
 NEXA es un juego de estrategia en tiempo real desarrollado con TypeScript y Phaser 3, donde dos jugadores compiten por el control de nodos en un grafo. El sistema implementa mecánicas de gestión de energía conservativa, sistema de colisiones determinístico y detección de fragmentación de grafos mediante algoritmos de teoría de grafos.
 
@@ -58,7 +13,7 @@ El juego fue desarrollado como proyecto académico por estudiantes de Ingenierí
 
 ---
 
-## 1. ¿Quiénes deben leer este documento?
+## ¿Quiénes deben leer este documento?
 
 Este manual está dirigido a:
 
@@ -72,9 +27,9 @@ Este manual está dirigido a:
 
 ---
 
-## 2. Pantallas y funcionalidades del juego NEXA
+## Pantallas y funcionalidades del juego NEXA
 
-### 2.1. Portada principal del juego NEXA
+### Portada principal del juego NEXA
 
 Al acceder al juego NEXA desde el navegador web (URL: http://localhost:8080 en instalación local), el usuario visualiza la pantalla principal o menú de inicio.
 
@@ -82,7 +37,7 @@ Al acceder al juego NEXA desde el navegador web (URL: http://localhost:8080 en i
 
 ---
 
-### 2.2. Bloques de la portada principal
+### Bloques de la portada principal
 
 La portada principal de NEXA está compuesta por los siguientes elementos visuales:
 
@@ -90,11 +45,9 @@ La portada principal de NEXA está compuesta por los siguientes elementos visual
 2. **Panel central:** Botones de interacción principal (Iniciar Partida, Instrucciones).
 3. **Pie de página:** Información de créditos y enlace al repositorio.
 
-![Captura del menú principal con anotaciones señalando cada bloque](../assets/img/manual/img-2.png)
-
 ---
 
-### 2.3. Iniciar una partida en NEXA
+### Iniciar una partida en NEXA
 
 Para iniciar una nueva partida, el usuario debe:
 
@@ -104,19 +57,14 @@ Para iniciar una nueva partida, el usuario debe:
 4. Se asignan los nodos iniciales a cada jugador (Jugador 1: azul, Jugador 2: rojo).
 5. El juego inicia el contador de tiempo (3 minutos).
 
-**[IMAGEN REQUERIDA 03]**
-**Ubicación:** Sección 2.3
-**Descripción:** Captura del botón "Iniciar Partida" destacado antes de hacer clic
-**Nota para captura:** Capturar el cursor sobre el botón antes de hacer clic
+![Botón Iniciar Partida destacando el cursor](../assets/img/manual/img-3.png)
 
-**[IMAGEN REQUERIDA 04]**
-**Ubicación:** Sección 2.3
-**Descripción:** Transición o pantalla de carga entre el menú y el campo de juego
-**Nota para captura:** Si existe animación de transición, capturar el frame intermedio
 
----
 
-### 2.4. Configuración inicial del juego
+![Pantalla de carga](../assets/img/manual/img-4.png)
+
+
+### Configuración inicial del juego
 
 Al iniciar la partida, el sistema configura automáticamente:
 
@@ -126,19 +74,9 @@ Al iniciar la partida, el sistema configura automáticamente:
 - **Distribución de tipos:** Los nodos especiales (Ataque, Defensa, Energía) se distribuyen en el grafo.
 - **Temporizador:** Se inicia el conteo de 3 minutos (180 segundos).
 
-**[IMAGEN REQUERIDA 05]**
-**Ubicación:** Sección 2.4
-**Descripción:** Campo de juego recién iniciado mostrando:
-- Grafo completo con todos los nodos
-- Nodo inicial del Jugador 1 (azul) marcado
-- Nodo inicial del Jugador 2 (rojo) marcado
-- Nodos neutrales (color gris o blanco)
-- Temporizador en 03:00 o 02:59
-**Nota para captura:** Capturar en los primeros segundos de inicio de partida
+![Configuración inicial del juego](../assets/img/manual/img-5.png)
 
----
-
-### 2.5. Interfaz principal del campo de juego
+### Interfaz principal del campo de juego
 
 La interfaz del campo de juego se compone de tres áreas principales:
 
@@ -146,17 +84,10 @@ La interfaz del campo de juego se compone de tres áreas principales:
 2. **Campo de juego central:** Visualización del grafo con nodos y aristas.
 3. **HUD Inferior:** (Opcional) Controles adicionales o mensajes del sistema.
 
-**[IMAGEN REQUERIDA 06]**
-**Ubicación:** Sección 2.5
-**Descripción:** Captura completa del campo de juego durante una partida activa con anotaciones:
-- Marcar el área del HUD superior
-- Marcar el área del campo de juego central
-- Marcar el área del HUD inferior (si existe)
-**Nota para captura:** Capturar durante gameplay activo, no al inicio
+![Interfaz principal del campo de juego](../assets/img/manual/img-6.png)
 
----
 
-### 2.6. Panel de información (HUD superior)
+### Panel de información (HUD superior)
 
 El HUD superior muestra información crítica en tiempo real:
 
@@ -167,17 +98,9 @@ El HUD superior muestra información crítica en tiempo real:
 - **Energía Total Jugador 2:** (Opcional) Energía total disponible.
 - **Indicador de progreso hacia victoria por dominación:** Barra o contador que muestra el tiempo sostenido de dominación.
 
-**[IMAGEN REQUERIDA 07]**
-**Ubicación:** Sección 2.6
-**Descripción:** Primer plano del HUD superior con todos los elementos visibles:
-- Temporizador mostrando tiempo (ej: 02:34)
-- Indicadores de dominación (ej: Jugador 1: 45%, Jugador 2: 35%)
-- Barra de progreso hacia victoria por dominación si un jugador domina ≥70%
-**Nota para captura:** Capturar cuando ambos jugadores tengan nodos controlados
+![Panel de información HUD superior](../assets/img/manual/img-7.png)
 
----
-
-### 2.7. Visualización del grafo
+### Visualización del grafo
 
 El campo de juego central muestra la representación visual del grafo:
 
@@ -194,21 +117,12 @@ El campo de juego central muestra la representación visual del grafo:
 
 - **Indicadores de tipo:** Cada nodo muestra un ícono o color distintivo según su tipo (Básico, Ataque, Defensa, Energía).
 
-**[IMAGEN REQUERIDA 08]**
-**Ubicación:** Sección 2.7
-**Descripción:** Acercamiento al grafo mostrando claramente:
-- Un nodo azul (Jugador 1)
-- Un nodo rojo (Jugador 2)
-- Un nodo neutral (gris)
-- Aristas conectando los nodos
-- Paquetes de energía en movimiento por al menos una arista
-**Nota para captura:** Capturar durante gameplay activo con energía en tránsito
+![Visualización del grafo](../assets/img/manual/img-8.png)
 
----
 
-## 3. Mecánicas del juego
+## Mecánicas del juego
 
-### 3.1. Seleccionar un nodo propio
+### Seleccionar un nodo propio
 
 Para interactuar con un nodo, el jugador debe:
 
@@ -218,16 +132,9 @@ Para interactuar con un nodo, el jugador debe:
 
 **Restricción:** Solo se pueden seleccionar nodos propios. Hacer clic en nodos enemigos o neutrales no tiene efecto.
 
-**[IMAGEN REQUERIDA 09]**
-**Ubicación:** Sección 3.1
-**Descripción:** Secuencia de dos imágenes:
-- Imagen A: Nodo sin seleccionar (cursor sobre el nodo)
-- Imagen B: Mismo nodo seleccionado con efecto visual de selección
-**Nota para captura:** Mostrar claramente el cambio visual al seleccionar
+![Seleccionar un nodo propio](../assets/img/manual/img-9.png)
 
----
-
-### 3.2. Asignar energía de ataque a una arista
+### Asignar energía de ataque a una arista
 
 Una vez seleccionado un nodo propio, el jugador puede asignar energía de ataque:
 
@@ -239,17 +146,9 @@ Una vez seleccionado un nodo propio, el jugador puede asignar energía de ataque
 
 **Nota:** El nodo destino puede ser enemigo, neutral o incluso propio (no recomendado, genera desperdicio si se envía energía opuesta).
 
-**[IMAGEN REQUERIDA 10]**
-**Ubicación:** Sección 3.2
-**Descripción:** Secuencia de tres imágenes mostrando el proceso:
-- Imagen A: Nodo seleccionado con cursor listo para arrastrar
-- Imagen B: Línea o flecha temporal mostrando el arrastre hacia nodo vecino
-- Imagen C: Energía asignada (paquetes comenzando a viajar por la arista)
-**Nota para captura:** Capturar el proceso completo de asignación
+![Asignar energía de ataque](../assets/img/manual/img-10.png)
 
----
-
-### 3.3. Gestión automática de defensa
+### Gestión automática de defensa
 
 La energía no asignada a aristas permanece automáticamente en el nodo como defensa:
 
@@ -261,37 +160,22 @@ La energía no asignada a aristas permanece automáticamente en el nodo como def
 - Nodo Básico con 30 unidades de energía → Defensa = 30 × 1.0 = 30
 - Nodo de Defensa con 30 unidades → Defensa = 30 × 2.0 = 60 (duplica defensa)
 
-**[IMAGEN REQUERIDA 11]**
-**Ubicación:** Sección 3.3
-**Descripción:** Captura mostrando:
-- Nodo con energía almacenada (número visible en el nodo)
-- Indicador visual de defensa (escudo, barra, etc.)
-- Diferencia entre energía total y energía de defensa si se muestra separadamente
-**Nota para captura:** Capturar un nodo con energía almacenada, sin asignar a aristas
+![Gestión automática de defensa](../assets/img/manual/img-11.png)
 
----
-
-### 3.4. Visualización de paquetes de energía en tránsito
+### Visualización de paquetes de energía en tránsito
 
 Los paquetes de energía son representaciones visuales de energía viajando por aristas:
 
 - **Apariencia:** Esferas pequeñas, partículas o puntos de color según el jugador propietario.
 - **Movimiento:** Se desplazan desde el nodo origen hacia el nodo destino.
 - **Velocidad:** Configurable en el sistema (DEFAULT_SPEED = 0.002).
-- **Cantidad:** La cantidad de energía puede representarse por el tamaño del paquete o un número visible.
+- **Cantidad:** La cantidad de energía puede representarse por el
+ tamaño del
+ paquete o un número visible.
 
-**[IMAGEN REQUERIDA 12]**
-**Ubicación:** Sección 3.4
-**Descripción:** Acercamiento mostrando:
-- Al menos 3 paquetes de energía en tránsito por diferentes aristas
-- Paquetes de color azul (Jugador 1)
-- Paquetes de color rojo (Jugador 2)
-- Dirección de movimiento claramente visible
-**Nota para captura:** Capturar durante gameplay activo con mucha energía en movimiento
+![Paquetes de energía en tránsito](../assets/img/manual/img-12.png)
 
----
-
-### 3.5. Sistema de colisiones entre paquetes
+### Sistema de colisiones entre paquetes
 
 Cuando paquetes de energía enemigos se encuentran en la misma arista, ocurre una colisión:
 
@@ -303,16 +187,9 @@ Cuando paquetes de energía enemigos se encuentran en la misma arista, ocurre un
 
 **Efecto visual:** Animación de explosión, destello o partículas al momento de la colisión.
 
-**[IMAGEN REQUERIDA 13]**
-**Ubicación:** Sección 3.5
-**Descripción:** Secuencia de dos imágenes:
-- Imagen A: Dos paquetes enemigos acercándose en la misma arista (antes de colisión)
-- Imagen B: Momento de colisión con efecto visual (explosión, destello)
-**Nota para captura:** Capturar el frame exacto de la colisión si es posible
+![Sistema de colisiones](../assets/img/manual/img-13.png)
 
----
-
-### 3.6. Captura de nodos enemigos
+### Captura de nodos enemigos
 
 Para capturar un nodo enemigo:
 
@@ -322,17 +199,9 @@ Para capturar un nodo enemigo:
    - Si **Ataque = Defensa:** El nodo queda neutral (sin propietario).
    - Si **Ataque < Defensa:** El ataque se destruye y la defensa del nodo se reduce.
 
-**[IMAGEN REQUERIDA 14]**
-**Ubicación:** Sección 3.6
-**Descripción:** Secuencia de tres imágenes mostrando:
-- Imagen A: Nodo rojo (enemigo) antes del ataque con valor de defensa visible
-- Imagen B: Paquete de energía azul llegando al nodo rojo
-- Imagen C: Nodo capturado, ahora de color azul (cambio de propietario)
-**Nota para captura:** Capturar una captura exitosa mostrando el cambio de color
+![Captura de nodos enemigos](../assets/img/manual/img-14.png)
 
----
-
-### 3.7. Captura de nodos neutrales
+### Captura de nodos neutrales
 
 Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
@@ -342,67 +211,42 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 **Estrategia:** Capturar nodos neutrales es la forma más rápida de expandirse al inicio del juego.
 
-**[IMAGEN REQUERIDA 15]**
-**Ubicación:** Sección 3.7
-**Descripción:** Secuencia mostrando:
-- Imagen A: Nodo neutral (gris) sin propietario
-- Imagen B: Paquete de energía azul acercándose
-- Imagen C: Nodo capturado por Jugador 1 (ahora azul)
-**Nota para captura:** Mostrar la captura de un nodo neutral desde el inicio
+![Captura de nodos neutrales](../assets/img/manual/img-15.png)
 
----
+## Tipos de nodos especializados
 
-## 4. Tipos de nodos especializados
-
-### 4.1. Nodo Básico
+### Nodo Básico
 
 **Características:**
-- **Color distintivo:** Blanco o color base sin indicador especial.
-- **Intervalo de ataque:** 2000ms (emite paquetes cada 2 segundos).
-- **Intervalo de defensa:** 3000ms (regenera defensa cada 3 segundos).
+- **Intervalo de ataque:** 1000ms (emite paquetes cada 2 segundos).
+- **Intervalo de defensa:** 1500ms (regenera defensa cada 3 segundos).
 - **Multiplicador de ataque:** 1.0x (sin bonificación).
 - **Multiplicador de defensa:** 1.0x (sin bonificación).
-- **Energía inicial:** 20 unidades al capturarlo.
+- **Energía inicial:** 40 unidades al capturarlo.
 
 **Uso:** Nodo estándar sin ventajas especiales. Útil para expansión general.
 
-**[IMAGEN REQUERIDA 16]**
-**Ubicación:** Sección 4.1
-**Descripción:** Primer plano de un nodo básico mostrando:
-- Aspecto visual del nodo (color, forma)
-- Icono o indicador que identifica el tipo (si existe)
-- Valores de energía actuales
-**Nota para captura:** Capturar un nodo básico controlado por cualquier jugador
+![Nodo Básico](../assets/img/manual/img-16.png)
 
----
-
-### 4.2. Nodo de Ataque
+### Nodo de Ataque
 
 **Características:**
 - **Color distintivo:** Rojo oscuro o con icono de espada/ataque.
 - **Intervalo de ataque:** 1000ms (emite paquetes cada 1 segundo - ¡el doble de rápido!).
-- **Intervalo de defensa:** 3000ms (estándar).
+- **Intervalo de defensa:** 1500ms (estándar).
 - **Multiplicador de ataque:** 2.0x (duplica la energía enviada por aristas).
 - **Multiplicador de defensa:** 1.0x (defensa normal).
 - **Energía inicial:** 20 unidades.
 
 **Uso:** Ideal para ofensivas agresivas. Controlar este nodo multiplica la presión sobre el enemigo.
 
-**[IMAGEN REQUERIDA 17]**
-**Ubicación:** Sección 4.2
-**Descripción:** Primer plano de un nodo de ataque mostrando:
-- Color o icono distintivo de ataque (espada, rayo, etc.)
-- Paquetes de energía saliendo del nodo con mayor frecuencia
-- Indicador del multiplicador 2x si es visible
-**Nota para captura:** Capturar durante emisión activa de paquetes
+![Nodo de Ataque](../assets/img/manual/img-17.png)
 
----
-
-### 4.3. Nodo de Defensa
+### Nodo de Defensa
 
 **Características:**
 - **Color distintivo:** Verde o con icono de escudo/defensa.
-- **Intervalo de ataque:** 2000ms (estándar).
+- **Intervalo de ataque:** 1000ms (estándar).
 - **Intervalo de defensa:** 1500ms (regenera defensa cada 1.5 segundos - más rápido).
 - **Multiplicador de ataque:** 1.0x (ataque normal).
 - **Multiplicador de defensa:** 2.0x (duplica la defensa del nodo).
@@ -410,41 +254,25 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 **Uso:** Ideal para posiciones defensivas. Difícil de capturar para el enemigo.
 
-**[IMAGEN REQUERIDA 18]**
-**Ubicación:** Sección 4.3
-**Descripción:** Primer plano de un nodo de defensa mostrando:
-- Color o icono distintivo de defensa (escudo, muralla, etc.)
-- Indicador visual de alta defensa (barra de defensa, escudo brillante)
-- Valor de defensa visible (si aplica)
-**Nota para captura:** Capturar un nodo de defensa con energía almacenada
+![Nodo de Defensa](../assets/img/manual/img-18.png)
 
----
-
-### 4.4. Nodo de Energía
+### Nodo de Energía
 
 **Características:**
 - **Color distintivo:** Amarillo, dorado o con icono de rayo/energía.
-- **Intervalo de ataque:** 2000ms (estándar).
-- **Intervalo de defensa:** 3000ms (estándar).
+- **Intervalo de ataque:** 1000ms (estándar).
+- **Intervalo de defensa:** 1500ms (estándar).
 - **Multiplicador de ataque:** 1.0x (ataque normal).
 - **Multiplicador de defensa:** 1.0x (defensa normal).
-- **Energía inicial:** 50 unidades (¡más del doble que nodos normales!).
+- **Energía inicial:** 60 unidades (¡más del doble que nodos normales!).
 
 **Uso:** Capturar este nodo otorga un boost significativo de recursos. Es un objetivo prioritario.
 
-**[IMAGEN REQUERIDA 19]**
-**Ubicación:** Sección 4.4
-**Descripción:** Primer plano de un nodo de energía mostrando:
-- Color o icono distintivo de energía (rayo, estrella, brillo)
-- Valor de energía alto visible (50 unidades)
-- Efecto visual especial (brillo, partículas)
-**Nota para captura:** Capturar un nodo de energía neutral o recién capturado
+![Nodo de Energía](../assets/img/manual/img-19.png)
 
----
+## Condiciones de victoria y derrota
 
-## 5. Condiciones de victoria y derrota
-
-### 5.1. Victoria por Dominación
+### Victoria por Dominación
 
 **Condición:** Controlar al menos el 70% de los nodos del grafo de forma sostenida durante 10 segundos consecutivos.
 
@@ -456,17 +284,9 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 **Indicador visual:** Barra de progreso o contador en el HUD mostrando el tiempo acumulado de dominación.
 
-**[IMAGEN REQUERIDA 20]**
-**Ubicación:** Sección 5.1
-**Descripción:** Captura del juego mostrando:
-- Jugador 1 con 72% de nodos (indicador en HUD)
-- Barra de progreso de dominación activa (ej: 6/10 segundos)
-- Campo de juego con mayoría clara de nodos azules
-**Nota para captura:** Capturar durante una dominación activa en progreso
+![Victoria por Dominación](../assets/img/manual/img-20.jpg)
 
----
-
-### 5.2. Victoria por Tiempo Límite
+### Victoria por Tiempo Límite
 
 **Condición:** Al finalizar los 3 minutos (180 segundos), el jugador con mayor cantidad de nodos controlados gana.
 
@@ -476,16 +296,9 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 3. El jugador con más nodos es declarado ganador.
 4. Si ambos tienen la misma cantidad, la partida termina en empate.
 
-**[IMAGEN REQUERIDA 21]**
-**Ubicación:** Sección 5.2
-**Descripción:** Captura del temporizador llegando a 00:00 o cerca de finalizar:
-- Temporizador en 00:05, 00:03 o 00:00
-- Conteo de nodos visible (ej: Jugador 1: 12 nodos, Jugador 2: 8 nodos)
-**Nota para captura:** Capturar los últimos segundos de una partida por tiempo
+![Victoria por Tiempo Límite](../assets/img/manual/img-21.png)
 
----
-
-### 5.3. Victoria por Eliminación
+### Victoria por Eliminación
 
 **Condición:** Si un jugador pierde su nodo inicial (base), pierde inmediatamente la partida.
 
@@ -496,16 +309,9 @@ Los nodos neutrales (sin propietario) pueden ser capturados más fácilmente:
 
 **Importancia:** El nodo inicial es crítico. Perderlo significa derrota automática sin importar otros factores.
 
-**[IMAGEN REQUERIDA 22]**
-**Ubicación:** Sección 5.3
-**Descripción:** Secuencia de dos imágenes:
-- Imagen A: Nodo inicial de Jugador 2 (rojo) bajo ataque con paquetes azules llegando
-- Imagen B: Nodo capturado por Jugador 1 (ahora azul) - Victoria por eliminación
-**Nota para captura:** Capturar el momento de captura del nodo inicial
+![Victoria por Eliminación](../assets/img/manual/img-22.png)
 
----
-
-### 5.4. Pantalla de fin de partida
+### Pantalla de fin de partida
 
 Al finalizar la partida por cualquier condición de victoria, el juego muestra la pantalla de Game Over:
 
@@ -522,20 +328,11 @@ Al finalizar la partida por cualquier condición de victoria, el juego muestra l
 - Botón "Volver al Menú": Regresa al menú principal.
 - Botón "Revancha": Inicia una nueva partida inmediatamente.
 
-**[IMAGEN REQUERIDA 23]**
-**Ubicación:** Sección 5.4
-**Descripción:** Captura completa de la pantalla de Game Over mostrando:
-- Mensaje de victoria o derrota
-- Condición de victoria especificada
-- Estadísticas finales en formato tabla o lista
-- Botones de "Volver al Menú" y "Revancha"
-**Nota para captura:** Completar una partida y capturar la pantalla final
+![Pantalla de fin de partida](../assets/img/manual/img-23.png)
 
----
+## Estrategias y consejos avanzados
 
-## 6. Estrategias y consejos avanzados
-
-### 6.1. Estrategia de expansión gradual
+### Estrategia de expansión gradual
 
 **Para principiantes:**
 
@@ -553,16 +350,9 @@ Inicio:  [Nodo Inicial] → [Neutral] → [Neutral]
 Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 ```
 
-**[IMAGEN REQUERIDA 24]**
-**Ubicación:** Sección 6.1
-**Descripción:** Dos capturas comparativas:
-- Imagen A: Expansión compacta (nodos azules todos conectados y cercanos al inicial)
-- Imagen B: Expansión dispersa (nodos azules separados, mal conectados)
-**Nota para captura:** Ilustrar la diferencia entre buena y mala expansión
+![Estrategia de expansión gradual](../assets/img/manual/img-24.png)
 
----
-
-### 6.2. Identificación de nodos de articulación
+### Identificación de nodos de articulación
 
 **Concepto avanzado:** Los nodos de articulación son nodos críticos que, al ser capturados, dividen el grafo.
 
@@ -576,17 +366,9 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 - **Defensa:** Proteger tus nodos de articulación con alta defensa.
 - **Ataque:** Identificar y atacar nodos de articulación del enemigo para fragmentar su territorio.
 
-**[IMAGEN REQUERIDA 25]**
-**Ubicación:** Sección 6.2
-**Descripción:** Diagrama o captura mostrando:
-- Nodo de articulación marcado o resaltado (el nodo que conecta dos grupos)
-- Flechas o líneas indicando los subgrafos que conecta
-- Resultado de perderlo (subgrafo desconectado se pierde)
-**Nota para captura:** Crear diagrama explicativo o capturar situación clara de articulación
+![Identificación de nodos de articulación](../assets/img/manual/img-25.png)
 
----
-
-### 6.3. Gestión eficiente de energía
+### Gestión eficiente de energía
 
 **Principios:**
 
@@ -598,18 +380,9 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 4. **Evitar desperdicio:** No enviar energía en direcciones opuestas desde el mismo nodo (se anulan).
 
-**[IMAGEN REQUERIDA 26]**
-**Ubicación:** Sección 6.3
-**Descripción:** Captura mostrando panel de información de un nodo con:
-- Energía total del nodo
-- Energía asignada a cada arista saliente
-- Energía restante como defensa
-- Distribución visual de la energía
-**Nota para captura:** Seleccionar un nodo con energía distribuida en múltiples aristas
+![Gestión eficiente de energía](../assets/img/manual/img-26.png)
 
----
-
-### 6.4. Defensa de puntos críticos
+### Defensa de puntos críticos
 
 **Nodos críticos a defender:**
 
@@ -624,20 +397,11 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 - **Usar Nodos de Defensa:** Controlar y mantener nodos tipo Defensa en posiciones clave.
 - **Monitoreo constante:** Observar ataques enemigos y reforzar defensas amenazadas.
 
-**[IMAGEN REQUERIDA 27]**
-**Ubicación:** Sección 6.4
-**Descripción:** Captura táctica mostrando:
-- Nodo inicial del jugador bien defendido (alta energía)
-- Nodos de Defensa en posiciones clave
-- Nodos frontera con defensa activa
-- Indicadores de distribución defensiva
-**Nota para captura:** Mostrar una configuración defensiva efectiva
+![Defensa de puntos críticos](../assets/img/manual/img-27.png)
 
----
+## Solución de problemas comunes
 
-## 7. Solución de problemas comunes
-
-### 7.1. El juego no carga o presenta errores
+### El juego no carga o presenta errores
 
 **Síntomas:**
 - Pantalla en blanco al acceder a la URL.
@@ -669,17 +433,9 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
    - Confirmar que el servidor local está corriendo en el puerto 8080
    - Revisar mensajes en la terminal donde se ejecutó `pnpm run dev`
 
-**[IMAGEN REQUERIDA 28]**
-**Ubicación:** Sección 7.1
-**Descripción:** Captura de la consola del navegador (F12) mostrando:
-- Pestaña "Console" abierta
-- Ejemplo de error típico (si existe)
-- Forma de acceder a Developer Tools
-**Nota para captura:** Capturar Developer Tools abiertos en el navegador
+![Solución de problemas de carga](../assets/img/manual/img-28.png)
 
----
-
-### 7.2. Rendimiento bajo o lag
+### Rendimiento bajo o lag
 
 **Síntomas:**
 - Animaciones entrecortadas.
@@ -705,16 +461,9 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 5. **Probar en modo incógnito:**
    - Desactiva extensiones que puedan causar conflictos.
 
-**[IMAGEN REQUERIDA 29]**
-**Ubicación:** Sección 7.2
-**Descripción:** Captura mostrando:
-- Administrador de tareas del navegador (Shift+Esc en Chrome)
-- Uso de memoria y CPU de la pestaña del juego
-**Nota para captura:** Mostrar métricas de rendimiento del navegador
+![Diagnóstico de rendimiento](../assets/img/manual/img-29.png)
 
----
-
-### 7.3. Controles no responden correctamente
+### Controles no responden correctamente
 
 **Síntomas:**
 - Clics en nodos no seleccionan el nodo.
@@ -741,19 +490,11 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 6. **Probar con ratón diferente (si aplica):**
    - Problemas de hardware del dispositivo de entrada.
 
-**[IMAGEN REQUERIDA 30]**
-**Ubicación:** Sección 7.3
-**Descripción:** Diagrama o captura ilustrando:
-- Clic correcto en nodo propio (marca de verificación)
-- Clic incorrecto en nodo enemigo (marca de X)
-- Área de clic sensible del nodo
-**Nota para captura:** Crear diagrama instructivo con anotaciones
+![Solución de controles](../assets/img/manual/img-30.png)
 
----
+## Anexos
 
-## 8. Anexos
-
-### 8.1. Tabla comparativa de tipos de nodos
+### Tabla comparativa de tipos de nodos
 
 | Tipo | Intervalo Ataque | Intervalo Defensa | Mult. Ataque | Mult. Defensa | Energía Inicial |
 |------|------------------|-------------------|--------------|---------------|-----------------|
@@ -771,7 +512,7 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 
 ---
 
-### 8.2. Glosario de términos técnicos
+### Glosario de términos técnicos
 
 **Arista:** Conexión entre dos nodos en el grafo. Permite el tránsito de paquetes de energía.
 
@@ -804,28 +545,12 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 ## Información del Manual
 
 **Versión del Manual:** 1.0  
-**Fecha de actualización:** Diciembre 2024  
+**Fecha de actualización:** Diciembre 2025  
 **Versión del juego:** NEXA v1.0.0  
 
 **Equipo de Desarrollo:**
 - Luis Gustavo Sequeiros Condori (Tech Lead)
-- Ricardo Chambilla (Backend Developer)
-- Paul Cari Lipe (QA Engineer)
-- Jhon Aquino (Game Developer)
-- Raquel Quispe (UI/UX Developer)
-- Rafael Chambilla (Integration Engineer)
-
-**Institución:**  
-Universidad Nacional de San Agustín de Arequipa  
-Escuela Profesional de Ingeniería de Sistemas  
-Curso: Ingeniería de Software  
-Año: 2024
-
-**Contacto y Soporte:**  
-- Repositorio: https://github.com/gustadev24/nexa  
-- Issues: https://github.com/gustadev24/nexa/issues  
-- Email: gustadev24@gmail.com
-
----
-
-**Fin del Manual de Usuario**
+- Ricardo Mauricio Chambilla Perca (Backend Developer)
+- Paul Andree Cari Lipe (QA Engineer)
+- Jhonatan David Arias Quispe (Game Developer)
+- Alexandra Raquel Quispe Arratea (UI/UX Developer)
