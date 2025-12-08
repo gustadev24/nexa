@@ -38,6 +38,7 @@ Nexa es un juego de estrategia en tiempo real donde dos jugadores compiten por c
 ## Demo del juego
 
 La demo del juego estable se puede acceder en el siguiente enlace: [nexa.gustadev24.me](https://nexa.gustadev24.me).
+El video de presentación [https://drive.google.com/drive/folders/18rUop8XywARCovCXnuC80tA_Fan4JSOC?usp=sharing](https://drive.google.com/drive/folders/18rUop8XywARCovCXnuC80tA_Fan4JSOC?usp=sharing)
 
 ![Mensaje inicial del juego](./assets/img/demo-1.png)
 ![Selección del nodo base](./assets/img/demo-2.png)
