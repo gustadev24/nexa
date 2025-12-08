@@ -1,279 +1,171 @@
-# 🎮 Nexa - Juego de Estrategia en Tiempo Real
+# Nexa - Sistema de Juego de Estrategia en Tiempo Real sobre Grafos
+Nexa es un juego de estrategia en tiempo real donde dos jugadores compiten por controlar nodos en un grafo. Cada jugador gestiona la distribución de energía entre sus nodos para atacar y defender territorios. El sistema implementa Clean Architecture con TypeScript y Phaser 3, disponible a través de un navegador web moderno.
 
-<div align="center">
+![Nexa](./assets/img/portrait.png)
 
-![Nexa](screenshot.png)
+## Colaboradores
+- Luis Gustavo Sequeiros Condori.
+- Ricardo Chambilla
+- Paul Cari Lipe
+- Jhonathan Arias
+- Raquel Quispe
 
-**Un juego de estrategia en tiempo real basado en grafos donde la gestión de energía y la planificación táctica son clave para la victoria.**
+## Requerimientos
+- Node.js 18.x o superior.
+- pnpm 8.x o superior (gestor de paquetes recomendado).
+- Navegador web moderno con soporte para ES6+.
+- TypeScript 5.7.
+- Phaser 3.90.
+- Vite 6.4 (incluido como dependencia de desarrollo).
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
-[![Phaser](https://img.shields.io/badge/Phaser-3.90-orange?logo=phaser)](https://phaser.io/)
-[![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?logo=vite)](https://vitejs.dev/)
-[![pnpm](https://img.shields.io/badge/pnpm-8.x-yellow?logo=pnpm)](https://pnpm.io/)
+## Consideraciones para la revision de las ramas y avances
+- Este proyecto sigue el git workflow tradicional, en donde existe una rama principal (main) en donde se encuentra los releases, una rama dev donde se encuentran los cambios estables y de donde se bifurcan ramas de desarrollo y luego estan las ramas de desarrollo: uno por integrante, a excepcion de Ricardo que ha creado una rama por aumento que le corresponde (siguiendo la forma tradicional del git workflow).
+- El estudiante Ricardo Chambilla Perca ha realizado sus features en ramas separadas para seguir el git workflow tradicional.
+- Las ramas son: ricardo, ricardoDev, rickDeb, rickViber
+- Estas ramas se mergearon con la rama dev, en donde todas las features estables residen.
 
-[Características](#-características) • [Instalación](#-instalación) • [Cómo Jugar](#-cómo-jugar) • [Mecánicas](#-mecánicas-del-juego) • [Desarrollo](#-desarrollo)
+## Instalación Local
 
-</div>
-
----
-
-## 📖 Descripción General
-
-**Nexa** es un título de estrategia en tiempo real donde los jugadores compiten por controlar la mayor cantidad de **nodos** dentro de un campo representado como un **grafo**. Cada jugador comienza con un nodo inicial desde el cual administra la distribución de **energía** hacia nodos vecinos a través de aristas conectadas.
-
-### 🎯 Objetivo del Juego
-
-- **Victoria primaria:** Controlar el **70% de los nodos** durante **10 segundos continuos**
-- **Victoria alternativa:** Mantener la **mayor cantidad de nodos** al finalizar el límite de tiempo de **3 minutos**
-- **Derrota automática:** Perder el nodo inicial (base central)
-
----
-
-## ✨ Características
-
-- 🕹️ **Estrategia en tiempo real** con mecánicas de gestión de recursos
-- 🔋 **Sistema de energía dinámico** con ataque y defensa
-- 🎨 **6 tipos de nodos especiales** con habilidades únicas
-- ⚔️ **Sistema de conflictos** con resolución en tiempo real
-- 🏆 **Múltiples condiciones de victoria**
-- 🎮 **Interfaz intuitiva** construida con Phaser 3
-- ⚡ **Rendimiento optimizado** con Vite y TypeScript
-
----
-
-## 🚀 Instalación
-
-### Requisitos Previos
-
-- **Node.js** 18.x o superior
-- **pnpm** 8.x o superior (gestor de paquetes recomendado)
-
-### Pasos de Instalación
-
+### Clonar el repositorio
 ```bash
-# 1. Clonar el repositorio
 git clone https://github.com/gustadev24/nexa.git
 cd nexa
-
-# 2. Instalar dependencias
-pnpm install
-
-# 3. Iniciar servidor de desarrollo
-pnpm run dev
-
-# 4. Abrir en el navegador
-# El juego estará disponible en http://localhost:8080
 ```
 
-### Scripts Disponibles
-
+### Instalar dependencias
 ```bash
-# Desarrollo (con auto-reload)
+pnpm install
+```
+
+### Iniciar servidor de desarrollo
+```bash
 pnpm run dev
+```
 
-# Desarrollo sin logs
-pnpm run dev-nolog
-
-# Build de producción
+### Construir para producción
+```bash
 pnpm run build
+```
 
-# Build sin logs
+### Previsualizar build de producción
+```bash
+pnpm run preview
+```
+
+## Acceder al juego desde el navegador Web
+- http://localhost:8080
+
+## Scripts Disponibles
+
+### Desarrollo con logs
+```bash
+pnpm run dev
+```
+
+### Desarrollo sin logs
+```bash
+pnpm run dev-nolog
+```
+
+### Build de producción con logs
+```bash
+pnpm run build
+```
+
+### Build de producción sin logs
+```bash
 pnpm run build-nolog
 ```
 
----
-
-## 🎮 Cómo Jugar
+## Cómo Jugar
 
 ### Controles Básicos
 
-1. **Seleccionar nodo:** Click en un nodo de tu propiedad
-2. **Asignar energía de ataque:** Arrastra desde tu nodo hacia un nodo vecino
-3. **Ajustar defensa:** La energía no asignada permanece como defensa
-4. **Capturar nodos:** Envía suficiente energía de ataque para superar la defensa enemiga
+1. Seleccionar nodo: Click izquierdo en un nodo de tu propiedad
+2. Asignar energía de ataque: Arrastra desde tu nodo hacia un nodo vecino
+3. Gestión de defensa: La energía no asignada permanece como defensa automáticamente
+4. Capturar nodos: Envía energía de ataque suficiente para superar la defensa enemiga
 
-### Conceptos Clave
+### Tipos de Nodos
 
-- **Energía Total:** Recurso conservativo que se distribuye entre nodos y aristas
-- **Energía de Ataque:** Se asigna a aristas y viaja hacia nodos enemigos (intervalos de 20ms)
-- **Energía de Defensa:** Permanece en nodos para protegerlos (actualización cada 30ms)
-- **Captura:** Ocurre cuando la energía de ataque supera la defensa del nodo enemigo
+- Básico:   Funcionalidad estándar (intervalos normales, multiplicadores 1x)
+- Ataque:   Duplica energía de ataque (multiplicador 2x en ataques)
+- Defensa:  Duplica defensa del nodo (multiplicador 2x en defensa)
+- Energía:  Proporciona 50 unidades de energía adicional al capturarlo
 
----
+### Mecánicas del Sistema
 
-## ⚙️ Mecánicas del Juego
+- Energía conservativa: La energía total se distribuye entre nodos y ataques
+- Sistema de colisiones: Paquetes enemigos se destruyen según magnitud
+- Captura de nodos: Ocurre cuando ataque > defensa
+- Fragmentación: Perder un nodo crítico puede desconectar parte de tu grafo
 
-### 🔋 Sistema de Energía
+### Condiciones de Victoria
 
-#### Energía Total
-- Recurso **conservativo** compartido entre todos tus nodos
-- Se **incrementa** al capturar **Nodos de Energía**
-- No tiene límite máximo de concentración en un solo nodo
+- Victoria por Dominación: Controlar ≥70% de nodos durante 10 segundos continuos
+- Victoria por Tiempo: Mayor cantidad de nodos al finalizar los 3 minutos
+- Victoria por Eliminación: Capturar el nodo inicial del oponente
 
-#### Distribución de Energía
-
-| Tipo | Ubicación | Intervalo | Función |
-|------|-----------|-----------|---------|
-| **Ataque** | Aristas | 20ms | Capturar nodos enemigos |
-| **Defensa** | Nodos | 30ms | Proteger nodos propios |
-
-**Regla de Oro:** La defensa siempre se actualiza **antes** que los ataques en cada tick.
-
----
-
-### 🎯 Tipos de Nodos
-
-| Icono | Tipo | Efecto |
-|-------|------|--------|
-| ⚪ | **Básico** | Funcionalidad estándar de ataque/defensa |
-| 🔵 | **Energía** | Aumenta energía total al capturarlo |
-| 🔴 | **Ataque** | Duplica energía de aristas salientes |
-| 🟢 | **Defensa** | Duplica defensa contra ataques |
-| 🟣 | **Super Energía** | Gran aumento de energía + efectos especiales |
-| ⚫ | **Neutral** | Sin dueño inicial, capturable por cualquiera |
-
-**Importante:** Los efectos de nodos especiales solo se aplican **mientras los controlas**.
-
----
-
-### ⚔️ Resolución de Conflictos
-
-#### Orden de Resolución (cada tick)
-1. **Actualización de defensa** en todos los nodos
-2. **Envío de energía** por aristas
-3. **Resolución de conflictos** en aristas
-4. **Resolución de ataques** en nodos
-5. **Captura de nodos** y aplicación de efectos
-
-#### Reglas de Conflicto
-
-```
-Energías enemigas en arista:
-├─ Valores iguales → Ambas destruidas
-└─ Valores diferentes → La mayor continúa con diferencia
-
-Ataque vs Defensa:
-├─ Ataque > Defensa → Nodo capturado
-├─ Ataque = Defensa → Nodo queda neutral
-└─ Ataque < Defensa → Ataque destruido
-
-Energía enemiga en nodo aliado:
-└─ Se suma a la defensa del nodo
-
-Energías aliadas opuestas:
-└─ Se anulan (genera advertencia de desperdicio)
-```
-
----
-
-### 🏆 Condiciones de Victoria
-
-1. **Victoria por Dominación:** Controlar ≥70% de nodos durante 10 segundos continuos
-2. **Victoria por Tiempo:** Mayor cantidad de nodos al acabar los 3 minutos
-3. **Derrota Automática:** Pérdida del nodo inicial (base)
-4. **Empate:** Cantidad igual de nodos al finalizar el tiempo
-
----
-
-### 🎲 Casos Especiales
-
-- **Sin límites:** Puedes concentrar toda tu energía en un solo nodo
-- **Capturas en cascada:** Un nodo capturado puede generar efectos en nodos vecinos
-- **Energía en tránsito:** Continúa su curso aunque el nodo cambie de dueño
-- **Nodos de articulación:** Su captura puede dividir tu grafo (solo conservas el subgrafo conectado a tu base)
-
----
-
-## 🛠️ Desarrollo
-
-### Estructura del Proyecto
-
-```
+## Estructura del Proyecto
+```bash
 nexa/
 ├── src/
-│   ├── core/           # Lógica del juego (GameManager, AIController)
-│   │   ├── managers/   # Gestores del juego
-│   │   └── types/      # Definiciones TypeScript
-│   ├── scenes/         # Escenas de Phaser (Boot, Game, MainMenu, etc.)
-│   ├── entities/       # Entidades del juego (Nodos, Aristas, Jugadores)
-│   ├── ui/             # Componentes de interfaz
-│   └── game/           # Punto de entrada del juego
-├── public/             # Assets estáticos
-├── vite/               # Configuración de Vite (dev/prod)
-└── docs/               # Documentación adicional
+│   ├── core/                      # Capa de dominio (entidades, tipos)
+│   ├── application/               # Capa de aplicación (servicios, lógica de negocio)
+│   ├── infrastructure/            # Capa de infraestructura (adaptadores, controladores)
+│   ├── presentation/              # Capa de presentación (escenas de Phaser)
+│   ├── game.ts                    # Configuración de Phaser
+│   └── main.ts                    # Punto de entrada
+├── public/                        # Assets estáticos
+├── vite/                          # Configuración de Vite
+└── docs/                          # Documentación
 ```
 
-### Tecnologías Utilizadas
+## Arquitectura
 
-- **[Phaser 3](https://phaser.io/)** - Framework de juegos HTML5
-- **[TypeScript](https://www.typescriptlang.org/)** - Tipado estático
-- **[Vite](https://vitejs.dev/)** - Build tool y servidor de desarrollo
-- **[pnpm](https://pnpm.io/)** - Gestor de paquetes eficiente
+El proyecto implementa Clean Architecture con cuatro capas:
 
-### Configuración de Alias de Imports
+### Core Layer (Dominio):
+- Entidades: Node, Edge, Player, Graph, EnergyPacket
+- Value Objects: ID, NodeType, Color
 
-El proyecto usa alias para imports más limpios:
+### Application Layer (Casos de Uso):
+- Servicios: TickService, CollisionService, CaptureService, VictoryService
+- Interfaces: Contratos para comunicación entre capas
 
-```typescript
-// ❌ Antes
-import { Game } from '../../../game/scenes/Game';
+### Infrastructure Layer (Adaptadores):
+- GameController: Orquestador principal (patrón Facade)
+- GameRenderer: Adaptador de Phaser
+- GameFactory: Factory de componentes con inyección de dependencias
 
-// ✅ Ahora
-import { Game } from '@/game/scenes/Game';
-import { Utils } from '@/core/utils';
-```
+### Presentation Layer (UI):
+- Escenas de Phaser: Boot, MainMenu, Game, GameOver
 
-**Alias disponibles:**
-- `@/` → `src/`
-- `@/core` → `src/core/`
-
----
-
-## 📚 Documentación Adicional
-
-- [**Guía de Inicio**](docs/GETTING_STARTED.md) - Primeros pasos y configuración
-- [**Game Manager**](docs/GAME_MANAGER.md) - Arquitectura del gestor del juego
-- [**Sistema de Tipos**](docs/TYPE_SYSTEM.md) - Definiciones TypeScript
-- [**Escenas**](docs/SCENES.md) - Estructura de escenas de Phaser
-- [**Configuración Vite**](vite/README.md) - Detalles de configuración
-
----
-
-## 🤝 Contribuir
-
-¡Las contribuciones son bienvenidas! Por favor lee [CONTRIBUTING.md](CONTRIBUTING.md) para conocer las normas de colaboración.
-
-### Flujo de Trabajo Rápido
-
+## Configuración de TypeScript
 ```bash
-# 1. Crear rama de feature
-git checkout -b feature/nueva-funcionalidad
-
-# 2. Hacer cambios y commits
-git add .
-git commit -m "feat: agregar nueva funcionalidad"
-
-# 3. Push y crear Pull Request
-git push origin feature/nueva-funcionalidad
+Path Aliases configurados en tsconfig.json:
+@/          → src/
+@/core      → src/core/
+@/application    → src/application/
+@/infrastructure → src/infrastructure/
+@/presentation   → src/presentation/
 ```
 
----
+## Tecnologías Utilizadas
+- TypeScript 5.7    - Lenguaje principal con tipado estricto
+- Phaser 3.90       - Motor de juegos HTML5
+- Vite 6.4          - Build tool y servidor de desarrollo
+- pnpm 8.x          - Gestor de paquetes eficiente
 
-## 📄 Licencia
+## Información Académica
+- Universidad Nacional de San Agustín de Arequipa
+- Facultad: Ingeniería de Producción y Servicios
+- Escuela Profesional: Ingeniería de Sistemas
+- Curso: Ingeniería de Software
+- Año: 2025
 
-Este proyecto está bajo la licencia [MIT](LICENSE).
+## Licencia
+Este proyecto está bajo la licencia MIT.
 
----
-
-## 👥 Equipo
-
-**Desarrollado por:** Equipo Nexa  
-**Repositorio:** [github.com/gustadev24/nexa](https://github.com/gustadev24/nexa)
-
----
-
-<div align="center">
-
-**¿Te gusta Nexa? ¡Dale una ⭐ al repositorio!**
-
-</div>
+## Repositorio
+https://github.com/gustadev24/nexa
