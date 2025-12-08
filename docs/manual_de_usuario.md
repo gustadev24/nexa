@@ -90,8 +90,6 @@ La portada principal de NEXA está compuesta por los siguientes elementos visual
 2. **Panel central:** Botones de interacción principal (Iniciar Partida, Instrucciones).
 3. **Pie de página:** Información de créditos y enlace al repositorio.
 
-![Captura del menú principal con anotaciones señalando cada bloque](../assets/img/manual/img-2.png)
-
 ---
 
 ### 2.3. Iniciar una partida en NEXA
@@ -106,12 +104,10 @@ Para iniciar una nueva partida, el usuario debe:
 
 ![Botón Iniciar Partida destacando el cursor](../assets/img/manual/img-3.png)
 
+
+
 ![Pantalla de carga](../assets/img/manual/img-4.png)
 
-**[IMAGEN REQUERIDA 04]**
-**Ubicación:** Sección 2.3
-**Descripción:** Transición o pantalla de carga entre el menú y el campo de juego
-**Nota para captura:** Si existe animación de transición, capturar el frame intermedio
 
 ### 2.4. Configuración inicial del juego
 
@@ -147,15 +143,7 @@ El HUD superior muestra información crítica en tiempo real:
 - **Energía Total Jugador 2:** (Opcional) Energía total disponible.
 - **Indicador de progreso hacia victoria por dominación:** Barra o contador que muestra el tiempo sostenido de dominación.
 
-**[IMAGEN REQUERIDA 07]**
-**Ubicación:** Sección 2.6
-**Descripción:** Primer plano del HUD superior con todos los elementos visibles:
-- Temporizador mostrando tiempo (ej: 02:34)
-- Indicadores de dominación (ej: Jugador 1: 45%, Jugador 2: 35%)
-- Barra de progreso hacia victoria por dominación si un jugador domina ≥70%
-**Nota para captura:** Capturar cuando ambos jugadores tengan nodos controlados
-
----
+![Panel de información HUD superior](../assets/img/manual/img-7.png)
 
 ### 2.7. Visualización del grafo
 
@@ -601,22 +589,21 @@ Evitar:  [Nodo Inicial] ... [Neutral disperso] ... [Neutral lejano]
 ## Información del Manual
 
 **Versión del Manual:** 1.0  
-**Fecha de actualización:** Diciembre 2024  
+**Fecha de actualización:** Diciembre 2025  
 **Versión del juego:** NEXA v1.0.0  
 
 **Equipo de Desarrollo:**
 - Luis Gustavo Sequeiros Condori (Tech Lead)
-- Ricardo Chambilla (Backend Developer)
-- Paul Cari Lipe (QA Engineer)
-- Jhon Aquino (Game Developer)
-- Raquel Quispe (UI/UX Developer)
-- Rafael Chambilla (Integration Engineer)
+- Ricardo Mauricio Chambilla Perca (Backend Developer)
+- Paul Andree Cari Lipe (QA Engineer)
+- Jhonatan David Arias Quispe (Game Developer)
+- Alexandra Raquel Quispe Arratea (UI/UX Developer)
 
 **Institución:**  
 Universidad Nacional de San Agustín de Arequipa  
 Escuela Profesional de Ingeniería de Sistemas  
-Curso: Ingeniería de Software  
-Año: 2024
+Curso: Tecnología de Objetos  
+Año: 2025
 
 **Contacto y Soporte:**  
 - Repositorio: https://github.com/gustadev24/nexa  
