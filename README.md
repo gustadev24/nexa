@@ -23,6 +23,26 @@ Nexa es un juego de estrategia en tiempo real donde dos jugadores compiten por c
 - El estudiante Ricardo Chambilla Perca ha realizado sus features en ramas separadas para seguir el git workflow tradicional.
 - Las ramas son: ricardo, ricardoDev, rickDeb, rickViber
 - Estas ramas se mergearon con la rama dev, en donde todas las features estables residen.
+- **Se desea la evalución del juego para el registro de programas de ordenador**
+
+## Organización y cronograma
+
+- Las tareas del trabajo se han programado en un tablero de la plataforma Trelllo, al cual el docente ya ha sido invitado al correo rescobedoq@unsa.edu.pe. El nombre del tablero es **Nexa - TO**. No se publica el enlace de invitación a la plataforma ya que el repositorio es público.
+- Se realizaron 3 sprints de una semana de duración. En cada sprint se desarrollaron distintas etapas de la contrucción del juego.
+  - **Semana 1: Base, entorno y arquitectura** - Se levantó el entorno de desarrollo con herramientas como Vite, Phaser, Eslint y Prettier. Se definió la arquitectura del proyecto siguiendo los principios de Clean Architecture.
+  - **Semana 2: Mecánicas principales** - Se implementaron las mecánicas centrales del juego, incluyendo la gestión de nodos, distribución de energía y sistema de ataques y defensas.
+  - **Semana 3: Interfaz e integraciones** - Se terminó el desarrollo de la interfaz de usuario, se integraron las distintas capas del proyecto y se realizaron pruebas finales para asegurar la estabilidad del juego.
+
+![Captura del tablero en la plataforma Trello](./assets/img/trello.png)
+
+## Demo del juego
+
+La demo del juego estable se puede acceder en el siguiente enlace: [nexa.gustadev24.me](https://nexa.gustadev24.me).
+
+![Mensaje inicial del juego](./assets/img/demo-1.png)
+![Selección del nodo base](./assets/img/demo-2.png)
+![Distribución de energía entre nodos](./assets/img/demo-3.png)
+![Pantalla final de ganador](./assets/img/demo-4.png)
 
 ## Instalación Local
 
