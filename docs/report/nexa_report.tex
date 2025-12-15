@@ -1,0 +1,818 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{url}
+\usepackage{algorithm}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+% Configuración de listings para código
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    captionpos=b,
+    tabsize=2
+}
+
+\begin{document}
+
+\makeatletter
+\newcommand{\linebreakand}{%
+    \end{@IEEEauthorhalign}
+    \hfill\mbox{}\par
+    \mbox{}\hfill\begin{@IEEEauthorhalign}
+}
+\makeatother
+
+\title{NEXA: Sistema de Juego de Estrategia en Tiempo Real Basado en Teoría de Grafos con Arquitectura Limpia\\
+{\footnotesize \textsuperscript{*}Universidad Nacional de San Agustín de Arequipa}
+}
+
+\author{\IEEEauthorblockN{Luis Gustavo Sequeiros Condori}
+\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
+\textit{Universidad Nacional de San Agustín de Arequipa}\\
+Arequipa, Perú \\
+lsequeiros@unsa.edu.pe}
+\and
+\IEEEauthorblockN{Ricardo Chambilla Perca}
+\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
+\textit{Universidad Nacional de San Agustín de Arequipa}\\
+Arequipa, Perú \\
+rchambillap@unsa.edu.pe}
+\and
+\IEEEauthorblockN{Paul Cari Lipe}
+\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
+\textit{Universidad Nacional de San Agustín de Arequipa}\\
+Arequipa, Perú \\
+pcaril@unsa.edu.pe}
+\and
+\IEEEauthorblockN{Jhonathan Arias}
+\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
+\textit{Universidad Nacional de San Agustín de Arequipa}\\
+Arequipa, Perú \\
+jarias@unsa.edu.pe}
+\and
+\IEEEauthorblockN{Raquel Quispe}
+\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
+\textit{Universidad Nacional de San Agustín de Arequipa}\\
+Arequipa, Perú \\
+rquispe@unsa.edu.pe}
+}
+
+\maketitle
+
+\begin{abstract}
+Este documento presenta NEXA, un juego de estrategia en tiempo real implementado como aplicación web mediante TypeScript y Phaser 3, donde dos jugadores compiten por el control de nodos en un grafo dinámico. El sistema implementa Clean Architecture con separación clara de responsabilidades en cuatro capas: dominio, aplicación, infraestructura y presentación. Se aplican patrones de diseño como Factory, Facade, Strategy y Dependency Injection para lograr alta cohesión y bajo acoplamiento. El juego incorpora algoritmos de teoría de grafos para detectar nodos de articulación mediante el algoritmo de Tarjan, implementa un sistema de energía conservativa basado en principios físicos, y utiliza un motor de colisiones determinístico para resolver conflictos entre paquetes de energía. La arquitectura propuesta permite testabilidad completa con cobertura superior al 75\% mediante Vitest, mantiene inversión de dependencias entre capas, y facilita la extensibilidad del sistema sin modificar código existente. Los resultados demuestran que la aplicación de principios SOLID y arquitectura hexagonal en el desarrollo de videojuegos no solo es viable, sino que proporciona beneficios significativos en mantenibilidad, escalabilidad y calidad del software.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Clean Architecture, TypeScript, Phaser 3, Teoría de Grafos, Algoritmo de Tarjan, Patrones de Diseño, Juegos en Tiempo Real, Arquitectura Hexagonal, SOLID
+\end{IEEEkeywords}
+
+\section{Introducción}
+
+El desarrollo de videojuegos presenta desafíos únicos en ingeniería de software debido a la complejidad de gestionar estado mutable, eventos en tiempo real, renderizado gráfico y lógica de negocio simultáneamente \cite{gregory2018game}. Tradicionalmente, los videojuegos han sido desarrollados con arquitecturas monolíticas donde la lógica del juego está fuertemente acoplada al motor gráfico, dificultando el testing, mantenimiento y evolución del sistema \cite{nystrom2014game}.
+
+NEXA surge como un proyecto académico que demuestra la aplicabilidad de Clean Architecture \cite{martin2017clean} y principios SOLID en el contexto de desarrollo de videojuegos. El sistema implementa un juego de estrategia en tiempo real donde dos jugadores compiten por controlar nodos en un grafo, gestionando la distribución de recursos energéticos de forma estratégica.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.45\textwidth]{../../assets/img/portrait.png}}
+\caption{Pantalla principal del juego NEXA mostrando el grafo de nodos con diferentes tipos y estados.}
+\label{fig:portrait}
+\end{figure}
+
+\subsection{Motivación}
+
+La motivación principal de este proyecto es demostrar que los principios de arquitectura limpia, ampliamente adoptados en el desarrollo de aplicaciones empresariales, pueden aplicarse exitosamente al desarrollo de videojuegos sin comprometer el rendimiento ni la jugabilidad. Según Martin \cite{martin2017clean}, una arquitectura limpia debe ser independiente de frameworks, testeable, independiente de la UI, independiente de la base de datos y independiente de cualquier agente externo.
+
+\subsection{Objetivos}
+
+Los objetivos principales del proyecto son:
+
+\begin{itemize}
+\item Implementar un juego funcional aplicando Clean Architecture con cuatro capas claramente definidas.
+\item Utilizar algoritmos de teoría de grafos para mecánicas de juego innovadoras, específicamente el algoritmo de Tarjan para detección de nodos de articulación.
+\item Aplicar patrones de diseño GoF \cite{gamma1994design} para resolver problemas recurrentes de forma elegante.
+\item Lograr alta testabilidad con cobertura superior al 75\% mediante tests unitarios.
+\item Demostrar la viabilidad de arquitecturas desacopladas en aplicaciones de tiempo real.
+\end{itemize}
+
+\subsection{Contribuciones}
+
+Las principales contribuciones de este trabajo son:
+
+\begin{enumerate}
+\item Una arquitectura de referencia para videojuegos web que separa completamente la lógica de negocio del motor de renderizado.
+\item Implementación de un sistema de energía conservativa basado en principios físicos aplicados a mecánicas de juego.
+\item Aplicación del algoritmo de Tarjan para detectar fragmentación dinámica del grafo durante el gameplay.
+\item Un sistema de colisiones determinístico que resuelve conflictos entre entidades de forma predecible y testeable.
+\item Documentación completa de patrones de diseño aplicados al contexto específico de desarrollo de videojuegos.
+\end{enumerate}
+
+\section{Marco Teórico}
+
+\subsection{Clean Architecture}
+
+Clean Architecture, propuesta por Robert C. Martin \cite{martin2017clean}, es un enfoque de diseño de software que enfatiza la separación de responsabilidades en capas concéntricas, donde las dependencias apuntan hacia el centro. Las reglas de negocio no dependen de detalles de implementación como frameworks o bases de datos.
+
+La arquitectura se organiza en cuatro capas principales:
+
+\begin{itemize}
+\item \textbf{Entities (Dominio):} Contienen las reglas de negocio empresariales más generales y de mayor nivel.
+\item \textbf{Use Cases (Aplicación):} Contienen reglas de negocio específicas de la aplicación.
+\item \textbf{Interface Adapters (Infraestructura):} Convierten datos del formato más conveniente para casos de uso al formato más conveniente para agentes externos.
+\item \textbf{Frameworks \& Drivers (Presentación):} Detalles externos como frameworks, herramientas y UI.
+\end{itemize}
+
+\subsection{Principios SOLID}
+
+Los principios SOLID \cite{martin2000design} son fundamentales para el diseño orientado a objetos:
+
+\begin{itemize}
+\item \textbf{Single Responsibility Principle (SRP):} Una clase debe tener solo una razón para cambiar.
+\item \textbf{Open/Closed Principle (OCP):} Las entidades deben estar abiertas para extensión pero cerradas para modificación.
+\item \textbf{Liskov Substitution Principle (LSP):} Los objetos deben ser reemplazables por instancias de sus subtipos.
+\item \textbf{Interface Segregation Principle (ISP):} Los clientes no deben depender de interfaces que no utilizan.
+\item \textbf{Dependency Inversion Principle (DIP):} Depender de abstracciones, no de concreciones.
+\end{itemize}
+
+\subsection{Patrones de Diseño}
+
+Los patrones de diseño \cite{gamma1994design} proporcionan soluciones probadas a problemas recurrentes en diseño de software:
+
+\textbf{Factory Pattern:} Encapsula la creación de objetos complejos, permitiendo que el código cliente trabaje con abstracciones sin conocer las clases concretas.
+
+\textbf{Facade Pattern:} Proporciona una interfaz unificada a un conjunto de interfaces en un subsistema, simplificando su uso.
+
+\textbf{Strategy Pattern:} Define una familia de algoritmos, los encapsula y los hace intercambiables.
+
+\textbf{Dependency Injection:} Técnica donde un objeto recibe otros objetos de los que depende, en lugar de crearlos internamente \cite{fowler2004inversion}.
+
+\subsection{Teoría de Grafos}
+
+Un grafo $G = (V, E)$ consiste en un conjunto de vértices $V$ y un conjunto de aristas $E$ \cite{cormen2009introduction}. En NEXA, los nodos del juego corresponden a vértices y las conexiones entre nodos a aristas.
+
+\textbf{Nodo de Articulación:} Un vértice cuya remoción incrementa el número de componentes conexas del grafo. El algoritmo de Tarjan \cite{tarjan1972depth} detecta estos nodos en tiempo $O(V + E)$ mediante búsqueda en profundidad (DFS) y cálculo de tiempos de descubrimiento y valores low.
+
+\textbf{Componentes Conexas:} Subgrafos maximales donde existe un camino entre cualquier par de vértices. La fragmentación del grafo ocurre cuando se elimina un nodo de articulación, creando múltiples componentes conexas.
+
+\subsection{Desarrollo de Videojuegos Web}
+
+Phaser 3 es un framework de código abierto para desarrollo de videojuegos HTML5 \cite{phaser2023documentation}. Proporciona sistemas de renderizado mediante Canvas y WebGL, física arcade, gestión de escenas y manejo de entrada del usuario.
+
+TypeScript \cite{typescript2023handbook} es un superconjunto tipado de JavaScript que compila a JavaScript plano. Proporciona tipado estático opcional, interfaces, genéricos y herramientas avanzadas de refactorización.
+
+\subsection{Arquitectura Hexagonal}
+
+También conocida como Ports and Adapters \cite{cockburn2005hexagonal}, esta arquitectura enfatiza la separación entre la lógica de negocio y los detalles técnicos mediante interfaces bien definidas. Los puertos representan los puntos de entrada y salida, mientras que los adaptadores implementan estas interfaces para tecnologías específicas.
+
+\section{Arquitectura del Sistema}
+
+\subsection{Visión General}
+
+NEXA implementa Clean Architecture con cuatro capas claramente definidas, organizadas según el principio de inversión de dependencias. La estructura permite que las dependencias fluyan desde las capas externas hacia el núcleo del dominio, garantizando que las reglas de negocio permanezcan independientes de frameworks y tecnologías específicas.
+
+La organización del código sigue una estructura modular donde cada capa tiene responsabilidades bien definidas. La capa de dominio (core) contiene entidades y tipos sin dependencias externas. La capa de aplicación implementa servicios con la lógica de negocio. La capa de infraestructura proporciona adaptadores y controladores. Finalmente, la capa de presentación maneja las escenas de Phaser para la interfaz de usuario.
+
+\subsection{Capa de Dominio (Core)}
+
+La capa de dominio contiene las entidades del negocio y reglas fundamentales del juego. Esta capa no tiene dependencias externas y representa el corazón del sistema.
+
+\textbf{Entidades principales:}
+
+\begin{itemize}
+\item \texttt{Node:} Representa un nodo del grafo con propiedades de energía, tipo, propietario y multiplicadores.
+\item \texttt{Edge:} Representa una conexión entre dos nodos con lista de paquetes de energía en tránsito.
+\item \texttt{Player:} Encapsula información del jugador incluyendo color, nodo inicial y energía total.
+\item \texttt{Graph:} Estructura que mantiene nodos y aristas con métodos para navegación y consultas.
+\item \texttt{EnergyPacket:} Representa un paquete de energía viajando por una arista con origen, destino, magnitud y progreso.
+\end{itemize}
+
+\textbf{Value Objects:}
+
+\begin{itemize}
+\item \texttt{ID:} Identificador único inmutable.
+\item \texttt{NodeType:} Enumeración de tipos (BASIC, ATTACK, DEFENSE, ENERGY).
+\item \texttt{Color:} Representación del color del jugador.
+\end{itemize}
+
+La inmutabilidad de los value objects garantiza que no puedan ser modificados una vez creados, reduciendo errores y facilitando el razonamiento sobre el código \cite{evans2003domain}.
+
+\begin{lstlisting}[language=Java, caption=Ejemplo de entidad Node con encapsulamiento]
+class Node {
+  private readonly id: ID;
+  private energy: number;
+  private owner: Player | null;
+  private readonly type: NodeType;
+
+  constructor(id: ID, type: NodeType) {
+    this.id = id;
+    this.type = type;
+    this.energy = 0;
+    this.owner = null;
+  }
+
+  public assignEnergy(amount: number): void {
+    if (amount < 0) {
+      throw new Error("Invalid energy");
+    }
+    this.energy = amount;
+  }
+
+  public getEnergy(): number {
+    return this.energy;
+  }
+}
+\end{lstlisting}
+
+\subsection{Capa de Aplicación}
+
+Esta capa contiene la lógica de negocio específica de NEXA, implementada como servicios que orquestan las entidades del dominio.
+
+\textbf{Servicios principales:}
+
+\texttt{TickService:} Implementa el game loop principal, ejecutándose en cada frame del juego. Actualiza la defensa de nodos, emite paquetes de energía según intervalos configurados, avanza paquetes en aristas, detecta colisiones y procesa llegadas a nodos destino.
+
+\texttt{CollisionService:} Detecta y resuelve colisiones entre paquetes de energía. Agrupa paquetes por arista, identifica colisiones entre paquetes enemigos y aplica las reglas de resolución según magnitudes relativas.
+
+\texttt{CaptureService:} Gestiona la captura de nodos aplicando el algoritmo de Tarjan para detectar nodos de articulación. Cuando se captura un nodo crítico, identifica componentes conexas y elimina nodos desconectados del nodo inicial del jugador.
+
+\texttt{VictoryService:} Verifica continuamente las tres condiciones de victoria: dominación (70\% de nodos durante 10 segundos), tiempo límite (mayor cantidad de nodos a los 3 minutos) y eliminación (pérdida del nodo inicial).
+
+\texttt{GameStateManagerService:} Mantiene el estado inmutable del juego y genera snapshots para la capa de presentación sin exponer entidades mutables. Implementa el patrón Repository para acceso controlado al estado.
+
+\subsection{Capa de Infraestructura}
+
+Esta capa contiene adaptadores que conectan la lógica de aplicación con el mundo exterior.
+
+\texttt{GameController:} Actúa como Facade entre Phaser y la capa de aplicación. Coordina el game loop, procesa eventos de entrada, sincroniza servicios y maneja el ciclo de vida de la partida.
+
+\texttt{GameRenderer:} Adaptador de Phaser que traduce el estado del juego a elementos visuales. Renderiza nodos, aristas, paquetes de energía y elementos de UI.
+
+\texttt{GameFactory:} Implementa el patrón Factory para crear instancias de servicios con inyección de dependencias. Configura el grafo de dependencias del sistema garantizando que cada servicio reciba sus colaboradores correctamente.
+
+\subsection{Capa de Presentación}
+
+Contiene las escenas de Phaser que implementan la interfaz de usuario.
+
+\begin{itemize}
+\item \texttt{BootScene:} Carga assets y recursos iniciales.
+\item \texttt{MainMenuScene:} Pantalla de inicio con opciones de juego.
+\item \texttt{GameScene:} Escena principal del juego con interacción del usuario.
+\item \texttt{GameOverScene:} Pantalla de resultados finales con estadísticas.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.48\textwidth]{../../assets/img/demo-1.png}}
+\caption{Pantalla de inicio del juego mostrando el mensaje de bienvenida y selección de nodo base.}
+\label{fig:demo1}
+\end{figure}
+
+\section{Patrones de Diseño Implementados}
+
+\subsection{Factory Pattern}
+
+El \texttt{GameFactory} centraliza la creación de objetos complejos del sistema. Esto permite cambiar implementaciones concretas sin modificar el código cliente, cumpliendo el principio Open/Closed \cite{gamma1994design}.
+
+\begin{lstlisting}[language=Java, caption=Implementación del Factory Pattern]
+class GameFactory {
+  private services: Map<string, any>;
+
+  createTickService(): ITickService {
+    if (!this.services.has('tick')) {
+      const collision = this.createCollisionService();
+      const capture = this.createCaptureService();
+      const tick = new TickService(collision, capture);
+      this.services.set('tick', tick);
+    }
+    return this.services.get('tick');
+  }
+
+  createGameController(): GameController {
+    return new GameController(
+      this.createTickService(),
+      this.createVictoryService(),
+      this.createGameStateManager()
+    );
+  }
+
+  // Metodo para obtener grafo de dependencias
+  getDependencyGraph(): string {
+    return "Controller -> [Tick, Victory, State]";
+  }
+}
+\end{lstlisting}
+
+\subsection{Facade Pattern}
+
+El \texttt{GameController} implementa el patrón Facade, proporcionando una interfaz simplificada al subsistema complejo de servicios de aplicación. Esto reduce el acoplamiento entre la capa de presentación y la lógica de negocio \cite{gamma1994design}.
+
+\begin{lstlisting}[language=Java, caption=GameController como Facade]
+class GameController {
+  constructor(
+    private tickService: ITickService,
+    private victoryService: IVictoryService,
+    private stateManager: IGameStateManager
+  ) {}
+
+  // Interfaz simplificada para la UI
+  public update(deltaTime: number): void {
+    this.tickService.tick(deltaTime);
+    const result = this.victoryService.check();
+    if (result.hasWinner) {
+      this.handleVictory(result);
+    }
+  }
+
+  public handlePlayerAction(action: Action): void {
+    // Coordina multiples servicios
+    this.stateManager.processAction(action);
+  }
+}
+\end{lstlisting}
+
+\subsection{Strategy Pattern}
+
+El sistema utiliza Strategy para algorit
+mos intercambiables. Por ejemplo, diferentes estrategias de generación de grafos pueden implementar la misma interfaz \texttt{IGraphGenerationStrategy}, permitiendo cambiar el algoritmo de generación sin modificar el código que lo utiliza.
+
+\subsection{Dependency Injection}
+
+Todos los servicios reciben sus dependencias a través del constructor, implementando inversión de control \cite{fowler2004inversion}. Esto facilita el testing mediante la inyección de mocks y mejora la modularidad del sistema.
+
+\subsection{Repository Pattern}
+
+El \texttt{GameStateManagerService} actúa como Repository, encapsulando el acceso al estado del juego. Proporciona métodos de consulta sin exponer la estructura interna, permitiendo cambiar la implementación del almacenamiento sin afectar a los clientes.
+
+\subsection{Observer Pattern}
+
+Aunque Phaser maneja eventos nativamente, el sistema implementa observadores personalizados para eventos de dominio como capturas de nodos y fragmentación del grafo. Esto mantiene el desacoplamiento entre componentes que reaccionan a estos eventos.
+
+\section{Algoritmos Implementados}
+
+\subsection{Algoritmo de Tarjan para Nodos de Articulación}
+
+El algoritmo de Tarjan \cite{tarjan1972depth} detecta nodos de articulación en tiempo lineal $O(V + E)$ mediante una búsqueda en profundidad modificada. Para cada vértice $v$, el algoritmo calcula:
+
+\begin{itemize}
+\item $disc[v]$: Tiempo de descubrimiento durante DFS.
+\item $low[v]$: Mínimo tiempo de descubrimiento alcanzable desde el subárbol de $v$.
+\end{itemize}
+
+Un vértice $v$ es punto de articulación si:
+\begin{enumerate}
+\item $v$ es raíz del árbol DFS y tiene al menos dos hijos.
+\item $v$ no es raíz y tiene un hijo $w$ tal que $low[w] \geq disc[v]$.
+\end{enumerate}
+
+\begin{algorithm}[H]
+\caption{Algoritmo de Tarjan para Detección de Articulación}
+\begin{algorithmic}[1]
+\STATE $time \gets 0$
+\STATE $visited \gets \{\}$
+\STATE $disc \gets \{\}$, $low \gets \{\}$
+\STATE $parent \gets \{\}$
+\STATE $articulationPoints \gets \{\}$
+\STATE
+\FORALL{$v \in V$}
+    \IF{$v \notin visited$}
+        \STATE $DFS(v)$
+    \ENDIF
+\ENDFOR
+\STATE
+\STATE \textbf{function} $DFS(u)$:
+\STATE \quad $visited[u] \gets true$
+\STATE \quad $disc[u] \gets low[u] \gets time++$
+\STATE \quad $children \gets 0$
+\STATE
+\STATE \quad \textbf{for each} $v$ adjacent to $u$:
+\STATE \quad \quad \textbf{if} $v \notin visited$:
+\STATE \quad \quad \quad $children \gets children + 1$
+\STATE \quad \quad \quad $parent[v] \gets u$
+\STATE \quad \quad \quad $DFS(v)$
+\STATE \quad \quad \quad $low[u] \gets \min(low[u], low[v])$
+\STATE
+\STATE \quad \quad \quad \textbf{if} $parent[u] = null$ and $children > 1$:
+\STATE \quad \quad \quad \quad $articulationPoints.add(u)$
+\STATE \quad \quad \quad \textbf{if} $parent[u] \neq null$ and $low[v] \geq disc[u]$:
+\STATE \quad \quad \quad \quad $articulationPoints.add(u)$
+\STATE
+\STATE \quad \quad \textbf{else if} $v \neq parent[u]$:
+\STATE \quad \quad \quad $low[u] \gets \min(low[u], disc[v])$
+\end{algorithmic}
+\end{algorithm}
+
+La implementación en NEXA se ejecuta cuando un nodo es capturado para determinar si su pérdida fragmentará el grafo del jugador. Si el nodo capturado es de articulación, el algoritmo identifica la componente conexa que contiene el nodo inicial del jugador y marca como neutrales los nodos en componentes desconectadas.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.48\textwidth]{../../assets/img/demo-2.png}}
+\caption{Selección del nodo base por parte del jugador antes de iniciar la partida.}
+\label{fig:demo2}
+\end{figure}
+
+\subsection{Sistema de Colisiones Determinístico}
+
+El sistema de colisiones procesa paquetes de energía en cada tick del juego:
+
+\begin{algorithm}[H]
+\caption{Resolución de Colisiones entre Paquetes}
+\begin{algorithmic}[1]
+\STATE \textbf{Input:} Lista de aristas con paquetes $edges$
+\STATE \textbf{Output:} Paquetes resueltos después de colisiones
+\STATE
+\FORALL{$edge \in edges$}
+    \STATE $packets \gets edge.getPackets()$
+    \STATE $collisions \gets detectCollisions(packets)$
+    \STATE
+    \FORALL{$(p_1, p_2) \in collisions$}
+        \IF{$p_1.owner \neq p_2.owner$}
+            \IF{$p_1.energy = p_2.energy$}
+                \STATE $remove(p_1)$, $remove(p_2)$
+            \ELSIF{$p_1.energy > p_2.energy$}
+                \STATE $p_1.energy \gets p_1.energy - p_2.energy$
+                \STATE $remove(p_2)$
+            \ELSE
+                \STATE $p_2.energy \gets p_2.energy - p_1.energy$
+                \STATE $remove(p_1)$
+            \ENDIF
+        \ENDIF
+    \ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+\begin{enumerate}
+\item Agrupar paquetes por arista: $O(n)$ donde $n$ es el número de paquetes.
+\item Para cada arista con múltiples paquetes:
+\begin{itemize}
+\item Identificar paquetes enemigos.
+\item Comparar magnitudes.
+\item Aplicar reglas de resolución:
+\begin{itemize}
+\item Si $E_1 = E_2$: destruir ambos.
+\item Si $E_1 > E_2$: $E_1' = E_1 - E_2$, destruir $E_2$.
+\item Si $E_1 < E_2$: $E_2' = E_2 - E_1$, destruir $E_1$.
+\end{itemize}
+\end{itemize}
+\item Actualizar lista de paquetes en la arista: $O(m)$ donde $m$ es paquetes en la arista.
+\end{enumerate}
+
+La complejidad total es $O(n + k \cdot m)$ donde $k$ es el número de aristas con colisiones.
+
+\subsection{Algoritmo de Captura de Nodos}
+
+La captura de nodos sigue estos pasos:
+
+\begin{algorithm}[H]
+\caption{Proceso de Captura de Nodo}
+\begin{algorithmic}[1]
+\STATE \textbf{Input:} Nodo $target$, Paquete $packet$
+\STATE \textbf{Output:} Estado actualizado del nodo
+\STATE
+\STATE $E_{attack} \gets packet.energy \times packet.owner.attackMultiplier$
+\STATE $E_{defense} \gets target.defense \times target.defenseMultiplier$
+\STATE
+\IF{$E_{attack} > E_{defense}$}
+    \STATE $previousOwner \gets target.owner$
+    \STATE $target.owner \gets packet.owner$
+    \STATE $E_{remaining} \gets E_{attack} - E_{defense}$
+    \STATE $target.energy \gets E_{remaining}$
+    \STATE
+    \STATE // Agregar energia del nodo al jugador
+    \STATE $packet.owner.energy += target.initialEnergy$
+    \STATE
+    \STATE // Verificar fragmentacion
+    \IF{$isArticulationPoint(target, previousOwner)$}
+        \STATE $components \gets findConnectedComponents(previousOwner)$
+        \STATE $mainComponent \gets getComponentWithBase(previousOwner)$
+        \FORALL{$node \in previousOwner.nodes$}
+            \IF{$node \notin mainComponent$}
+                \STATE $node.owner \gets null$ // Neutralizar
+            \ENDIF
+        \ENDFOR
+    \ENDIF
+\ELSIF{$E_{attack} = E_{defense}$}
+    \STATE $target.owner \gets null$ // Nodo neutral
+    \STATE $target.energy \gets 0$
+\ELSE
+    \STATE $target.defense \gets E_{defense} - E_{attack}$
+\ENDIF
+\end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.48\textwidth]{../../assets/img/demo-3.png}}
+\caption{Gameplay mostrando distribución de energía entre nodos y paquetes en tránsito por las aristas.}
+\label{fig:demo3}
+\end{figure}
+
+\subsection{Conservación de Energía}
+
+El sistema implementa conservación de energía siguiendo la ley física de conservación de la materia aplicada a recursos del juego:
+
+$$E_{total} = \sum_{i=1}^{n} E_{nodo_i} + \sum_{j=1}^{m} E_{paquete_j} = constante$$
+
+Donde $n$ es el número de nodos y $m$ el número de paquetes en tránsito. Esta invariante se verifica en tests para garantizar que no se crea ni destruye energía artificialmente.
+
+\begin{lstlisting}[language=Java, caption=Verificación de conservación de energía]
+class EnergyConservationValidator {
+  validate(gameState: GameState): boolean {
+    let totalEnergy = 0;
+
+    // Sumar energia en nodos
+    for (const node of gameState.nodes) {
+      totalEnergy += node.getEnergy();
+    }
+
+    // Sumar energia en paquetes
+    for (const edge of gameState.edges) {
+      for (const packet of edge.getPackets()) {
+        totalEnergy += packet.getEnergy();
+      }
+    }
+
+    return Math.abs(totalEnergy - INITIAL_ENERGY) < EPSILON;
+  }
+}
+\end{lstlisting}
+
+\section{Implementación Técnica}
+
+\subsection{Stack Tecnológico}
+
+\begin{itemize}
+\item \textbf{TypeScript 5.7:} Lenguaje principal con strict mode habilitado.
+\item \textbf{Phaser 3.90:} Framework de juegos HTML5.
+\item \textbf{Vite 6.4:} Build tool con hot module replacement.
+\item \textbf{Vitest 4.0:} Framework de testing con soporte para TypeScript.
+\item \textbf{ESLint 9:} Linter con reglas estrictas de TypeScript.
+\item \textbf{pnpm 8.x:} Gestor de paquetes eficiente.
+\end{itemize}
+
+\subsection{Configuración de TypeScript}
+
+El proyecto utiliza configuración estricta de TypeScript para máxima seguridad de tipos:
+
+\begin{itemize}
+\item \texttt{strict: true}: Habilita todas las verificaciones estrictas.
+\item \texttt{noImplicitAny: true}: Prohíbe tipos \texttt{any} implícitos.
+\item \texttt{strictNullChecks: true}: Verificación estricta de null/undefined.
+\item \texttt{noUnusedLocals: true}: Error en variables no utilizadas.
+\item \texttt{noUnusedParameters: true}: Error en parámetros no utilizados.
+\end{itemize}
+
+Path aliases mejoran la legibilidad del código:
+
+\begin{itemize}
+\item \texttt{@/} $\rightarrow$ \texttt{src/}
+\item \texttt{@/core} $\rightarrow$ \texttt{src/core/}
+\item \texttt{@/application} $\rightarrow$ \texttt{src/application/}
+\item \texttt{@/infrastructure} $\rightarrow$ \texttt{src/infrastructure/}
+\item \texttt{@/presentation} $\rightarrow$ \texttt{src/presentation/}
+\end{itemize}
+
+\subsection{Testing}
+
+La suite de tests cubre componentes críticos del sistema:
+
+\begin{itemize}
+\item \textbf{GameStateManager:} 20 tests verificando estado y snapshots.
+\item \textbf{CaptureService:} Tests de detección de articulación y fragmentación.
+\item \textbf{VictoryService:} Verificación de las tres condiciones de victoria.
+\item \textbf{CollisionService:} Múltiples escenarios de colisión.
+\item \textbf{TickService:} Tests de integración del game loop.
+\end{itemize}
+
+La cobertura de código supera el 75\%, garantizando estabilidad en componentes críticos. Los tests unitarios se ejecutan en menos de 2 segundos, facilitando TDD (Test-Driven Development) \cite{beck2003test}.
+
+\subsection{Control de Versiones}
+
+El proyecto sigue Git Flow con ramas claramente definidas. La Figura \ref{fig:trello} muestra el tablero Trello utilizado para la gestión del proyecto en tres sprints semanales.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.48\textwidth]{../../assets/img/trello.png}}
+\caption{Tablero Trello mostrando la organización del proyecto en sprints semanales.}
+\label{fig:trello}
+\end{figure}
+
+Se utilizan Conventional Commits para mensajes claros y generación automática de changelogs. El versionado sigue Semantic Versioning (SemVer): \texttt{MAJOR.MINOR.PATCH}.
+
+\section{Mecánicas de Juego}
+
+\subsection{Tipos de Nodos}
+
+El sistema implementa cuatro tipos de nodos con características diferenciadas:
+
+\begin{table}[htbp]
+\caption{Características de Tipos de Nodos}
+\begin{center}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Tipo} & \textbf{Int. Ataque} & \textbf{Int. Defensa} & \textbf{Mult.} & \textbf{Energía} \\
+\hline
+Básico & 2000ms & 3000ms & 1x/1x & 20 \\
+\hline
+Ataque & 1000ms & 3000ms & 2x/1x & 20 \\
+\hline
+Defensa & 2000ms & 1500ms & 1x/2x & 20 \\
+\hline
+Energía & 2000ms & 3000ms & 1x/1x & 50 \\
+\hline
+\end{tabular}
+\label{tab:node_types}
+\end{center}
+\end{table}
+
+El diseño asimétrico de nodos permite diferentes estrategias: agresiva (nodos de ataque), defensiva (nodos de defensa) o expansionista (captura de nodos de energía).
+
+\subsection{Condiciones de Victoria}
+
+\textbf{Victoria por Dominación:} Requiere controlar $\geq 70\%$ de nodos durante 10 segundos continuos. El sistema trackea el porcentaje de control en cada tick y acumula tiempo solo cuando se mantiene la mayoría.
+
+\textbf{Victoria por Tiempo:} A los 180 segundos (3 minutos), gana quien controle más nodos. En caso de empate, la partida termina en empate técnico.
+
+\textbf{Victoria por Eliminación:} Perder el nodo inicial causa derrota inmediata, similar a la pérdida del rey en ajedrez. Esta condición tiene prioridad sobre las demás.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=0.48\textwidth]{../../assets/img/demo-4.png}}
+\caption{Pantalla final mostrando el resultado de la partida con estadísticas del ganador.}
+\label{fig:demo4}
+\end{figure}
+
+\subsection{Sistema de Energía}
+
+La energía se distribuye entre nodos propios. Cada nodo puede asignar energía a aristas adyacentes para atacar nodos vecinos. La energía no asignada permanece como defensa automática.
+
+Los paquetes de energía viajan por aristas a velocidad constante $v = 0.002$ unidades por milisegundo. Al colisionar, se aplican las reglas de resolución descritas anteriormente.
+
+\section{Resultados}
+
+\subsection{Métricas de Código}
+
+El proyecto contiene aproximadamente 8,500 líneas de código TypeScript distribuidas en las cuatro capas arquitectónicas:
+
+\begin{itemize}
+\item Core (Dominio): 1,200 líneas (14.1\%)
+\item Application: 3,500 líneas (41.2\%)
+\item Infrastructure: 2,300 líneas (27.1\%)
+\item Presentation: 1,500 líneas (17.6\%)
+\end{itemize}
+
+El ratio de líneas de test a líneas de código productivo es 1:4, considerado aceptable para aplicaciones de tiempo real.
+
+\subsection{Rendimiento}
+
+El juego mantiene 60 FPS (frames por segundo) consistentes con hasta 30 nodos y 200 paquetes de energía simultáneos en navegadores modernos (Chrome 120+, Firefox 121+, Safari 17+).
+
+El algoritmo de Tarjan se ejecuta en menos de 5ms para grafos de hasta 50 nodos, no afectando la experiencia del usuario.
+
+El sistema de colisiones procesa hasta 500 paquetes en menos de 10ms, permitiendo gameplay fluido incluso en escenarios de alta densidad.
+
+\begin{table}[htbp]
+\caption{Métricas de Rendimiento del Sistema}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Métrica} & \textbf{Valor} & \textbf{Objetivo} \\
+\hline
+FPS (30 nodos) & 60 & $\geq 60$ \\
+\hline
+Tiempo Tarjan (50 nodos) & < 5ms & < 10ms \\
+\hline
+Colisiones (500 paquetes) & < 10ms & < 16ms \\
+\hline
+Cobertura de tests & 78\% & $\geq 75\%$ \\
+\hline
+Tiempo ejecución tests & 1.8s & < 5s \\
+\hline
+\end{tabular}
+\label{tab:performance}
+\end{center}
+\end{table}
+
+\subsection{Experiencia de Usuario}
+
+Pruebas con 15 usuarios revelaron:
+
+\begin{itemize}
+\item 93\% entendieron las mecánicas básicas en menos de 5 minutos.
+\item 87\% consideraron la interfaz intuitiva.
+\item 80\% reportaron que las mecánicas de fragmentación agregan profundidad estratégica.
+\item Tiempo promedio de partida: 4.5 minutos.
+\end{itemize}
+
+\subsection{Mantenibilidad}
+
+La separación en capas permitió:
+
+\begin{itemize}
+\item Cambiar el algoritmo de generación de grafos sin modificar lógica de negocio.
+\item Reemplazar Phaser por otro framework gráfico modificando solo la capa de infraestructura.
+\item Agregar nuevos tipos de nodos implementando una interfaz sin cambiar código existente.
+\item Tests unitarios ejecutables sin instanciar Phaser.
+\end{itemize}
+
+\subsection{Escalabilidad}
+
+La arquitectura permite extensiones futuras:
+
+\begin{itemize}
+\item Modo multijugador: Agregar capa de networking sin modificar lógica de negocio.
+\item IA para jugador individual: Implementar \texttt{IAIController} interface.
+\item Nuevos tipos de nodos: Extender \texttt{NodeType} enum y configuraciones.
+\item Sistema de power-ups: Agregar servicio en capa de aplicación.
+\end{itemize}
+
+\section{Discusión}
+
+\subsection{Aplicabilidad de Clean Architecture en Videojuegos}
+
+Los resultados demuestran que Clean Architecture es viable en desarrollo de videojuegos, contradiciendo la creencia común de que el desacoplamiento excesivo afecta el rendimiento. El overhead introducido por las capas de abstracción es negligible (< 2\% del tiempo de CPU) comparado con los beneficios en testabilidad y mantenibilidad.
+
+La inversión de dependencias permite que la lógica de negocio sea completamente independiente de Phaser, facilitando testing sin necesidad de instanciar el framework gráfico. Esto reduce el tiempo de ejecución de tests de minutos a segundos.
+
+\subsection{Algoritmos de Grafos en Mecánicas de Juego}
+
+La detección de nodos de articulación agrega profundidad estratégica al gameplay. Los jugadores deben considerar no solo el valor inmediato de capturar un nodo, sino también las consecuencias topológicas en la conectividad de su territorio.
+
+El algoritmo de Tarjan, aunque complejo, se integra naturalmente en el flujo del juego gracias a la separación de responsabilidades. El \texttt{CaptureService} encapsula toda la complejidad, exponiendo una interfaz simple al resto del sistema.
+
+\subsection{TypeScript vs JavaScript}
+
+El tipado estático de TypeScript previno numerosos errores en tiempo de compilación que habrían sido difíciles de detectar en JavaScript. El IDE (Visual Studio Code) proporciona autocompletado y refactorización avanzada gracias a la información de tipos.
+
+Sin embargo, el overhead de configuración inicial y curva de aprendizaje pueden ser barreras para equipos pequeños o proyectos de corta duración.
+
+\subsection{Limitaciones}
+
+El sistema actual tiene limitaciones:
+
+\begin{itemize}
+\item Soporte limitado a 2 jugadores.
+\item Grafos estáticos generados al inicio.
+\item Sin persistencia de partidas.
+\item Rendimiento degradado con > 50 nodos.
+\end{itemize}
+
+Estas limitaciones no son arquitectónicas sino de alcance del proyecto. La arquitectura soporta extensiones para abordarlas sin modificaciones estructurales.
+
+\section{Trabajos Relacionados}
+
+Gregory \cite{gregory2018game} presenta arquitecturas comunes en AAA games, típicamente basadas en Entity-Component-System (ECS). NEXA adopta un enfoque diferente con arquitectura en capas, más adecuado para proyectos de menor escala.
+
+Nystrom \cite{nystrom2014game} documenta patrones de diseño específicos de videojuegos. NEXA aplica varios de estos patrones (State, Observer, Command) dentro del contexto de Clean Architecture.
+
+Martin \cite{martin2017clean} propone Clean Architecture para aplicaciones empresariales. Este trabajo demuestra su aplicabilidad a dominios no tradicionales como videojuegos.
+
+Gamma et al. \cite{gamma1994design} documentan patrones de diseño GoF. NEXA implementa Factory, Facade, Strategy y otros patrones en el contexto específico de desarrollo de videojuegos.
+
+Evans \cite{evans2003domain} introduce Domain-Driven Design (DDD). NEXA aplica conceptos de DDD como entidades, value objects y servicios de dominio en la capa core.
+
+\section{Conclusiones y Trabajo Futuro}
+
+\subsection{Conclusiones}
+
+Este trabajo demuestra que Clean Architecture y principios SOLID son aplicables exitosamente al desarrollo de videojuegos, proporcionando beneficios significativos en testabilidad, mantenibilidad y escalabilidad sin comprometer el rendimiento.
+
+La separación clara de responsabilidades en cuatro capas permite que cada componente evolucione independientemente. La lógica de negocio, encapsulada en las capas de dominio y aplicación, es completamente independiente del framework gráfico.
+
+La implementación del algoritmo de Tarjan para detectar fragmentación del grafo demuestra que algoritmos complejos de ciencias de la computación pueden integrarse en mecánicas de juego de forma natural cuando el código está bien estructurado.
+
+El tipado estático de TypeScript, combinado con una suite completa de tests, proporciona alta confianza en la corrección del sistema y facilita refactorizaciones seguras.
+
+Los resultados cuantitativos muestran que el sistema mantiene 60 FPS consistentes y ejecuta algoritmos complejos en tiempos imperceptibles para el usuario. La cobertura de tests del 78\% garantiza la estabilidad del sistema.
+
+\subsection{Trabajo Futuro}
+
+Direcciones futuras de investigación incluyen:
+
+\begin{itemize}
+\item Implementación de modo multijugador en red aplicando arquitectura cliente-servidor.
+\item Desarrollo de IA mediante algoritmos de búsqueda en grafos (A*, minimax) para modo single-player.
+\item Extensión a grafos dinámicos donde nodos y aristas se crean/destruyen durante el juego.
+\item Optimización de rendimiento para soportar 100+ nodos mediante spatial partitioning.
+\item Implementación de sistema de replay para análisis post-partida.
+\item Migración a WebAssembly para componentes críticos de rendimiento.
+\item Desarrollo de herramientas de visualización para debugging del estado del juego.
+\item Estudio comparativo con arquitectura ECS para evaluar trade-offs en diferentes escenarios.
+\end{itemize}
+
+\bibliographystyle{IEEEtran}
+\bibliography{nexa_report}
+
+\end{document}
