@@ -246,15 +246,17 @@ Esta capa contiene la lógica de negocio específica de NEXA, implementada como 
 
 \textbf{Servicios principales:}
 
-\texttt{TickService:} Implementa el game loop principal, ejecutándose en cada frame del juego. Actualiza la defensa de nodos, emite paquetes de energía según intervalos configurados, avanza paquetes en aristas, detecta colisiones y procesa llegadas a nodos destino.
+\begin{itemize}
+    \item \textbf{TickService:} Implementa el game loop principal, ejecutándose en cada frame del juego. Actualiza la defensa de nodos, emite paquetes de energía según intervalos configurados, avanza paquetes en aristas, detecta colisiones y procesa llegadas a nodos destino.
 
-\texttt{CollisionService:} Detecta y resuelve colisiones entre paquetes de energía. Agrupa paquetes por arista, identifica colisiones entre paquetes enemigos y aplica las reglas de resolución según magnitudes relativas.
+    \item \textbf{CollisionService:} Detecta y resuelve colisiones entre paquetes de energía. Agrupa paquetes por arista, identifica colisiones entre paquetes enemigos y aplica las reglas de resolución según magnitudes relativas.
 
-\texttt{CaptureService:} Gestiona la captura de nodos aplicando el algoritmo de Tarjan para detectar nodos de articulación. Cuando se captura un nodo crítico, identifica componentes conexas y elimina nodos desconectados del nodo inicial del jugador.
+    \item \textbf{CaptureService:} Gestiona la captura de nodos aplicando el algoritmo de Tarjan para detectar nodos de articulación. Cuando se captura un nodo crítico, identifica componentes conexas y elimina nodos desconectados del nodo inicial del jugador.
 
-\texttt{VictoryService:} Verifica continuamente las tres condiciones de victoria: dominación (70\% de nodos durante 10 segundos), tiempo límite (mayor cantidad de nodos a los 3 minutos) y eliminación (pérdida del nodo inicial).
+    \item \textbf{VictoryService:} Verifica continuamente las tres condiciones de victoria: dominación (70\% de nodos durante 10 segundos), tiempo límite (mayor cantidad de nodos a los 3 minutos) y eliminación (pérdida del nodo inicial).
 
-\texttt{GameStateManagerService:} Mantiene el estado inmutable del juego y genera snapshots para la capa de presentación sin exponer entidades mutables. Implementa el patrón Repository para acceso controlado al estado.
+    \item \textbf{GameStateManagerService:} Mantiene el estado inmutable del juego y genera snapshots para la capa de presentación sin exponer entidades mutables. Implementa el patrón Repository para acceso controlado al estado.
+\end{itemize}
 
 \subsection{Capa de Infraestructura}
 
