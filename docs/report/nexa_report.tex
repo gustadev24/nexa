@@ -8,6 +8,7 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage[spanish]{babel}
+\renewcommand{\thesubsection}{\Alph{subsection}}
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref}
 \usepackage{listings}
@@ -25,8 +26,10 @@
     frame=single,
     numbers=left,
     numberstyle=\tiny,
+    xleftmargin=3em,       % Margen izquierdo global del bloque
     captionpos=b,
-    tabsize=2
+    tabsize=2,
+    framexleftmargin=2em % Extiende el marco a la izquierda para cubrir los números
 }
 
 \begin{document}
@@ -43,35 +46,44 @@
 {\footnotesize \textsuperscript{*}Universidad Nacional de San Agustín de Arequipa}
 }
 
-\author{\IEEEauthorblockN{Luis Gustavo Sequeiros Condori}
-\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
-\textit{Universidad Nacional de San Agustín de Arequipa}\\
-Arequipa, Perú \\
-lsequeiros@unsa.edu.pe}
-\and
-\IEEEauthorblockN{Ricardo Chambilla Perca}
-\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
-\textit{Universidad Nacional de San Agustín de Arequipa}\\
-Arequipa, Perú \\
-rchambillap@unsa.edu.pe}
-\and
-\IEEEauthorblockN{Paul Cari Lipe}
-\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
-\textit{Universidad Nacional de San Agustín de Arequipa}\\
-Arequipa, Perú \\
-pcaril@unsa.edu.pe}
-\and
-\IEEEauthorblockN{Jhonathan Arias}
-\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
-\textit{Universidad Nacional de San Agustín de Arequipa}\\
-Arequipa, Perú \\
-jarias@unsa.edu.pe}
-\and
-\IEEEauthorblockN{Raquel Quispe}
-\IEEEauthorblockA{\textit{Escuela Profesional de Ingeniería de Sistemas} \\
-\textit{Universidad Nacional de San Agustín de Arequipa}\\
-Arequipa, Perú \\
-rquispe@unsa.edu.pe}
+\author{
+    % --- AUTOR 1 ---
+    \IEEEauthorblockN{Luis Gustavo Sequeiros Condori}
+    \IEEEauthorblockA{\textit{Esc. Prof. de Ingeniería de Sistemas} \\
+    \textit{Univ. Nac. de San Agustín de Arequipa}\\
+    Arequipa, Perú \\
+    lsequeiros@unsa.edu.pe}
+    \and
+    % --- AUTOR 2 ---
+    \IEEEauthorblockN{Ricardo Mauricio Chambilla Perca}
+    \IEEEauthorblockA{\textit{Esc. Prof. de Ingeniería de Sistemas} \\
+    \textit{Univ. Nac. de San Agustín de Arequipa}\\
+    Arequipa, Perú \\
+    rchambillap@unsa.edu.pe}
+    \and
+    % --- AUTOR 3 ---
+    \IEEEauthorblockN{Paul Andree Cari Lipe}
+    \IEEEauthorblockA{\textit{Esc. Prof. de Ingeniería de Sistemas} \\
+    \textit{Univ. Nac. de San Agustín de Arequipa}\\
+    Arequipa, Perú \\
+    pcaril@unsa.edu.pe}
+    
+    % --- AQUÍ ESTÁ EL TRUCO PARA BAJAR LOS SIGUIENTES ---
+    \linebreakand 
+
+    % --- AUTOR 4 ---
+    \IEEEauthorblockN{Jhonatan David Arias Quispe}
+    \IEEEauthorblockA{\textit{Esc. Prof. de Ingeniería de Sistemas} \\
+    \textit{Univ. Nac. de San Agustín de Arequipa}\\
+    Arequipa, Perú \\
+    jariasq@unsa.edu.pe}
+    \and
+    % --- AUTOR 5 ---
+    \IEEEauthorblockN{Alexandra Raquel Quispe Arratea}
+    \IEEEauthorblockA{\textit{Esc. Prof. de Ingeniería de Sistemas} \\
+    \textit{Univ. Nac. de San Agustín de Arequipa}\\
+    Arequipa, Perú \\
+    rquispe@unsa.edu.pe}
 }
 
 \maketitle
@@ -81,7 +93,7 @@ Este documento presenta NEXA, un juego de estrategia en tiempo real implementado
 \end{abstract}
 
 \begin{IEEEkeywords}
-Clean Architecture, TypeScript, Phaser 3, Teoría de Grafos, Algoritmo de Tarjan, Patrones de Diseño, Juegos en Tiempo Real, Arquitectura Hexagonal, SOLID
+Clean Architecture, TypeScript, Phaser 3, Teoría de Grafos, Algoritmo de Tarjan, Patrones de Diseño, Juegos en Tiempo Real, Arquitectura Hexagonal, SOLID, Tecnología de Objetos
 \end{IEEEkeywords}
 
 \section{Introducción}
@@ -98,7 +110,7 @@ NEXA surge como un proyecto académico que demuestra la aplicabilidad de Clean A
 
 \subsection{Motivación}
 
-La motivación principal de este proyecto es demostrar que los principios de arquitectura limpia, ampliamente adoptados en el desarrollo de aplicaciones empresariales, pueden aplicarse exitosamente al desarrollo de videojuegos sin comprometer el rendimiento ni la jugabilidad. Según Martin \cite{martin2017clean}, una arquitectura limpia debe ser independiente de frameworks, testeable, independiente de la UI, independiente de la base de datos y independiente de cualquier agente externo.
+La motivación principal de este proyecto es demostrar que los principios de arquitectura limpia y patrones de diseño, ampliamente adoptados en el desarrollo de aplicaciones empresariales, pueden aplicarse exitosamente al desarrollo de videojuegos sin comprometer el rendimiento ni la jugabilidad. Según Martin \cite{martin2017clean}, una arquitectura limpia debe ser independiente de frameworks, testeable, independiente de la UI, independiente de la base de datos y independiente de cualquier agente externo.
 
 \subsection{Objetivos}
 
@@ -246,15 +258,17 @@ Esta capa contiene la lógica de negocio específica de NEXA, implementada como 
 
 \textbf{Servicios principales:}
 
-\texttt{TickService:} Implementa el game loop principal, ejecutándose en cada frame del juego. Actualiza la defensa de nodos, emite paquetes de energía según intervalos configurados, avanza paquetes en aristas, detecta colisiones y procesa llegadas a nodos destino.
+\begin{itemize}
+    \item \textbf{TickService:} Implementa el game loop principal, ejecutándose en cada frame del juego. Actualiza la defensa de nodos, emite paquetes de energía según intervalos configurados, avanza paquetes en aristas, detecta colisiones y procesa llegadas a nodos destino.
 
-\texttt{CollisionService:} Detecta y resuelve colisiones entre paquetes de energía. Agrupa paquetes por arista, identifica colisiones entre paquetes enemigos y aplica las reglas de resolución según magnitudes relativas.
+    \item \textbf{CollisionService:} Detecta y resuelve colisiones entre paquetes de energía. Agrupa paquetes por arista, identifica colisiones entre paquetes enemigos y aplica las reglas de resolución según magnitudes relativas.
 
-\texttt{CaptureService:} Gestiona la captura de nodos aplicando el algoritmo de Tarjan para detectar nodos de articulación. Cuando se captura un nodo crítico, identifica componentes conexas y elimina nodos desconectados del nodo inicial del jugador.
+    \item \textbf{CaptureService:} Gestiona la captura de nodos aplicando el algoritmo de Tarjan para detectar nodos de articulación. Cuando se captura un nodo crítico, identifica componentes conexas y elimina nodos desconectados del nodo inicial del jugador.
 
-\texttt{VictoryService:} Verifica continuamente las tres condiciones de victoria: dominación (70\% de nodos durante 10 segundos), tiempo límite (mayor cantidad de nodos a los 3 minutos) y eliminación (pérdida del nodo inicial).
+    \item \textbf{VictoryService:} Verifica continuamente las tres condiciones de victoria: dominación (70\% de nodos durante 10 segundos), tiempo límite (mayor cantidad de nodos a los 3 minutos) y eliminación (pérdida del nodo inicial).
 
-\texttt{GameStateManagerService:} Mantiene el estado inmutable del juego y genera snapshots para la capa de presentación sin exponer entidades mutables. Implementa el patrón Repository para acceso controlado al estado.
+    \item \textbf{GameStateManagerService:} Mantiene el estado inmutable del juego y genera snapshots para la capa de presentación sin exponer entidades mutables. Implementa el patrón Repository para acceso controlado al estado.
+\end{itemize}
 
 \subsection{Capa de Infraestructura}
 
@@ -480,41 +494,43 @@ La captura de nodos sigue estos pasos:
 
 \begin{algorithm}[H]
 \caption{Proceso de Captura de Nodo}
-\begin{algorithmic}[1]
-\STATE \textbf{Input:} Nodo $target$, Paquete $packet$
-\STATE \textbf{Output:} Estado actualizado del nodo
-\STATE
-\STATE $E_{attack} \gets packet.energy \times packet.owner.attackMultiplier$
-\STATE $E_{defense} \gets target.defense \times target.defenseMultiplier$
-\STATE
-\IF{$E_{attack} > E_{defense}$}
-    \STATE $previousOwner \gets target.owner$
-    \STATE $target.owner \gets packet.owner$
-    \STATE $E_{remaining} \gets E_{attack} - E_{defense}$
-    \STATE $target.energy \gets E_{remaining}$
+\centering
+\begin{minipage}{0.95\linewidth}
+    \begin{algorithmic}[1]
+    \STATE \textbf{Input:} Nodo $target$, Paquete $packet$
+    \STATE \textbf{Output:} Estado actualizado del nodo
     \STATE
-    \STATE // Agregar energia del nodo al jugador
-    \STATE $packet.owner.energy += target.initialEnergy$
+    \STATE $E_{attack} \gets packet.energy \times packet.owner.attackMultiplier$
+    \STATE $E_{defense} \gets target.defense \times target.defenseMultiplier$
     \STATE
-    \STATE // Verificar fragmentacion
-    \IF{$isArticulationPoint(target, previousOwner)$}
-        \STATE $components \gets findConnectedComponents(previousOwner)$
-        \STATE $mainComponent \gets getComponentWithBase(previousOwner)$
-        \FORALL{$node \in previousOwner.nodes$}
-            \IF{$node \notin mainComponent$}
-                \STATE $node.owner \gets null$ // Neutralizar
-            \ENDIF
-        \ENDFOR
+    \IF{$E_{attack} > E_{defense}$}
+        \STATE $previousOwner \gets target.owner$
+        \STATE $target.owner \gets packet.owner$
+        \STATE $E_{remaining} \gets E_{attack} - E_{defense}$
+        \STATE $target.energy \gets E_{remaining}$
+        \STATE
+        \STATE // Agregar energia del nodo al jugador
+        \STATE $packet.owner.energy += target.initialEnergy$
+        \STATE
+        \STATE // Verificar fragmentacion
+        \IF{$isArticulationPoint(target, previousOwner)$}
+            \STATE $components \gets findConnectedComponents(previousOwner)$
+            \STATE $mainComponent \gets getComponentWithBase(previousOwner)$
+            \FORALL{$node \in previousOwner.nodes$}
+                \IF{$node \notin mainComponent$}
+                    \STATE $node.owner \gets null$ // Neutralizar
+                \ENDIF
+            \ENDFOR  % <--- ESTO ES LO QUE FALTABA
+        \ENDIF
+    \ELSIF{$E_{attack} = E_{defense}$}
+        \STATE $target.owner \gets null$ // Nodo neutral
+        \STATE $target.energy \gets 0$
+    \ELSE
+        \STATE $target.defense \gets E_{defense} - E_{attack}$
     \ENDIF
-\ELSIF{$E_{attack} = E_{defense}$}
-    \STATE $target.owner \gets null$ // Nodo neutral
-    \STATE $target.energy \gets 0$
-\ELSE
-    \STATE $target.defense \gets E_{defense} - E_{attack}$
-\ENDIF
-\end{algorithmic}
+    \end{algorithmic}
+\end{minipage}
 \end{algorithm}
-
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.48\textwidth]{../../assets/img/demo-3.png}}
 \caption{Gameplay mostrando distribución de energía entre nodos y paquetes en tránsito por las aristas.}
@@ -705,17 +721,6 @@ Tiempo ejecución tests & 1.8s & < 5s \\
 \end{center}
 \end{table}
 
-\subsection{Experiencia de Usuario}
-
-Pruebas con 15 usuarios revelaron:
-
-\begin{itemize}
-\item 93\% entendieron las mecánicas básicas en menos de 5 minutos.
-\item 87\% consideraron la interfaz intuitiva.
-\item 80\% reportaron que las mecánicas de fragmentación agregan profundidad estratégica.
-\item Tiempo promedio de partida: 4.5 minutos.
-\end{itemize}
-
 \subsection{Mantenibilidad}
 
 La separación en capas permitió:
@@ -742,7 +747,7 @@ La arquitectura permite extensiones futuras:
 
 \subsection{Aplicabilidad de Clean Architecture en Videojuegos}
 
-Los resultados demuestran que Clean Architecture es viable en desarrollo de videojuegos, contradiciendo la creencia común de que el desacoplamiento excesivo afecta el rendimiento. El overhead introducido por las capas de abstracción es negligible (< 2\% del tiempo de CPU) comparado con los beneficios en testabilidad y mantenibilidad.
+Los resultados demuestran que Clean Architecture es viable en desarrollo de videojuegos, contradiciendo la creencia común de que el desacoplamiento excesivo afecta el rendimiento. El overhead introducido por las capas de abstracción es negligible comparado con los beneficios en testabilidad y mantenibilidad.
 
 La inversión de dependencias permite que la lógica de negocio sea completamente independiente de Phaser, facilitando testing sin necesidad de instanciar el framework gráfico. Esto reduce el tiempo de ejecución de tests de minutos a segundos.
 
