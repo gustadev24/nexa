@@ -26,8 +26,10 @@
     frame=single,
     numbers=left,
     numberstyle=\tiny,
+    xleftmargin=3em,       % Margen izquierdo global del bloque
     captionpos=b,
-    tabsize=2
+    tabsize=2,
+    framexleftmargin=2em % Extiende el marco a la izquierda para cubrir los números
 }
 
 \begin{document}
@@ -492,41 +494,43 @@ La captura de nodos sigue estos pasos:
 
 \begin{algorithm}[H]
 \caption{Proceso de Captura de Nodo}
-\begin{algorithmic}[1]
-\STATE \textbf{Input:} Nodo $target$, Paquete $packet$
-\STATE \textbf{Output:} Estado actualizado del nodo
-\STATE
-\STATE $E_{attack} \gets packet.energy \times packet.owner.attackMultiplier$
-\STATE $E_{defense} \gets target.defense \times target.defenseMultiplier$
-\STATE
-\IF{$E_{attack} > E_{defense}$}
-    \STATE $previousOwner \gets target.owner$
-    \STATE $target.owner \gets packet.owner$
-    \STATE $E_{remaining} \gets E_{attack} - E_{defense}$
-    \STATE $target.energy \gets E_{remaining}$
+\centering
+\begin{minipage}{0.95\linewidth}
+    \begin{algorithmic}[1]
+    \STATE \textbf{Input:} Nodo $target$, Paquete $packet$
+    \STATE \textbf{Output:} Estado actualizado del nodo
     \STATE
-    \STATE // Agregar energia del nodo al jugador
-    \STATE $packet.owner.energy += target.initialEnergy$
+    \STATE $E_{attack} \gets packet.energy \times packet.owner.attackMultiplier$
+    \STATE $E_{defense} \gets target.defense \times target.defenseMultiplier$
     \STATE
-    \STATE // Verificar fragmentacion
-    \IF{$isArticulationPoint(target, previousOwner)$}
-        \STATE $components \gets findConnectedComponents(previousOwner)$
-        \STATE $mainComponent \gets getComponentWithBase(previousOwner)$
-        \FORALL{$node \in previousOwner.nodes$}
-            \IF{$node \notin mainComponent$}
-                \STATE $node.owner \gets null$ // Neutralizar
-            \ENDIF
-        \ENDFOR
+    \IF{$E_{attack} > E_{defense}$}
+        \STATE $previousOwner \gets target.owner$
+        \STATE $target.owner \gets packet.owner$
+        \STATE $E_{remaining} \gets E_{attack} - E_{defense}$
+        \STATE $target.energy \gets E_{remaining}$
+        \STATE
+        \STATE // Agregar energia del nodo al jugador
+        \STATE $packet.owner.energy += target.initialEnergy$
+        \STATE
+        \STATE // Verificar fragmentacion
+        \IF{$isArticulationPoint(target, previousOwner)$}
+            \STATE $components \gets findConnectedComponents(previousOwner)$
+            \STATE $mainComponent \gets getComponentWithBase(previousOwner)$
+            \FORALL{$node \in previousOwner.nodes$}
+                \IF{$node \notin mainComponent$}
+                    \STATE $node.owner \gets null$ // Neutralizar
+                \ENDIF
+            \ENDFOR  % <--- ESTO ES LO QUE FALTABA
+        \ENDIF
+    \ELSIF{$E_{attack} = E_{defense}$}
+        \STATE $target.owner \gets null$ // Nodo neutral
+        \STATE $target.energy \gets 0$
+    \ELSE
+        \STATE $target.defense \gets E_{defense} - E_{attack}$
     \ENDIF
-\ELSIF{$E_{attack} = E_{defense}$}
-    \STATE $target.owner \gets null$ // Nodo neutral
-    \STATE $target.energy \gets 0$
-\ELSE
-    \STATE $target.defense \gets E_{defense} - E_{attack}$
-\ENDIF
-\end{algorithmic}
+    \end{algorithmic}
+\end{minipage}
 \end{algorithm}
-
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.48\textwidth]{../../assets/img/demo-3.png}}
 \caption{Gameplay mostrando distribución de energía entre nodos y paquetes en tránsito por las aristas.}
