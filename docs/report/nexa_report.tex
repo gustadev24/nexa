@@ -705,17 +705,6 @@ Tiempo ejecución tests & 1.8s & < 5s \\
 \end{center}
 \end{table}
 
-\subsection{Experiencia de Usuario - en pruebas piloto}
-
-Pruebas con 15 usuarios revelaron:
-
-\begin{itemize}
-\item 93\% entendieron las mecánicas básicas en menos de 5 minutos.
-\item 87\% consideraron la interfaz intuitiva.
-\item 80\% reportaron que las mecánicas de fragmentación agregan profundidad estratégica.
-\item Tiempo promedio de partida: 4.5 minutos.
-\end{itemize}
-
 \subsection{Mantenibilidad}
 
 La separación en capas permitió:
@@ -742,7 +731,7 @@ La arquitectura permite extensiones futuras:
 
 \subsection{Aplicabilidad de Clean Architecture en Videojuegos}
 
-Los resultados demuestran que Clean Architecture es viable en desarrollo de videojuegos, contradiciendo la creencia común de que el desacoplamiento excesivo afecta el rendimiento. El overhead introducido por las capas de abstracción es negligible (< 2\% del tiempo de CPU) comparado con los beneficios en testabilidad y mantenibilidad.
+Los resultados demuestran que Clean Architecture es viable en desarrollo de videojuegos, contradiciendo la creencia común de que el desacoplamiento excesivo afecta el rendimiento. El overhead introducido por las capas de abstracción es negligible comparado con los beneficios en testabilidad y mantenibilidad.
 
 La inversión de dependencias permite que la lógica de negocio sea completamente independiente de Phaser, facilitando testing sin necesidad de instanciar el framework gráfico. Esto reduce el tiempo de ejecución de tests de minutos a segundos.
 
