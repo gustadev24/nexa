@@ -1,0 +1,60 @@
+# Archivos auxiliares de LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.nav
+*.snm
+*.vrb
+
+# Archivos de BibTeX
+*.bbl
+*.blg
+*.brf
+*.bcf
+*.run.xml
+
+# Archivos de índice
+*.idx
+*.ilg
+*.ind
+
+# Archivos temporales de compilación
+*.dvi
+*.ps
+
+# Archivos de backup
+*~
+*.bak
+*.swp
+*.swo
+*~$
+
+# Directorios de build
+build/
+_minted-*/
+*.pyg
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Mantener solo el PDF final
+# nexa_report.pdf se incluye en el repositorio
+# Otros PDFs temporales se ignoran
+*-draft.pdf
+*-temp.pdf
+
+# Archivos de Overleaf
+*.gz(busy)
+*.synctex.gz(busy)
+
+# Cache de latexmk
+.latexmkrc
